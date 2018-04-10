@@ -12,6 +12,10 @@
             <mu-text-field label="设置协议目录" hintText="协议目录" v-model="client_proto_path" />
             <mu-raised-button label="选择" class="demo-raised-button" primary @click="onProtoPathClick" />
         </mu-content-block>
+        <mu-content-block class="demo-raised-button-container">
+            <mu-text-field label="设置配置表目录" hintText="配置表目录" v-model="client_csv_path" />
+            <mu-raised-button label="选择" class="demo-raised-button" primary @click="onCsvPathClick" />
+        </mu-content-block>
     </div>
 </template>
 
@@ -24,7 +28,8 @@ export default {
         return {
             client_author:"",
             client_project_path: "",
-            client_proto_path:""
+            client_proto_path:"",
+            client_csv_path:""
         }
     },
     methods: {
@@ -33,6 +38,9 @@ export default {
         },
         onProtoPathClick () {
             ipcRenderer.send('open_client_proto_path');
+        },
+        onCsvPathClick () {
+            ipcRenderer.send('open_client_csv_path');
         }
     },
     watch: {
@@ -53,12 +61,19 @@ export default {
                 remote.getGlobal('sharedObject').client_proto_path = val;
                 localStorage.setItem("client_proto_path", val);
             }
+        },
+        client_csv_path: function (val, oldVal) {
+            if (val != oldVal) {
+                remote.getGlobal('sharedObject').client_csv_path = val;
+                localStorage.setItem("client_csv_path", val);
+            }
         }
     },
     mounted () {
         var client_author = localStorage.getItem("client_author");
         var client_project_path = localStorage.getItem("client_project_path");
         var client_proto_path = localStorage.getItem("client_proto_path");
+        var client_csv_path = localStorage.getItem("client_csv_path");
 
         
         if (client_author) {
@@ -70,8 +85,11 @@ export default {
         if (client_proto_path) {
             this.client_proto_path = client_proto_path;
         }
+        if(client_csv_path){
+            this.client_csv_path = client_csv_path;
+        }
 
-        ipcRenderer.removeAllListeners(['selected_client_project_path', 'selected_client_proto_path']);
+        ipcRenderer.removeAllListeners(['selected_client_project_path', 'selected_client_proto_path', 'selected_client_csv_path']);
 
         ipcRenderer.on('selected_client_project_path', function (event, path) {
             this.client_project_path = path[0];
@@ -79,6 +97,10 @@ export default {
 
         ipcRenderer.on('selected_client_proto_path', function (event, path) {
             this.client_proto_path = path[0];
+        }.bind(this));
+
+        ipcRenderer.on('selected_client_csv_path', function (event, path) {
+            this.client_csv_path = path[0];
         }.bind(this));
     }
 }

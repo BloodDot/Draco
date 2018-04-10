@@ -1,10 +1,11 @@
 <template>
     <div>
+        <mu-raised-button label="更新git文件" class="demo-snackbar-button" @click="updateGit" primary/>
+        <mu-raised-button label="合成proto文件" class="demo-snackbar-button" @click="composeProto" primary/>
         <mu-raised-button label="生成js文件" class="demo-snackbar-button" @click="createJs" primary/>
         <mu-raised-button label="生成ts文件" class="demo-snackbar-button" @click="createTs" primary/>
         <mu-raised-button label="修改ts文件" class="demo-snackbar-button" @click="modifyTs" primary/>
         <!-- <mu-raised-button label="生成javascript文件" class="demo-snackbar-button" @click="createJavascript" primary/> -->
-        <mu-raised-button label="合成proto文件" class="demo-snackbar-button" @click="composeProto" primary/>
         <!-- <mu-raised-button label="移动proto文件" class="demo-snackbar-button" @click="moveProto" primary/> -->
 
         <!-- <mu-card>
@@ -71,6 +72,7 @@ const remote = require("electron").remote;
 const fs = require("fs");
 const removeSpaces = require("strman").removeSpaces;
 const replace = require("strman").replace;
+const spawn = require("child_process").spawn;
 
 export default {
   data() {
@@ -100,13 +102,30 @@ export default {
     }
   },
   methods: {
+    updateGit() {
+      let process = spawn("git", ["pull"], { cwd: this.proto_path });
+      process.stdout.on("data", function(data) {
+        console.log("stdout: " + data);
+      });
+      process.stderr.on("data", function(data) {
+        console.log("stderr: " + data);
+      });
+      process.on("exit", function(code) {
+        if (code == 0) {
+          console.log("更新git成功,错误码:" + code);
+          ipcRenderer.send("client_show_snack", "更新git成功");
+        } else {
+          console.log("更新git错误,错误码:" + code);
+        }
+      });
+    },
     createJs() {
       var cmdStr =
         "pbjs -t static-module -w commonjs -o " +
         this.project_path +
-        "/resource/proto/message.js " +
-        this.proto_path +
-        "/message.proto";
+        "/resource/proto/pbmessage.js " +
+        this.project_path +
+        "/resource/proto/pbmessage.proto";
       exec(cmdStr, function(err, stdout, stderr) {
         if (err) {
           console.log(err);
@@ -120,9 +139,9 @@ export default {
       var cmdStr =
         "pbts -o " +
         this.project_path +
-        "/src/protocol/message.d.ts " +
+        "/src/protocol/pbmessage.d.ts " +
         this.project_path +
-        "/resource/proto/message.js";
+        "/resource/proto/pbmessage.js";
       exec(cmdStr, function(err, stdout, stderr) {
         if (err) {
           console.log(err);
@@ -133,7 +152,7 @@ export default {
       });
     },
     modifyTs() {
-      let msgptah = this.project_path + "/src/protocol/message.d.ts";
+      let msgptah = this.project_path + "/src/protocol/pbmessage.d.ts";
       let content = fs.readFileSync(msgptah, "utf-8");
       content = content.replace('import * as $protobuf from "protobufjs";', "");
       content = content.replace(
@@ -158,8 +177,8 @@ export default {
       });
     },
     moveProto() {
-      var content = fs.readFileSync(this.proto_path + "/" + "message.proto");
-      var ppath = this.project_path + "/resource/proto/message.proto";
+      var content = fs.readFileSync(this.proto_path + "/" + "pbmessage.proto");
+      var ppath = this.project_path + "/resource/proto/pbmessage.proto";
       fs.writeFile(ppath, content, function(err) {
         if (!err) {
           ipcRenderer.send("client_show_message", "移动proto成功");
@@ -171,10 +190,6 @@ export default {
       var content = "";
       content += "syntax = 'proto3';\r\n";
       content += "package Bian;\r\n";
-      var eleContent = fs.readFileSync(
-        this.proto_path + "/" + "alist.md",
-        "utf-8"
-      );
       for (let i = 0; i < pa.length; i++) {
         const element = pa[i];
         if (element.indexOf(".proto") != -1) {
@@ -201,46 +216,8 @@ export default {
           content += eleContent + "\n";
         }
       }
-      // var content = "";
-      // content += "syntax = 'proto3';\r\n";
-      // content += "package Bian;\r\n";
-      // var eleContent = fs.readFileSync(
-      //   this.proto_path + "/" + "alist.md",
-      //   "utf-8"
-      // );
-      // let protos = eleContent.split("import");
-      // for (let i = 0; i < protos.length; i++) {
-      //   const element = protos[i];
-      //   let str = removeSpaces(element);
 
-      //   let reg = new RegExp(/(;)|(\")|(\/\/.*)|(\/\*[\s\S]*?\*\/)/g);
-      //   str = str.replace(reg, "");
-      //   if (str != "") {
-      //     var eleContent = fs.readFileSync(
-      //       this.proto_path + "/" + str,
-      //       "utf-8"
-      //     );
-
-      //     eleContent = eleContent
-      //       .split("\n")
-      //       .filter(i => {
-      //         return i.indexOf("import") !== 0;
-      //       })
-      //       .join("\n");
-
-      //     eleContent = eleContent.replace("syntax = 'proto3';", "");
-      //     eleContent = eleContent.replace("package Bian;", "");
-
-      //     eleContent = eleContent.replace(
-      //       "option go_package = 'pbmessage';",
-      //       ""
-      //     );
-      //     content += "// ----- from " + str + " ---- \n";
-      //     content += eleContent + "\n";
-      //   }
-      // }
-
-      var ppath = this.project_path + "/resource/proto/game.proto";
+      var ppath = this.project_path + "/resource/proto/pbmessage.proto";
       fs.writeFile(ppath, content, function(err) {
         if (!err) {
           ipcRenderer.send("client_show_message", "合成proto成功");

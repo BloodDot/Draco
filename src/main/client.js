@@ -57,6 +57,14 @@ exports.init = function (mainWindow) {
         })
     })
 
+    ipcMain.on('open_client_csv_path', function (event) {
+        dialog.showOpenDialog({
+            properties: ['openFile', 'openDirectory']
+        }, function (files) {
+            event.sender.send('selected_client_csv_path', files);
+        })
+    })
+
     ipcMain.on('open_client_modify_edition_path', function (event) {
         dialog.showOpenDialog({
             properties: ['openFile']

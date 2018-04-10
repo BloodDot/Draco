@@ -16,6 +16,10 @@
                         <mu-icon slot="left" value="swap_vert" />
                     </mu-list-item>
 
+                     <mu-list-item title="Csv" value="ClientCsv">
+                        <mu-icon slot="left" value="extension" />
+                    </mu-list-item>
+
                     <!-- <mu-list-item title="Version" value="ClientVersion">
                         <mu-icon slot="left" value="forward" />
                     </mu-list-item> -->
@@ -56,6 +60,7 @@ export default {
       client_author: "",
       client_project_path: "",
       client_proto_path: "",
+      client_csv_path: "",
       client_modify_edition_path: "",
       client_compile_code_path: "",
       client_generate_eidtion_path: "",
@@ -91,6 +96,7 @@ export default {
   },
   components: {
     ClientModule: require("./Client/ClientModule"),
+    ClientCsv: require("./Client/ClientCsv"),
     ClientProto: require("./Client/ClientProto"),
     ClientSetting: require("./Client/ClientSetting"),
     ClientVersion: require("./Client/ClientVersion")
@@ -99,6 +105,8 @@ export default {
     this.client_author = localStorage.getItem("client_author");
     this.client_project_path = localStorage.getItem("client_project_path");
     this.client_proto_path = localStorage.getItem("client_proto_path");
+    this.client_csv_path = localStorage.getItem("client_csv_path");
+
     this.client_modify_edition_path = localStorage.getItem(
       "client_modify_edition_path"
     );
@@ -125,6 +133,9 @@ export default {
       remote.getGlobal(
         "sharedObject"
       ).client_proto_path = this.client_proto_path;
+    }
+    if (this.client_csv_path) {
+      remote.getGlobal("sharedObject").client_csv_path = this.client_csv_path;
     }
 
     if (this.client_modify_edition_path) {

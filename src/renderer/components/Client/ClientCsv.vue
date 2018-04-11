@@ -148,10 +148,10 @@ export default {
 
         let preContent =
           "/**\r\n" +
-          " * " +
+          " * @author 雪糕\r\n" +
+          " * @desc " +
           name +
           "表结构体\r\n" +
-          " * @author 雪糕\r\n" +
           " *\r\n" +
           " */\r\n" +
           "class " +
@@ -198,10 +198,10 @@ export default {
       function createTable(name, callBack) {
         let content =
           "/**\r\n" +
-          " * " +
+          " * @author 雪糕\r\n" +
+          " * @desc " +
           name +
           "表\r\n" +
-          " * @author 雪糕\r\n" +
           " *\r\n" +
           " */\r\n" +
           "class " +

@@ -208,10 +208,7 @@ export default {
           eleContent = eleContent.replace("syntax = 'proto3';", "");
           eleContent = eleContent.replace("package Bian;", "");
 
-          eleContent = eleContent.replace(
-            "option go_package = 'pbmessage';",
-            ""
-          );
+          eleContent = eleContent.replace("option go_package Bian;", "");
           content += "// ----- from " + element + " ---- \n";
           content += eleContent + "\n";
         }

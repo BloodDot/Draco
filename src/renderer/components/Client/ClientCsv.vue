@@ -177,6 +177,9 @@ export default {
               case "string":
                 type = "string";
                 break;
+              case "bool":
+                type = "boolean";
+                break;
               default:
                 type = "any";
                 break;
@@ -185,10 +188,10 @@ export default {
             type = "any";
           }
 
-          let attrstr = "\tpublic " + attrs[i] + ": " + type + ";\r\n";
-
-          centerContent += "\t/** " + desc + " */\r\n";
-          centerContent += "\tpublic " + attrs[i] + ": " + type + ";\r\n";
+          if (attrs[i] != "null") {
+            centerContent += "\t/** " + desc + " */\r\n";
+            centerContent += "\tpublic " + attrs[i] + ": " + type + ";\r\n";
+          }
         }
 
         content = preContent + centerContent + endContent;

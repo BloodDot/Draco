@@ -16,6 +16,10 @@
             <mu-text-field label="设置配置表目录" hintText="配置表目录" v-model="client_csv_path" />
             <mu-raised-button label="选择" class="demo-raised-button" primary @click="onCsvPathClick" />
         </mu-content-block>
+         <mu-content-block class="demo-raised-button-container">
+            <mu-text-field label="设置纹理目录" hintText="纹理目录" v-model="client_texture_path" />
+            <mu-raised-button label="选择" class="demo-raised-button" primary @click="onTexturePathClick" />
+        </mu-content-block>
     </div>
 </template>
 
@@ -29,7 +33,8 @@ export default {
             client_author:"",
             client_project_path: "",
             client_proto_path:"",
-            client_csv_path:""
+            client_csv_path:"",
+            client_texture_path:"",
         }
     },
     methods: {
@@ -41,55 +46,46 @@ export default {
         },
         onCsvPathClick () {
             ipcRenderer.send('open_client_csv_path');
-        }
+        },
+        onTexturePathClick () {
+            ipcRenderer.send('open_client_texture_path');
+        },
     },
     watch: {
         client_author: function (val, oldVal) {
             if (val != oldVal) {
-                remote.getGlobal('sharedObject').client_author = val;
                 localStorage.setItem("client_author", val);
             }
         },
         client_project_path: function (val, oldVal) {
             if (val != oldVal) {
-                remote.getGlobal('sharedObject').client_project_path = val;
                 localStorage.setItem("client_project_path", val);
             }
         },
         client_proto_path: function (val, oldVal) {
             if (val != oldVal) {
-                remote.getGlobal('sharedObject').client_proto_path = val;
                 localStorage.setItem("client_proto_path", val);
             }
         },
         client_csv_path: function (val, oldVal) {
             if (val != oldVal) {
-                remote.getGlobal('sharedObject').client_csv_path = val;
                 localStorage.setItem("client_csv_path", val);
             }
-        }
+        },
+        client_texture_path: (val,oldVal)=>{
+            if (val != oldVal) {
+                localStorage.setItem("client_texture_path", val);
+            }
+        },
     },
     mounted () {
-        var client_author = localStorage.getItem("client_author");
-        var client_project_path = localStorage.getItem("client_project_path");
-        var client_proto_path = localStorage.getItem("client_proto_path");
-        var client_csv_path = localStorage.getItem("client_csv_path");
+        this.client_author = localStorage.getItem("client_author");
+        this.client_project_path = localStorage.getItem("client_project_path");
+        this.client_proto_path = localStorage.getItem("client_proto_path");
+        this.client_csv_path = localStorage.getItem("client_csv_path");
+        this.client_texture_path = localStorage.getItem("client_texture_path");
 
-        
-        if (client_author) {
-            this.client_author = client_author;
-        }
-        if (client_project_path) {
-            this.client_project_path = client_project_path;
-        }
-        if (client_proto_path) {
-            this.client_proto_path = client_proto_path;
-        }
-        if(client_csv_path){
-            this.client_csv_path = client_csv_path;
-        }
-
-        ipcRenderer.removeAllListeners(['selected_client_project_path', 'selected_client_proto_path', 'selected_client_csv_path']);
+        ipcRenderer.removeAllListeners(['selected_client_project_path', 'selected_client_proto_path', 'selected_client_csv_path', 'selected_client_texture_path']);
 
         ipcRenderer.on('selected_client_project_path', function (event, path) {
             this.client_project_path = path[0];
@@ -101,6 +97,10 @@ export default {
 
         ipcRenderer.on('selected_client_csv_path', function (event, path) {
             this.client_csv_path = path[0];
+        }.bind(this));
+
+         ipcRenderer.on('selected_client_texture_path', function (event, path) {
+            this.client_texture_path = path[0];
         }.bind(this));
     }
 }

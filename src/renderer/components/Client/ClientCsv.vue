@@ -59,21 +59,6 @@ export default {
       for (let i = 0; i < pa.length; i++) {
         const element = pa[i];
         if (element.indexOf(".csv") != -1) {
-          // fs.writeFileSync(
-          //   this.project_path + "/resource/csv/" + element,
-          //   fs.readFileSync(this.csv_path + "/" + element),
-          //   function(err) {
-          //     if (err) {
-          //       ipcRenderer.send(
-          //         "client_show_snack",
-          //         "复制" + element + "失败,错误码:" + err
-          //       );
-          //     } else {
-          //       console.log("复制" + element + "成功");
-          //     }
-          //   }
-          // );
-
           archive.append(fs.createReadStream(this.csv_path + "/" + element), {
             name: element
           });
@@ -99,6 +84,13 @@ export default {
           let data = fs.readFileSync(this.csv_path + "/" + element);
           let buffer = new Buffer(data, "gbk");
           data = iconv.decode(buffer, "gbk");
+
+          if (!data) {
+            let content = name + "表数据为空";
+            alert(content);
+            throw content;
+          }
+
           let clsName = toStudlyCaps(element.split(".csv")[0]);
           createCell(clsName, data, content => {
             fs.writeFile(
@@ -160,9 +152,27 @@ export default {
         let endContent = "\tpublic constructor() {\r\n" + "\t}\r\n" + "}";
         let centerContent = "";
         let rows = data.split("\r\n");
+        if (rows.length < 3) {
+          let content = name + "表数据格式错误";
+          alert(content);
+          throw content;
+        }
         let descs = rows[0].split(",");
         let attrs = rows[1].split(",");
         let types = rows[2].split(",");
+        if (
+          !descs ||
+          descs.length == 0 ||
+          !attrs ||
+          attrs.length == 0 ||
+          !types ||
+          types.length == 0
+        ) {
+          let content = name + "表数据格式错误";
+          alert(content);
+          throw content;
+        }
+
         for (let i = 0; i < attrs.length; i++) {
           if (attrs[i] === "") {
             continue;
@@ -172,6 +182,7 @@ export default {
           if (types[i]) {
             switch (types[i]) {
               case "int":
+              case "float":
                 type = "number";
                 break;
               case "string":
@@ -180,7 +191,30 @@ export default {
               case "bool":
                 type = "boolean";
                 break;
+
+              case "int[]":
+              case "float[]":
+                type = "number[]";
+                break;
+              case "int[][]":
+              case "float[][]":
+                type = "number[][]";
+                break;
+              case "string[]":
+                type = "string[]";
+                break;
+              case "string[][]":
+                type = "string[][]";
+                break;
+              case "null":
+                type = "any";
+                break;
+
               default:
+                let content = name + "表里有未知类型";
+                alert(content);
+                throw content;
+                return;
                 type = "any";
                 break;
             }
@@ -237,19 +271,31 @@ export default {
           "		this._cells = data;\r\n" +
           "	}\r\n" +
           "\r\n" +
-          "	public getCellById(id: number): " +
+          "\tpublic getCellById(id: number): " +
           name +
           "Cell {\r\n" +
-          "		for (let i: number = 0; i < this._cells.length; i++) {\r\n" +
-          "			let cell: " +
+          "\t\tlet cell = this.tryCellById(id);\r\n" +
+          "\t\tif (!cell) {\r\n" +
+          "\t\t\tLogger.log('" +
+          name +
+          "Table id: ' + id + ' is null');\r\n" +
+          "\t\t}\r\n" +
+          "\t\treturn cell;\r\n" +
+          "\t}\r\n" +
+          "\r\n" +
+          "\tpublic tryCellById(id: number): " +
+          name +
+          "Cell {\r\n" +
+          "\t\tfor (let i: number = 0; i < this._cells.length; i++) {\r\n" +
+          "\t\t\tlet cell: " +
           name +
           "Cell = this._cells[i];\r\n" +
-          "			if (cell.id === id) {\r\n" +
-          "				return cell;\r\n" +
-          "			}\r\n" +
-          "		}\r\n" +
-          "		return null;\r\n" +
-          "	}\r\n" +
+          "\t\t\tif (cell.id === id) {\r\n" +
+          "\t\t\t\treturn cell;\r\n" +
+          "\t\t\t}\r\n" +
+          "\t\t}\r\n" +
+          "\t\treturn null;\r\n" +
+          "\t}\r\n" +
           "}\r\n";
 
         callBack(content);
@@ -258,7 +304,6 @@ export default {
   },
   mounted() {
     this.project_path = localStorage.getItem("client_project_path");
-    this.proto_path = localStorage.getItem("client_proto_path");
     this.csv_path = localStorage.getItem("client_csv_path");
   }
 };

@@ -318,8 +318,6 @@ export default {
     this.project_path = localStorage.getItem("client_project_path");
     this.proto_path = localStorage.getItem("client_proto_path");
 
-    // this.project_path = remote.getGlobal("sharedObject").client_project_path;
-    // this.proto_path = remote.getGlobal("sharedObject").client_proto_path;
     this.game_modules = remote.getGlobal("sharedObject").client_modules;
     this.proto_modules = remote.getGlobal("sharedObject").proto_modules;
     this.protoFiles = remote.getGlobal("sharedObject").proto_files;

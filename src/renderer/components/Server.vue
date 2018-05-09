@@ -73,15 +73,6 @@ export default {
     var author = localStorage.getItem("client_author");
     var project_path = localStorage.getItem("client_project_path");
     var proto_path = localStorage.getItem("client_proto_path");
-    if (author) {
-      remote.getGlobal("sharedObject").client_author = author;
-    }
-    if (project_path) {
-      remote.getGlobal("sharedObject").client_project_path = project_path;
-    }
-    if (proto_path) {
-      remote.getGlobal("sharedObject").client_proto_path = proto_path;
-    }
 
     ipcRenderer.on(
       "client_show_message",

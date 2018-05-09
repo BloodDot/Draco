@@ -152,7 +152,6 @@ export default {
   },
   mounted() {
     this.tableData = remote.getGlobal("sharedObject").client_modules;
-    console.log(this.tableData);
 
     ipcRenderer.removeAllListeners([
       "client_init_complete",

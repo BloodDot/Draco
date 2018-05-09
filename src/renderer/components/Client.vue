@@ -16,8 +16,12 @@
                         <mu-icon slot="left" value="swap_vert" />
                     </mu-list-item>
 
-                     <mu-list-item title="Csv" value="ClientCsv">
+                    <mu-list-item title="Csv" value="ClientCsv">
                         <mu-icon slot="left" value="extension" />
+                    </mu-list-item>
+
+                    <mu-list-item title="Texture" value="ClientTexture">
+                        <mu-icon slot="left" value="crop_original" />
                     </mu-list-item>
 
                     <!-- <mu-list-item title="Version" value="ClientVersion">
@@ -98,6 +102,7 @@ export default {
     ClientModule: require("./Client/ClientModule"),
     ClientCsv: require("./Client/ClientCsv"),
     ClientProto: require("./Client/ClientProto"),
+    ClientTexture: require("./Client/ClientTexture"),
     ClientSetting: require("./Client/ClientSetting"),
     ClientVersion: require("./Client/ClientVersion")
   },
@@ -120,44 +125,6 @@ export default {
     this.client_remote_assets_path = localStorage.getItem(
       "client_remote_assets_path"
     );
-
-    if (this.client_author) {
-      remote.getGlobal("sharedObject").client_author = this.client_author;
-    }
-    if (this.client_project_path) {
-      remote.getGlobal(
-        "sharedObject"
-      ).client_project_path = this.client_project_path;
-    }
-    if (this.client_proto_path) {
-      remote.getGlobal(
-        "sharedObject"
-      ).client_proto_path = this.client_proto_path;
-    }
-    if (this.client_csv_path) {
-      remote.getGlobal("sharedObject").client_csv_path = this.client_csv_path;
-    }
-
-    if (this.client_modify_edition_path) {
-      remote.getGlobal(
-        "sharedObject"
-      ).client_modify_edition_path = this.client_modify_edition_path;
-    }
-    if (this.client_compile_code_path) {
-      remote.getGlobal(
-        "sharedObject"
-      ).client_compile_code_path = this.client_compile_code_path;
-    }
-    if (this.client_generate_eidtion_path) {
-      remote.getGlobal(
-        "sharedObject"
-      ).client_generate_eidtion_path = this.client_generate_eidtion_path;
-    }
-    if (this.client_remote_assets_path) {
-      remote.getGlobal(
-        "sharedObject"
-      ).client_remote_assets_path = this.client_remote_assets_path;
-    }
 
     ipcRenderer.on(
       "client_show_message",

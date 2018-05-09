@@ -65,6 +65,14 @@ exports.init = function (mainWindow) {
         })
     })
 
+    ipcMain.on('open_client_texture_path', function (event) {
+        dialog.showOpenDialog({
+            properties: ['openFile', 'openDirectory']
+        }, function (files) {
+            event.sender.send('selected_client_texture_path', files);
+        })
+    })
+
     ipcMain.on('open_client_modify_edition_path', function (event) {
         dialog.showOpenDialog({
             properties: ['openFile']
@@ -961,13 +969,6 @@ exports.init = function (mainWindow) {
     }
 
     global.sharedObject = {
-        client_author: "",
-        client_project_path: "",
-        client_proto_path: "",
-        client_modify_edition_path: "",
-        client_compile_code_path: "",
-        client_generate_eidtion_path: "",
-        client_remote_assets_path: "",
         client_modules: [],
         proto_modules: [],
         proto_files: [],

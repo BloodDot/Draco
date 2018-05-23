@@ -13,8 +13,8 @@ const iconv = require("iconv-lite");
 const fs = require("fs");
 const PNG = require("pngjs").PNG;
 const jimp = require("jimp");
-const input_suffix_path = "/TextureInput/object";
-const output_suffix_path = "/TextureOutput/object";
+const input_suffix_path = "/TextureInput/item";
+const output_suffix_path = "/TextureOutput/item";
 const object_csv = "/Object.csv";
 export default {
   data() {
@@ -42,24 +42,31 @@ export default {
         const element = this.objectCells[i];
         let id = element.id;
         let area = element.area;
+        let texture = element.texture;
 
+        let filePath = input_path + "/" + texture + ".png";
+
+        if (!fs.existsSync(filePath)) {
+          //文件不存在
+          continue;
+        }
         jimp
-          .read(input_path + "/" + id + ".png")
+          .read(filePath)
           .then(oimg => {
             let iw = oimg.bitmap.width;
             let ih = oimg.bitmap.height;
             let th = 60;
             let tw = 120;
-            let high = element.tileHigh;
+            let high = element.objectHigh;
             let lengthY = high + th;
             let lengthX = 0;
-            let trow = 0;
-            let tcol = 2;
-            let ox = iw - tcol * tw / 2 - tw / 2;
+            let trow = area.length;
+            let tcol = area[0].length;
+            let ox = iw - trow * tw / 2 - tw / 2;
             let oy = ih - th - high;
 
             if (area.length == 1 && area[0].length == 1) {
-              oimg.write(output_path + "/" + id + ".png");
+              oimg.write(output_path + "/" + texture + ".png");
               return;
             }
 
@@ -83,14 +90,22 @@ export default {
                   cx,
                   cy
                 );
-                aimg.write(output_path + "/" + id + "_" + m + "_" + n + ".png");
+                aimg.write(
+                  output_path + "/" + texture + "_" + m + "_" + n + ".png"
+                );
               }
             }
           })
           .catch(function(err) {
-            console.error(err);
+            console.error("切割图片失败,错误码:" + err);
+            ipcRenderer.send(
+              "client_show_message",
+              "切割图片失败,错误码:" + err
+            );
           });
       }
+
+      ipcRenderer.send("client_show_message", "切割图片成功");
     },
     createPng(oimg, iw, ih, tw, th, high, lengthX, lengthY, cx, cy) {
       let type = 1;

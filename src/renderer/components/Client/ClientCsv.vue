@@ -276,7 +276,7 @@ export default {
           "Cell {\r\n" +
           "\t\tlet cell = this.tryCellById(id);\r\n" +
           "\t\tif (!cell) {\r\n" +
-          "\t\t\tLogger.log('" +
+          "\t\t\tLogger.log(LOG_TAG.Config, '" +
           name +
           "Table id: ' + id + ' is null');\r\n" +
           "\t\t}\r\n" +

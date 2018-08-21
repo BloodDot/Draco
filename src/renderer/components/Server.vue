@@ -28,7 +28,7 @@
             Draco ©2018 Created by Muse-UI
         </div>
 
-        <mu-toast v-if="toast" :message="toastContent" @close="hideToast" />
+        <mu-snackbar v-if="toast" :message="toastContent" @close="hideToast" />
     </div>
 </template>
 <script>

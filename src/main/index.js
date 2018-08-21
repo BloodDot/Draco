@@ -52,11 +52,11 @@ let template = [{
   submenu: [{
     label: '重载',
     accelerator: 'CmdOrCtrl+R',
-    click: function (item, focusedWindow) {
+    click: (item, focusedWindow) => {
       if (focusedWindow) {
         // 重载之后, 刷新并关闭所有的次要窗体
         if (focusedWindow.id === 1) {
-          BrowserWindow.getAllWindows().forEach(function (win) {
+          BrowserWindow.getAllWindows().forEach((win) => {
             if (win.id > 1) {
               win.close()
             }
@@ -67,28 +67,28 @@ let template = [{
     }
   }, {
     label: '切换全屏',
-    accelerator: (function () {
+    accelerator: (() => {
       if (process.platform === 'darwin') {
         return 'Ctrl+Command+F'
       } else {
         return 'F11'
       }
     })(),
-    click: function (item, focusedWindow) {
+    click: (item, focusedWindow) => {
       if (focusedWindow) {
         focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
       }
     }
   }, {
     label: '切换开发者工具',
-    accelerator: (function () {
+    accelerator: (() => {
       if (process.platform === 'darwin') {
         return 'Alt+Command+I'
       } else {
         return 'Ctrl+Shift+I'
       }
     })(),
-    click: function (item, focusedWindow) {
+    click: (item, focusedWindow) => {
       if (focusedWindow) {
         focusedWindow.toggleDevTools()
       }
@@ -112,7 +112,7 @@ let template = [{
     accelerator: 'CmdOrCtrl+Shift+T',
     enabled: false,
     key: 'reopenMenuItem',
-    click: function () {
+    click: () => {
       app.emit('activate')
     }
   }]
@@ -121,7 +121,7 @@ let template = [{
   role: 'help',
   submenu: [{
     label: '关于',
-    click: function () {
+    click: () => {
       // electron.shell.openExternal('http://electron.atom.io')
     }
   }]
@@ -142,7 +142,7 @@ function addUpdateMenuItems(items, position) {
     label: '检查更新',
     visible: false,
     key: 'checkForUpdate',
-    click: function () {
+    click: () => {
       require('electron').autoUpdater.checkForUpdates()
     }
   }, {
@@ -150,7 +150,7 @@ function addUpdateMenuItems(items, position) {
     enabled: true,
     visible: false,
     key: 'restartToUpdate',
-    click: function () {
+    click: () => {
       require('electron').autoUpdater.quitAndInstall()
     }
   }]
@@ -163,9 +163,9 @@ function findReopenMenuItem() {
   if (!menu) return
 
   let reopenMenuItem
-  menu.items.forEach(function (item) {
+  menu.items.forEach((item) => {
     if (item.submenu) {
-      item.submenu.items.forEach(function (item) {
+      item.submenu.items.forEach((item) => {
         if (item.key === 'reopenMenuItem') {
           reopenMenuItem = item
         }
@@ -206,7 +206,7 @@ if (process.platform === 'darwin') {
     }, {
       label: '退出',
       accelerator: 'Command+Q',
-      click: function () {
+      click: () => {
         app.quit()
       }
     }]

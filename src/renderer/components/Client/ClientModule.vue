@@ -1,7 +1,7 @@
 <template>
     <div>
-        <mu-raised-button label="创建模块" class="demo-snackbar-button" @click="showModuleDialog" primary/>
-        <mu-raised-button label="创建窗体" class="demo-snackbar-button" @click="showWindowDialog" primary/>
+        <mu-button label="创建模块" class="demo-snackbar-button" @click="showModuleDialog" primary/>
+        <mu-button label="创建窗体" class="demo-snackbar-button" @click="showWindowDialog" primary/>
         <mu-sub-header>模块列表</mu-sub-header>
         <mu-table :fixedHeader="fixedHeader" :height="tableHeight" :enableSelectAll="enableSelectAll" :multiSelectable="multiSelectable" :selectable="selectable" :showCheckbox="showCheckbox">
             <mu-thead>
@@ -158,19 +158,13 @@ export default {
       "client_module_refresh_complete"
     ]);
 
-    ipcRenderer.on(
-      "client_init_complete",
-      function(event, modules) {
-        this.tableData = modules;
-      }.bind(this)
-    );
+    ipcRenderer.on("client_init_complete", (event, modules) => {
+      this.tableData = modules;
+    });
 
-    ipcRenderer.on(
-      "client_module_refresh_complete",
-      function(event, modules) {
-        this.tableData = modules;
-      }.bind(this)
-    );
+    ipcRenderer.on("client_module_refresh_complete", (event, modules) => {
+      this.tableData = modules;
+    });
   }
 };
 </script>

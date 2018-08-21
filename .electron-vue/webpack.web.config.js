@@ -36,6 +36,14 @@ let webConfig = {
         })
       },
       {
+        test: /\.less$/,
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { importLoaders: 1 } },
+          'less-loader'
+        ]
+      },
+      {
         test: /\.html$/,
         use: 'vue-html-loader'
       },

@@ -36,11 +36,11 @@
                   <mu-list-item-title>Texture</mu-list-item-title>
                 </mu-list-item>
 
-                <mu-list-item button :ripple="false" value="ClientVersion">
+                <mu-list-item button :ripple="false" value="ClientPublish">
                   <mu-list-item-action>
                     <mu-icon slot="left" value="timeline" />
                   </mu-list-item-action>
-                  <mu-list-item-title>Version</mu-list-item-title>
+                  <mu-list-item-title>Publish</mu-list-item-title>
                 </mu-list-item>
 
                 <!-- <mu-list-item button :ripple="false" value="ClientTest">
@@ -153,7 +153,7 @@ export default {
     ClientTexture: require("./Client/ClientTexture"),
     ClientSetting: require("./Client/ClientSetting"),
     ClientTest: require("./Client/ClientTest"),
-    ClientVersion: require("./Client/ClientVersion")
+    ClientPublish: require("./Client/ClientPublish")
   },
   mounted() {
     // this.client_author = localStorage.getItem("client_author");

@@ -408,7 +408,6 @@ export default {
             ipcRenderer.send("client_show_snack", "处理纹理错误:" + inputs);
             reject();
           } else {
-            this.isPackerTextureLoading = false;
             ipcRenderer.send("client_show_message", "处理纹理成功:" + inputs);
             resolve();
           }

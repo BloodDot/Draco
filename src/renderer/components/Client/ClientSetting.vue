@@ -35,6 +35,15 @@
                 </mu-list-item-action>
             </mu-list-item>
 
+            <mu-list-item>
+                <mu-list-item-content>
+                    <mu-text-field class="text-setting" label="设置发布目录" v-model="client_publish_path" label-float />
+                </mu-list-item-content>
+                <mu-list-item-action>
+                    <mu-button color="cyan500" @click="onPublishPathClick">选择</mu-button>
+                </mu-list-item-action>
+            </mu-list-item>
+
             <!-- <mu-list-item>
                 <mu-list-item-content>
                     <mu-text-field label="设置配置表目录" hintText="配置表目录" v-model="client_csv_path" />
@@ -68,6 +77,7 @@ export default {
             client_project_path: "",
             client_proto_path:"",
             client_svn_path:"",
+            client_publish_path:"",
         }
     },
     methods: {
@@ -79,6 +89,9 @@ export default {
         },
         onSvnPathClick(){
             ipcRenderer.send('open_client_svn_path');
+        },
+        onPublishPathClick(){
+            ipcRenderer.send('open_client_publish_path');
         },
     },
     watch: {
@@ -102,25 +115,43 @@ export default {
                 localStorage.setItem("client_svn_path", val);
             }
         },
+        client_publish_path: (val,oldVal) => {
+            if (val != oldVal) {
+                localStorage.setItem("client_publish_path", val);
+            }
+        },
     },
     mounted () {
         this.client_author = localStorage.getItem("client_author");
         this.client_project_path = localStorage.getItem("client_project_path");
         this.client_proto_path = localStorage.getItem("client_proto_path");
         this.client_svn_path = localStorage.getItem("client_svn_path");
+        this.client_publish_path = localStorage.getItem("client_publish_path");
 
-        ipcRenderer.removeAllListeners(['selected_client_project_path', 'selected_client_proto_path', 'selected_client_svn_path']);
+        ipcRenderer.removeAllListeners(['selected_client_project_path', 'selected_client_proto_path', 'selected_client_svn_path', 'selected_client_publish_path']);
 
         ipcRenderer.on('selected_client_project_path', (event, path) => {
-            this.client_project_path = path[0];
+            if(path){
+                this.client_project_path = path[0];
+            }
         }),
 
         ipcRenderer.on('selected_client_proto_path', (event, path) => {
-            this.client_proto_path = path[0];
+            if(path){
+                this.client_proto_path = path[0];
+            }
         });
 
         ipcRenderer.on('selected_client_svn_path', (event, path) => {
-            this.client_svn_path = path[0];
+            if(path){
+                this.client_svn_path = path[0];
+            }
+        });
+
+        ipcRenderer.on('selected_client_publish_path', (event, path) => {
+            if(path){
+                this.client_publish_path = path[0];
+            }
         });
     }
 }

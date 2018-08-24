@@ -70,6 +70,14 @@ exports.init = (mainWindow) => {
         })
     })
 
+    ipcMain.on('open_client_publish_path', (event) => {
+        dialog.showOpenDialog({
+            properties: ['openFile', 'openDirectory']
+        }, (files) => {
+            event.sender.send('selected_client_publish_path', files);
+        })
+    })
+
     ipcMain.on('open_new_version_path', (event) => {
         dialog.showOpenDialog({
             properties: ['openFile', 'openDirectory']

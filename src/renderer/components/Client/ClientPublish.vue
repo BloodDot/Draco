@@ -160,12 +160,38 @@ export default {
       this.isMergeVersionLoading = true;
 
       try {
+        let versionListContent = await fs.readFileSync(
+          this.publish_path + "/versionList.json",
+          "utf-8"
+        );
+        let versionList = JSON.parse(versionListContent);
+        if (versionList.versionList.indexOf(this.new_version) == -1) {
+          versionList.versionList.push(this.new_version);
+          versionListContent = JSON.stringify(versionList);
+        }
+
         if (this.old_version) {
+          // await this.mergeVersion(this.new_version, this.old_version, true);
+          versionList.versionList = versionList.versionList.sort((a, b) => {
+            return a <= b ? -1 : 1;
+          });
+          for (const iterator of versionList.versionList) {
+            if (this.old_version < iterator && iterator < this.new_version) {
+              await this.mergeVersion(this.new_version, iterator, false);
+            }
+          }
+
           await this.mergeVersion(this.new_version, this.old_version, true);
         } else {
           await this.mergeVersion(this.new_version, null, true);
         }
+
+        await fs.writeFileSync(
+          this.publish_path + "/versionList.json",
+          versionListContent
+        );
         this.isMergeVersionLoading = false;
+        ipcRenderer.send("client_show_message", "比较版本成功");
       } catch (error) {
         this.isMergeVersionLoading = false;
         ipcRenderer.send("client_show_snack", "比较版本错误:" + error);
@@ -179,9 +205,16 @@ export default {
       }
 
       let patchPath;
+      let oldVersionPath;
       if (oldVersion) {
         patchPath =
           this.publish_path + "/patch_v" + oldVersion + "-" + newVersion;
+        oldVersionPath = this.publish_path + "/release_v" + oldVersion;
+        let exists = await fs.existsSync(oldVersionPath);
+        if (!exists) {
+          console.error("不存在版本:" + oldVersionPath);
+          return;
+        }
       } else {
         patchPath = this.publish_path + "/patch_v" + newVersion;
       }
@@ -259,7 +292,8 @@ export default {
             releasePath,
             patchPath,
             oldVersion,
-            newVersion
+            newVersion,
+            oldVersionPath
           );
 
           //default.res.json
@@ -268,7 +302,8 @@ export default {
             newVersion,
             releasePath,
             patchPath,
-            oldVersion
+            oldVersion,
+            oldVersionPath
           );
 
           //mapData.res.json
@@ -277,28 +312,11 @@ export default {
             newVersion,
             releasePath,
             patchPath,
-            oldVersion
+            oldVersion,
+            oldVersionPath
           );
         }
-
-        let versionListContent = await fs.readFileSync(
-          this.publish_path + "/versionList.json",
-          "utf-8"
-        );
-        let versionList = JSON.parse(versionListContent);
-        if (versionList.versionList.indexOf(this.new_version) == -1) {
-          versionList.versionList.push(this.new_version);
-          versionListContent = JSON.stringify(versionList);
-          await fs.writeFileSync(
-            this.publish_path + "/versionList.json",
-            versionListContent
-          );
-        }
-
-        this.isMergeVersionLoading = false;
-        ipcRenderer.send("client_show_message", "比较版本成功");
       } catch (error) {
-        this.isMergeVersionLoading = false;
         ipcRenderer.send("client_show_snack", "比较版本错误:" + error);
         console.error("比较版本错误:" + error);
       }
@@ -309,7 +327,8 @@ export default {
       newVersion,
       releasePath,
       patchPath,
-      oldVersion
+      oldVersion,
+      oldVersionPath
     ) {
       let useNew = false;
       let newResContent = await fs.readFileSync(
@@ -326,9 +345,9 @@ export default {
           releasePath,
           patchPath,
           oldVersion,
-          newVersion
+          newVersion,
+          oldVersionPath
         );
-        console.log("oldResPath:" + oldResPath);
         if (!resEqual) {
           for (const iterator of resources) {
             let newPath = "resource/" + iterator.url;
@@ -352,7 +371,7 @@ export default {
                 newConfigObj.file;
 
               let oldConfigContent = await fs.readFileSync(
-                this.old_version_path + "/" + oldPath
+                oldVersionPath + "/" + oldPath
               );
               let oldConfigObj = JSON.parse(oldConfigContent);
               let oldFilePath =
@@ -367,7 +386,8 @@ export default {
                 releasePath,
                 patchPath,
                 oldVersion,
-                newVersion
+                newVersion,
+                oldVersionPath
               );
 
               //图集配置处理
@@ -379,7 +399,8 @@ export default {
                 newPath,
                 oldVersion,
                 newVersion,
-                iterator.url
+                iterator.url,
+                oldVersionPath
               );
             } else {
               //不是图集,直接比较
@@ -389,7 +410,8 @@ export default {
                 releasePath,
                 patchPath,
                 oldVersion,
-                newVersion
+                newVersion,
+                oldVersionPath
               );
             }
 
@@ -442,7 +464,8 @@ export default {
               newPath,
               oldVersion,
               newVersion,
-              iterator.url
+              iterator.url,
+              oldVersionPath
             );
           } else {
             //其他文件只要拷贝配置就好了
@@ -474,13 +497,14 @@ export default {
       newPath,
       oldVersion,
       newVersion,
-      sheetUrl
+      sheetUrl,
+      oldVersionPath
     ) {
       if (resFileEqual) {
         //相等
         if (releasePath) {
           await this.copyFile(
-            this.old_version_path + "/" + oldPath,
+            oldVersionPath + "/" + oldPath,
             releasePath + "/" + newPath,
             oldVersion
           );
@@ -583,13 +607,14 @@ export default {
       releasePath,
       patchPath,
       oldVersion,
-      newVersion
+      newVersion,
+      oldVersionPath
     ) {
       let newFileExist = await fs.existsSync(
         this.new_version_path + "/" + newFilePath
       );
       let oldFileExist = await fs.existsSync(
-        this.old_version_path + "/" + oldFilePath
+        oldVersionPath + "/" + oldFilePath
       );
       if (!newFileExist) {
         console.log("不存在文件:" + this.new_version_path + "/" + newFilePath);
@@ -599,38 +624,16 @@ export default {
       let fileEqual = false;
       if (oldFileExist) {
         fileEqual = await this.mergeFileByMd5(
-          this.old_version_path + "/" + oldFilePath,
+          oldVersionPath + "/" + oldFilePath,
           this.new_version_path + "/" + newFilePath
         );
       }
 
       if (fileEqual) {
-        // console.log(
-        //   "fileEqual:true---" +
-        //     "----oldPath:" +
-        //     this.old_version_path +
-        //     "/" +
-        //     oldFilePath +
-        //     "-----newPath:" +
-        //     this.new_version_path +
-        //     "/" +
-        //     newFilePath
-        // );
         if (releasePath) {
           await this.copyFileInVersion(newFilePath, releasePath, oldVersion);
         }
       } else {
-        // console.log(
-        //   "fileEqual:false---" +
-        //     "----oldPath:" +
-        //     this.old_version_path +
-        //     "/" +
-        //     oldFilePath +
-        //     "-----newPath:" +
-        //     this.new_version_path +
-        //     "/" +
-        //     newFilePath
-        // );
         if (releasePath) {
           await this.copyFileInVersion(newFilePath, releasePath, newVersion);
         }

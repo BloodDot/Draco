@@ -93,62 +93,73 @@ export default {
         archive.finalize();
       });
     },
-    createTs() {
-      return new Promise((resolve, reject) => {
-        this.isCreateTsLoading = true;
+    async createTs() {
+      this.isCreateTsLoading = true;
+      let pa = await fs.readdirSync(this.csv_path);
+      for (let i = 0; i < pa.length; i++) {
+        const element = pa[i];
+        if (element.indexOf(".csv") != -1) {
+          let data = await fs.readFileSync(this.csv_path + "/" + element);
+          let buffer = new Buffer(data, "gbk");
+          data = iconv.decode(buffer, "gbk");
+          if (!data) {
+            let error = name + "表数据为空";
+            alert(error);
+            throw error;
+          }
+          let clsName = toStudlyCaps(element.split(".csv")[0]);
+          let cellContent = this.createCell(clsName, data);
+          try {
+            fs.writeFile(
+              this.project_path + "/src/csv/cell/" + clsName + "Cell.ts",
+              cellContent,
+              error => {
+                if (error) {
+                  ipcRenderer.send(
+                    "client_show_message",
+                    "生成" + clsName + "cell.ts文件失败"
+                  );
+                }
+              }
+            );
+          } catch (error) {
+            this.isCreateTsLoading = false;
+            ipcRenderer.send(
+              "client_show_snack",
+              "生成" + clsName + "cell.ts文件错误:" + error
+            );
+            return;
+          }
 
-        let pa = fs.readdirSync(this.csv_path);
-        for (let i = 0; i < pa.length; i++) {
-          const element = pa[i];
-          if (element.indexOf(".csv") != -1) {
-            let data = fs.readFileSync(this.csv_path + "/" + element);
-            let buffer = new Buffer(data, "gbk");
-            data = iconv.decode(buffer, "gbk");
-            if (!data) {
-              let error = name + "表数据为空";
-              alert(error);
-              throw error;
-            }
-            let clsName = toStudlyCaps(element.split(".csv")[0]);
-            let cellContent = this.createCell(clsName, data);
-            try {
-              fs.writeFileSync(
-                this.project_path + "/src/csv/cell/" + clsName + "Cell.ts",
-                cellContent
-              );
-            } catch (error) {
-              this.isCreateTsLoading = false;
-              ipcRenderer.send(
-                "client_show_snack",
-                "生成" + clsName + "cell.ts文件错误:" + error
-              );
-              reject();
-            }
-
-            let tableContent = this.createTable(clsName);
-            let filePath =
-              this.project_path + "/src/csv/table/" + clsName + "Table.ts";
-            if (fs.existsSync(filePath)) {
-              //已存在，不创建
-              break;
-            }
-            try {
-              fs.writeFileSync(filePath, tableContent);
-            } catch (error) {
-              this.isCreateTsLoading = false;
-              ipcRenderer.send(
-                "client_show_snack",
-                "生成" + clsName + "Table.ts文件错误:" + error
-              );
-              reject();
-            }
+          let tableContent = this.createTable(clsName);
+          let filePath =
+            this.project_path + "/src/csv/table/" + clsName + "Table.ts";
+          if (await fs.existsSync(filePath)) {
+            //已存在，不创建
+            break;
+          }
+          try {
+            fs.writeFile(filePath, tableContent, error => {
+              if (err) {
+                ipcRenderer.send(
+                  "client_show_message",
+                  "生成" + clsName + "Table.ts文件失败"
+                );
+              }
+            });
+          } catch (error) {
+            this.isCreateTsLoading = false;
+            ipcRenderer.send(
+              "client_show_snack",
+              "生成" + clsName + "Table.ts文件错误:" + error
+            );
+            return;
           }
         }
+      }
 
-        this.isCreateTsLoading = false;
-        ipcRenderer.send("client_show_message", "生成ts文件成功");
-        resolve();
-      });
+      this.isCreateTsLoading = false;
+      ipcRenderer.send("client_show_message", "生成ts文件成功");
     },
 
     createCell(name, data) {

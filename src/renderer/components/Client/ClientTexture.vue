@@ -477,7 +477,7 @@ export default {
               let curPath = path + "/" + file;
               if (fs.statSync(curPath).isDirectory()) {
                 // recurse
-                deleteFolder(curPath);
+                this.deleteFolder(curPath);
               } else {
                 // delete file
                 fs.unlinkSync(curPath);

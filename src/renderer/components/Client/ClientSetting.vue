@@ -40,7 +40,34 @@
                     <mu-text-field class="text-setting" label="设置发布目录" v-model="client_publish_path" label-float />
                 </mu-list-item-content>
                 <mu-list-item-action>
-                    <mu-button color="cyan500" @click="onPublishPathClick">选择</mu-button>
+                    <mu-button color="blue500" @click="onPublishPathClick">选择</mu-button>
+                </mu-list-item-action>
+            </mu-list-item>
+
+            <mu-list-item>
+                <mu-list-item-content>
+                    <mu-text-field class="text-setting" label="设置Android项目目录" v-model="client_android_path" label-float />
+                </mu-list-item-content>
+                <mu-list-item-action>
+                    <mu-button color="purple500" @click="onAndroidPathClick">选择</mu-button>
+                </mu-list-item-action>
+            </mu-list-item>
+
+            <mu-list-item>
+                <mu-list-item-content>
+                    <mu-text-field class="text-setting" label="设置IOS项目目录" v-model="client_ios_path" label-float />
+                </mu-list-item-content>
+                <mu-list-item-action>
+                    <mu-button color="green500" @click="onIOSPathClick">选择</mu-button>
+                </mu-list-item-action>
+            </mu-list-item>
+
+            <mu-list-item>
+                <mu-list-item-content>
+                    <mu-text-field class="text-setting" label="设置微信小游戏项目目录" v-model="client_wechat_path" label-float />
+                </mu-list-item-content>
+                <mu-list-item-action>
+                    <mu-button color="lime500" @click="onWechatPathClick">选择</mu-button>
                 </mu-list-item-action>
             </mu-list-item>
 
@@ -78,6 +105,9 @@ export default {
             client_proto_path:"",
             client_svn_path:"",
             client_publish_path:"",
+            client_android_path:"",
+            client_ios_path:"",
+            client_wechat_path:""
         }
     },
     methods: {
@@ -92,6 +122,16 @@ export default {
         },
         onPublishPathClick(){
             ipcRenderer.send('open_client_publish_path');
+        },
+
+        onAndroidPathClick(){
+            ipcRenderer.send('open_client_android_path');
+        },
+        onIOSPathClick(){
+            ipcRenderer.send('open_client_ios_path');
+        },
+        onWechatPathClick(){
+            ipcRenderer.send('open_client_wechat_path');
         },
     },
     watch: {
@@ -120,6 +160,22 @@ export default {
                 localStorage.setItem("client_publish_path", val);
             }
         },
+
+        client_android_path: (val,oldVal) => {
+            if (val != oldVal) {
+                localStorage.setItem("client_android_path", val);
+            }
+        },
+        client_ios_path: (val,oldVal) => {
+            if (val != oldVal) {
+                localStorage.setItem("client_ios_path", val);
+            }
+        },
+        client_wechat_path: (val,oldVal) => {
+            if (val != oldVal) {
+                localStorage.setItem("client_wechat_path", val);
+            }
+        },
     },
     mounted () {
         this.client_author = localStorage.getItem("client_author");
@@ -128,7 +184,19 @@ export default {
         this.client_svn_path = localStorage.getItem("client_svn_path");
         this.client_publish_path = localStorage.getItem("client_publish_path");
 
-        ipcRenderer.removeAllListeners(['selected_client_project_path', 'selected_client_proto_path', 'selected_client_svn_path', 'selected_client_publish_path']);
+        this.client_android_path = localStorage.getItem("client_android_path");
+        this.client_ios_path = localStorage.getItem("client_ios_path");
+        this.client_wechat_path = localStorage.getItem("client_wechat_path");
+
+        ipcRenderer.removeAllListeners([
+            'selected_client_project_path', 
+            'selected_client_proto_path', 
+            'selected_client_svn_path', 
+            'selected_client_publish_path',
+            'selected_client_android_path',
+            'selected_client_ios_path',
+            'selected_client_wechat_path'
+        ]);
 
         ipcRenderer.on('selected_client_project_path', (event, path) => {
             if(path){
@@ -151,6 +219,24 @@ export default {
         ipcRenderer.on('selected_client_publish_path', (event, path) => {
             if(path){
                 this.client_publish_path = path[0];
+            }
+        });
+
+        ipcRenderer.on('selected_client_android_path', (event, path) => {
+            if(path){
+                this.client_android_path = path[0];
+            }
+        });
+
+        ipcRenderer.on('selected_client_ios_path', (event, path) => {
+            if(path){
+                this.client_ios_path = path[0];
+            }
+        });
+
+        ipcRenderer.on('selected_client_wechat_path', (event, path) => {
+            if(path){
+                this.client_wechat_path = path[0];
             }
         });
     }

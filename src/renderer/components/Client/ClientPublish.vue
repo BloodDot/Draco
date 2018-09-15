@@ -545,7 +545,7 @@ export default {
             cdnPatchPath,
             oldVersion,
             newVersion,
-            oldVersionPath
+            oldCdnReleasePath
           );
 
           //default.res.json
@@ -555,7 +555,7 @@ export default {
             cdnReleasePath,
             cdnPatchPath,
             oldVersion,
-            oldVersionPath
+            oldCdnReleasePath
           );
 
           //mapData.res.json
@@ -565,7 +565,7 @@ export default {
             cdnReleasePath,
             cdnPatchPath,
             oldVersion,
-            oldVersionPath
+            oldCdnReleasePath
           );
 
           //async.res.json
@@ -575,7 +575,7 @@ export default {
             cdnReleasePath,
             cdnPatchPath,
             oldVersion,
-            oldVersionPath
+            oldCdnReleasePath
           );
         }
       } catch (error) {
@@ -598,7 +598,6 @@ export default {
         "utf-8"
       );
       let newResObj = JSON.parse(newResContent);
-      let resources = newResObj.resources;
       if (oldVersion) {
         let oldResPath = this.addVersionToPath(resFilePath, oldVersion);
         let resEqual = await this.mergeFileInVersion(
@@ -611,16 +610,28 @@ export default {
           oldVersionPath
         );
         if (!resEqual) {
-          for (const iterator of resources) {
-            let newPath = "resource/" + iterator.url;
-            let oldPath = this.addVersionToPath(
-              "resource/" + iterator.url,
-              oldVersion
-            );
+          let oldResContent = await fs.readFileSync(
+            oldVersionPath + "/" + oldResPath,
+            "utf-8"
+          );
+          let oldResObj = JSON.parse(oldResContent);
+
+          for (const newResIterator of newResObj.resources) {
+            let newPath = "resource/" + newResIterator.url;
+
+            let oldPath;
+            let oldResIteratorUrl;
+            for (const oldResIterator of oldResObj.resources) {
+              if (oldResIterator.name == newResIterator.name) {
+                oldPath = "resource/" + oldResIterator.url;
+                oldResIteratorUrl = oldResIterator.url;
+                break;
+              }
+            }
 
             let resFileEqual = false;
             //处理纹理集配置内索引的图片地址
-            if (iterator.type == "sheet") {
+            if (newResIterator.type == "sheet") {
               //是图集,比较图集配置文件中的图片是否相同
               let newConfigContent = await fs.readFileSync(
                 this.new_version_path + "/" + newPath
@@ -628,18 +639,26 @@ export default {
               let newConfigObj = JSON.parse(newConfigContent);
               let newFilePath =
                 "resource/" +
-                this.getFileFolder(iterator.url) +
+                this.getFileFolder(newResIterator.url) +
                 "/" +
                 newConfigObj.file;
 
-              let oldConfigContent = await fs.readFileSync(
-                oldVersionPath + "/" + oldPath
-              );
-              let oldConfigObj = JSON.parse(oldConfigContent);
-              let oldFilePath =
-                "resource/" +
-                this.getFileFolder(iterator.url) +
-                oldConfigObj.file;
+              let oldFilePath = "";
+              if (oldPath) {
+                //存在旧的 给旧路径赋值
+                let oldConfigPath = oldVersionPath + "/" + oldPath;
+                let oldConfigContent = await fs.readFileSync(oldConfigPath);
+                let oldConfigObj = JSON.parse(oldConfigContent);
+                oldFilePath =
+                  "resource/" +
+                  this.getFileFolder(newResIterator.url) +
+                  oldConfigObj.file;
+              } else {
+                oldFilePath =
+                  "resource/" +
+                  this.getFileFolder(newResIterator.url) +
+                  newConfigObj.file;
+              }
 
               //判断图集配置是否相同
               resFileEqual = await this.mergeFileInVersion(
@@ -661,7 +680,7 @@ export default {
                 newPath,
                 oldVersion,
                 newVersion,
-                iterator.url,
+                newResIterator.url,
                 oldVersionPath
               );
             } else {
@@ -679,9 +698,12 @@ export default {
 
             //修改图集配置中的版本号
             if (resFileEqual) {
-              iterator.url = this.addVersionToPath(iterator.url, oldVersion);
+              newResIterator.url = oldResIteratorUrl;
             } else {
-              iterator.url = this.addVersionToPath(iterator.url, newVersion);
+              newResIterator.url = this.addVersionToPath(
+                newResIterator.url,
+                newVersion
+              );
             }
           }
         } else {
@@ -879,8 +901,17 @@ export default {
         oldVersionPath + "/" + oldFilePath
       );
       if (!newFileExist) {
-        console.log("不存在文件:" + this.new_version_path + "/" + newFilePath);
+        console.log(
+          "新版本删除的文件:" + this.new_version_path + "/" + newFilePath
+        );
         return false;
+      }
+
+      if (!oldFileExist) {
+        console.log(
+          "新版本添加的文件:" + this.new_version_path + "/" + newFilePath
+        );
+        // return false;
       }
 
       let fileEqual = false;
@@ -934,15 +965,17 @@ export default {
       let fileNameArr = fileName.split("/");
       let checkPath = "";
       for (let i = 0; i < fileNameArr.length; i++) {
-        checkPath += fileNameArr[i] + "/";
-        let filePath = fromPath + "/" + checkPath;
-        if (await fs.existsSync(filePath)) {
-          if (await fs.statSync(filePath).isDirectory()) {
-            await this.checkCreateFolder(targetPath + "/" + checkPath);
+        if (i != fileNameArr.length - 1) {
+          checkPath += fileNameArr[i] + "/";
+          let filePath = fromPath + "/" + checkPath;
+          if (await fs.existsSync(filePath)) {
+            if (await fs.statSync(filePath).isDirectory()) {
+              await this.checkCreateFolder(targetPath + "/" + checkPath);
+            }
+          } else {
+            console.error("不存在目录:" + filePath);
+            return;
           }
-        } else {
-          console.error("不存在目录:" + filePath);
-          return;
         }
       }
 
@@ -1123,6 +1156,30 @@ export default {
     this.android_path = localStorage.getItem("client_android_path");
     this.ios_path = localStorage.getItem("client_ios_path");
     this.wechat_path = localStorage.getItem("client_wechat_path");
+
+    if (!this.project_path) {
+      this.project_path = "";
+    }
+
+    if (!this.publish_path) {
+      this.publish_path = "";
+    }
+
+    if (!this.cdn_path) {
+      this.cdn_path = "";
+    }
+
+    if (!this.android_path) {
+      this.android_path = "";
+    }
+
+    if (!this.ios_path) {
+      this.ios_path = "";
+    }
+
+    if (!this.wechat_path) {
+      this.wechat_path = "";
+    }
 
     ipcRenderer.removeAllListeners([
       "selected_new_version_path",

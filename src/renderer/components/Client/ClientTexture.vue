@@ -453,9 +453,11 @@ export default {
     async oneForAll() {
       ipcRenderer.send("client_show_loading");
       try {
-        await this.clearTexture();
-        await this.copyTextureIn();
-        await this.splitTexture();
+        if (this.checkBoxData.indexOf("object") != -1) {
+          await this.clearTexture();
+          await this.copyTextureIn();
+          await this.splitTexture();
+        }
         await this.packerTexture();
         await this.copyTextureOut();
 

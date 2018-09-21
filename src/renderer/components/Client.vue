@@ -72,6 +72,7 @@
         <mu-snackbar position="bottom-end" color="success" :open.sync="toast" @close="hideToast">
           <mu-icon left value="check_circle"></mu-icon>
           {{toastContent}}
+          <mu-button flat slot="action" color="#ffffff" @click="hideToast">关闭</mu-button>
         </mu-snackbar>
 
         <mu-snackbar position="bottom-end" color="error" :open.sync="snackbar" @close="hideSnackbar">
@@ -112,6 +113,8 @@ export default {
       this.currentView = val;
     },
     showSnackbar(content = "") {
+      this.hideSnackbar();
+
       this.snackContent = content;
       this.snackbar = true;
     },
@@ -119,18 +122,20 @@ export default {
       this.snackbar = false;
     },
     showToast(content = "") {
+      this.hideToast();
+
       this.toastContent = content;
       this.toast = true;
-      if (this.toastTimer) {
-        clearTimeout(this.toastTimer);
-      }
-      this.toastTimer = setTimeout(() => {
-        this.toast = false;
-      }, 2000);
+      // if (this.toastTimer) {
+      //   clearTimeout(this.toastTimer);
+      // }
+      // this.toastTimer = setTimeout(() => {
+      //   this.toast = false;
+      // }, 2000);
     },
     hideToast() {
       this.toast = false;
-      if (this.toastTimer) clearTimeout(this.toastTimer);
+      // if (this.toastTimer) clearTimeout(this.toastTimer);
     },
 
     showLoading() {

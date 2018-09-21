@@ -660,7 +660,7 @@ export default {
                   newConfigObj.file;
               }
 
-              //判断图集配置是否相同
+              //判断图集是否相同
               resFileEqual = await this.mergeFileInVersion(
                 oldFilePath,
                 newFilePath,
@@ -789,8 +789,7 @@ export default {
         if (releasePath) {
           await this.copyFile(
             oldVersionPath + "/" + oldPath,
-            releasePath + "/" + newPath,
-            oldVersion
+            releasePath + "/" + oldPath
           );
         }
       } else {
@@ -924,7 +923,12 @@ export default {
 
       if (fileEqual) {
         if (releasePath) {
-          await this.copyFileInVersion(newFilePath, releasePath, oldVersion);
+          //相等,拷贝旧的文件到新目录
+          await this.loopCheckCreateFolder(releasePath + "/" + oldFilePath);
+          await this.copyFile(
+            oldVersionPath + "/" + oldFilePath,
+            releasePath + "/" + oldFilePath
+          );
         }
       } else {
         if (releasePath) {
@@ -962,6 +966,7 @@ export default {
       if (!fromPath) {
         fromPath = this.new_version_path;
       }
+
       let fileNameArr = fileName.split("/");
       let checkPath = "";
       for (let i = 0; i < fileNameArr.length; i++) {
@@ -1083,21 +1088,68 @@ export default {
       }
       return returnPath;
     },
+    async loopCheckCreateFolder(path) {
+      let fileNameArr = path.split("/");
+      let checkPath = "";
+      // for (let i = 0; i < fileNameArr.length; i++) {
+      //   if (i != fileNameArr.length - 1) {
+      //     checkPath += fileNameArr[i] + "/";
+      //     await this.checkCreateFolder(checkPath);
+      //   }
+      // }
+
+      // let i = 0;
+      // for (const iterator of fileNameArr) {
+      //   if (i != fileNameArr.length - 1) {
+      //     checkPath += fileNameArr[i] + "/";
+      //     await this.checkCreateFolder(checkPath);
+      //   }
+      //   i++;
+      // }
+
+      fileNameArr.pop();
+      while (fileNameArr.length > 0) {
+        checkPath = checkPath + fileNameArr.shift() + "/";
+        await this.checkCreateFolder(checkPath);
+      }
+    },
     //检查并创建文件夹
-    checkCreateFolder(path) {
-      return new Promise((resolve, reject) => {
-        if (!fs.existsSync(path)) {
-          fs.mkdir(path, error => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve();
-            }
-          });
-        } else {
-          resolve();
-        }
-      });
+    async checkCreateFolder(path) {
+      // return new Promise((resolve, reject) => {
+      //   fs.exists(path, exists => {
+      //     if (!exists) {
+      //       console.log("路径不存在:" + path);
+      //       fs.mkdir(path, error => {
+      //         if (error) {
+      //           reject(error);
+      //         } else {
+      //           console.log("创建文件夹成功" + path);
+      //           resolve();
+      //         }
+      //       });
+      //     } else {
+      //       resolve();
+      //     }
+      //   });
+      // });
+      let exists = await fs.existsSync(path);
+      if (!exists) {
+        await fs.mkdirSync(path);
+      }
+      // fs.exists(path, exists => {
+      //   if (!exists) {
+      //     console.log("路径不存在:" + path);
+      //     fs.mkdir(path, error => {
+      //       if (error) {
+      //         reject(error);
+      //       } else {
+      //         console.log("创建文件夹成功" + path);
+      //         resolve();
+      //       }
+      //     });
+      //   } else {
+      //   }
+      // });
     },
     //获取文件所在目录
     getFileFolder(filePath) {

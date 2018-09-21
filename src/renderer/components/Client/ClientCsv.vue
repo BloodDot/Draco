@@ -234,6 +234,12 @@ export default {
             case "string[][]":
               type = "string[][]";
               break;
+            case "bool[]":
+              type = "boolean[]";
+              break;
+            case "bool[][]":
+              type = "boolean[][]";
+              break;
             case "null":
               type = "any";
               break;

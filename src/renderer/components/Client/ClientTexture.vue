@@ -210,10 +210,10 @@ export default {
           // let high = element.objectHigh;
           let trow = area.length;
           let tcol = area[0].length;
-          let high = ih - (trow + tcol) * th / 2 + 10;
+          let high = ih - ((trow + tcol) * th) / 2 + 10;
           let lengthY = high + th;
           let lengthX = 0;
-          let ox = iw - trow * tw / 2 - tw / 2;
+          let ox = iw - (trow * tw) / 2 - tw / 2;
           let oy = ih - th - high;
 
           if (area.length == 1 && area[0].length == 1) {
@@ -236,10 +236,15 @@ export default {
           for (let m = area.length - 1; m >= 0; m--) {
             for (let n = area[m].length - 1; n >= 0; n--) {
               let cx =
-                ox + (area.length - 1 - m - (area[m].length - 1 - n)) * tw / 2;
+                ox +
+                ((area.length - 1 - m - (area[m].length - 1 - n)) * tw) / 2;
               let cy =
-                oy - (area.length - 1 - m + area[m].length - 1 - n) * th / 2;
+                oy - ((area.length - 1 - m + area[m].length - 1 - n) * th) / 2;
 
+              // let type = 1;
+              // if (m == 0 || n == 0) {
+              //   type = 2;
+              // }
               let aimg = this.createPng(
                 oimg,
                 iw,
@@ -279,6 +284,10 @@ export default {
       let type = 1;
       let sx = 0;
       let sy = 0;
+      // if(type == 2){
+      //   sx = -tw/2;
+      // }
+
       let aimg = new jimp(tw, th + high);
       for (let m = sy; m <= lengthY; m++) {
         for (let n = sx; n <= lengthX; n++) {
@@ -331,22 +340,25 @@ export default {
                   element.indexOf(".json") != -1)
               ) {
                 let inputPath = sheet_path + "/" + element;
-                let outputPath;
-                if (iterator == "itemIcon") {
-                  outputPath =
-                    this.project_path +
-                    "/resource/assets/icon/" +
-                    iterator +
-                    "/" +
-                    element;
-                } else {
-                  outputPath =
-                    this.project_path +
-                    "/resource/assets/map/" +
-                    iterator +
-                    "/" +
-                    element;
-                }
+                let outputPath =
+                  this.project_path +
+                  "/resource/assets/preload/sheet/" +
+                  element;
+                // if (iterator == "itemIcon") {
+                //   outputPath =
+                //     this.project_path +
+                //     "/resource/assets/icon/" +
+                //     iterator +
+                //     "/" +
+                //     element;
+                // } else {
+                //   outputPath =
+                //     this.project_path +
+                //     "/resource/assets/map/" +
+                //     iterator +
+                //     "/" +
+                //     element;
+                // }
                 this.copyFile(inputPath, outputPath);
               }
             }
@@ -429,7 +441,7 @@ export default {
         "-{n}.json" +
         " --texture-format png" +
         " --format Egret" +
-        " --max-size 2048" +
+        " --max-size 1024" +
         " --algorithm MaxRects" +
         " --maxrects-heuristics Best" +
         " --size-constraints WordAligned" +
@@ -463,6 +475,7 @@ export default {
 
         ipcRenderer.send("client_hide_loading");
         ipcRenderer.send("client_show_message", "One·for·All Success");
+        ipcRenderer.send("client_show_dialog", "One·for·All Success");
       } catch (e) {
         ipcRenderer.send("client_hide_loading");
         ipcRenderer.send("client_show_snack", "One·for·All Error:" + e);
@@ -527,7 +540,7 @@ export default {
         } catch (error) {
           ipcRenderer.send(
             "client_show_snack",
-            "copyt " + fromPath + " to " + targetFolderPath + " Error:" + error
+            "copyt " + fromPath + " to " + targetPath + " Error:" + error
           );
           reject();
         }

@@ -12,7 +12,6 @@
 </template>
 
 <script>
-let exec = require("child_process").exec;
 const ipcRenderer = require("electron").ipcRenderer;
 const remote = require("electron").remote;
 const fs = require("fs");
@@ -67,7 +66,7 @@ export default {
         let pa = fs.readdirSync(this.csv_path);
         let archive = archiver("zip");
         let fileName = "csv.zip";
-        let filePath = this.project_path + "/resource/csv/";
+        let filePath = this.project_path + "/resource/assets/csv/";
         let output = fs.createWriteStream(filePath + fileName);
         archive.pipe(output);
 

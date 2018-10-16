@@ -214,6 +214,7 @@ export default {
           let lengthY = high + th;
           let lengthX = 0;
           let ox = iw - (trow * tw) / 2 - tw / 2;
+
           let oy = ih - th - high;
 
           if (area.length == 1 && area[0].length == 1) {
@@ -241,10 +242,15 @@ export default {
               let cy =
                 oy - ((area.length - 1 - m + area[m].length - 1 - n) * th) / 2;
 
-              // let type = 1;
-              // if (m == 0 || n == 0) {
-              //   type = 2;
-              // }
+              let type = 1;
+              if (m == 0 || n == 0) {
+                //最高点 特殊处理 加初始y 加lengthY
+                cy = oy - ((area.length - 1 + area[m].length - 1) * th) / 2;
+                high = ih - ((trow + tcol) * th) / 2 + ((m + n) * th) / 2 + 10;
+                lengthY = high + th;
+                type = 2;
+              }
+
               let aimg = this.createPng(
                 oimg,
                 iw,
@@ -255,7 +261,8 @@ export default {
                 lengthX,
                 lengthY,
                 cx,
-                cy
+                cy,
+                type
               );
               aimg.write(
                 output_path + "/" + texture + "_" + m + "_" + n + ".png"
@@ -280,13 +287,12 @@ export default {
         resolve();
       }
     },
-    createPng(oimg, iw, ih, tw, th, high, lengthX, lengthY, cx, cy) {
-      let type = 1;
+    createPng(oimg, iw, ih, tw, th, high, lengthX, lengthY, cx, cy, type) {
       let sx = 0;
       let sy = 0;
-      // if(type == 2){
-      //   sx = -tw/2;
-      // }
+      if (type == 2) {
+        sx = -tw / 2;
+      }
 
       let aimg = new jimp(tw, th + high);
       for (let m = sy; m <= lengthY; m++) {

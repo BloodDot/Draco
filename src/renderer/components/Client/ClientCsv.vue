@@ -139,7 +139,7 @@ export default {
           }
           try {
             fs.writeFile(filePath, tableContent, error => {
-              if (err) {
+              if (error) {
                 ipcRenderer.send(
                   "client_show_message",
                   "生成" + clsName + "Table.ts文件失败"

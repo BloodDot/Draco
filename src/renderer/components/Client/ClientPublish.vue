@@ -5,7 +5,7 @@
         <mu-button v-loading="isPublishProjectLoading" data-mu-loading-size="24" color="pink500" @click="onPublishProjectClick">发布当前项目</mu-button>
         <mu-button v-loading="isMergeVersionLoading" data-mu-loading-size="24" color="orange500" @click="onMergetVersionClick">比较新旧版本</mu-button>
         <mu-button v-loading="isExportVersionLoading" data-mu-loading-size="24" color="cyan500" @click="onExportVersionClick">导出其他版本</mu-button>
-        <!-- <mu-button v-loading="isPublishProjectLoading" data-mu-loading-size="24" color="cyan500" @click="publishProject">发布项目</mu-button> -->
+        <mu-button v-loading="isExportApkLoading" data-mu-loading-size="24" color="blue500" @click="onExportApkClick">导出apk</mu-button>
       </div>
       <div class="button-wrapper">
         <mu-button full-width color="red" @click="oneForAll">One·for·All</mu-button>
@@ -90,6 +90,7 @@ const remote = require("electron").remote;
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const spawn = require("child_process").spawn;
 
 const thmFilePath = "resource/default.thm.json";
 const defaultResPath = "resource/default.res.json";
@@ -104,6 +105,7 @@ export default {
       isPublishProjectLoading: false,
       isMergeVersionLoading: false,
       isExportVersionLoading: false,
+      isExportApkLoading: false,
       publish_version: "",
       new_version: "",
       new_version_path: "",
@@ -326,6 +328,7 @@ export default {
           }
         }
         this.isExportVersionLoading = false;
+        ipcRenderer.send("client_show_message", "导出其他版本成功");
       } catch (error) {
         ipcRenderer.send("client_show_snack", "导出其他版本错误:" + error);
         console.log("导出其他版本错误:" + error);
@@ -449,6 +452,48 @@ export default {
           }
           if (stderr) {
             console.log("stderr: " + stderr);
+          }
+        });
+      });
+    },
+    onExportApkClick(showDialog = true) {
+      return new Promise((resolve, reject) => {
+        if (!this.android_path) {
+          ipcRenderer.send("client_show_snack", "请先设置安卓发布目录");
+          return;
+        }
+
+        this.isExportApkLoading = true;
+
+        // let cmdStr = "gradle build";
+        // let cmdStr =
+        //   "cd " + this.android_path + "\n" + "gradle assembleRelease";
+
+        let cmdStr = "gradle assembleRelease";
+        console.log(cmdStr);
+        let process = exec(cmdStr, { cwd: this.android_path });
+
+        process.stdout.on("data", data => {
+          console.log("stdout: " + data);
+        });
+        process.stderr.on("data", data => {
+          console.log("stderr: " + data);
+        });
+        process.on("exit", code => {
+          if (code == 0) {
+            this.isExportApkLoading = false;
+            ipcRenderer.send("client_show_message", "打包APK成功");
+            if (showDialog) {
+              ipcRenderer.send("client_show_dialog", "打包APK成功");
+            }
+            resolve();
+          } else {
+            this.isExportApkLoading = false;
+            ipcRenderer.send("client_show_snack", "打包APK错误:" + code);
+            if (showDialog) {
+              ipcRenderer.send("client_show_dialog", "打包APK错误:" + code);
+            }
+            reject();
           }
         });
       });

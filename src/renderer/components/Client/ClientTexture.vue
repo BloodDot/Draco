@@ -207,15 +207,8 @@ export default {
           let ih = oimg.bitmap.height;
           let th = 60;
           let tw = 120;
-          // let high = element.objectHigh;
           let trow = area.length;
           let tcol = area[0].length;
-          let high = ih - ((trow + tcol) * th) / 2 + 10;
-          let lengthY = high + th;
-          let lengthX = 0;
-          let ox = iw - (trow * tw) / 2 - tw / 2;
-
-          let oy = ih - th - high;
 
           if (area.length == 1 && area[0].length == 1) {
             oimg.write(output_path + "/" + texture + ".png", (error, img) => {
@@ -236,34 +229,123 @@ export default {
 
           for (let m = area.length - 1; m >= 0; m--) {
             for (let n = area[m].length - 1; n >= 0; n--) {
+              /**
+               * type
+               * 1:
+               *  /\
+               *  \/
+               *
+               * 2:
+               *  ____
+               *  |  |
+               *  |  |
+               *  |  |
+               *   \/
+               *
+               * 3:
+               *  ____
+               *  ||
+               *  ||
+               *  | \
+               *   \/
+               *
+               * 4:
+               *  ____
+               *    ||
+               *    ||
+               *   / |
+               *   \/
+               */
+              let type;
+              let sx;
+              let sy;
+              let gridHeight;
+              let itemHigh;
+              let lengthX;
+              if (m != 0 && n != 0) {
+                type = 1;
+                sx = 0;
+                sy = 0;
+                itemHigh = 0;
+                gridHeight = ih - ((trow + tcol) * th) / 2 + 10;
+                lengthX = 0;
+              } else if (m == 0 && n == 0) {
+                type = 2;
+                sx = -tw / 2;
+                sy = (-(m + n) * th) / 2;
+                itemHigh = ((m + n) * th) / 2;
+                lengthX = tw / 2;
+              } else if (n == 0) {
+                type = 3;
+                sx = -tw / 2;
+                sy = (-(m + n) * th) / 2;
+                itemHigh = ((m + n) * th) / 2;
+                lengthX = 0;
+              } else if (m == 0) {
+                type = 4;
+                sx = 0;
+                sy = (-(m + n) * th) / 2;
+                itemHigh = ((m + n) * th) / 2;
+                lengthX = tw / 2;
+              } else {
+                //reserve
+              }
+
+              gridHeight = ih - ((trow + tcol) * th) / 2 + itemHigh + 10;
+              let ox = iw - (trow * tw) / 2 - tw / 2;
+              let oy = ih - th - gridHeight;
+              let lengthY = gridHeight + th;
               let cx =
                 ox +
                 ((area.length - 1 - m - (area[m].length - 1 - n)) * tw) / 2;
               let cy =
                 oy - ((area.length - 1 - m + area[m].length - 1 - n) * th) / 2;
 
-              let type = 1;
-              if (m == 0 || n == 0) {
-                //最高点 特殊处理 加初始y 加lengthY
-                cy = oy - ((area.length - 1 + area[m].length - 1) * th) / 2;
-                high = ih - ((trow + tcol) * th) / 2 + ((m + n) * th) / 2 + 10;
-                lengthY = high + th;
-                type = 2;
+              // if (m == 0 || n == 0) {
+              //   //最高点 特殊处理 加初始y 加lengthY
+              //   // cy = oy - ((area.length - 1 + area[m].length - 1) * th) / 2;
+              //   sx = -tw / 2;
+              //   sy = (-(m + n) * th) / 2;
+              //   gridHeight = ih - ((trow + tcol) * th) / 2 + ((m + n) * th) / 2 + 10;
+
+              //   type = 2;
+              // }
+
+              let aimg = new jimp(tw, th + gridHeight);
+              for (let m = sy; m <= lengthY; m++) {
+                for (let n = sx; n <= lengthX; n++) {
+                  let px = cx + n + tw / 2;
+                  let py = cy + m;
+                  let hex;
+                  if (px < 0 || px > iw || py < 0 || py > ih) {
+                    hex = 0;
+                  } else {
+                    hex = oimg.getPixelColor(px, py);
+                  }
+                  // hex = 3904926462;
+                  aimg.setPixelColor(hex, n + tw / 2, m);
+                }
+
+                if (type == 1 && m <= gridHeight + th / 2) {
+                  sx -= 2;
+                  lengthX = Math.abs(sx);
+                }
+
+                if (type == 3 && m > itemHigh) {
+                  lengthX += 2;
+                }
+
+                if (type == 4 && m > itemHigh) {
+                  sx -= 2;
+                }
+
+                if (m > gridHeight + th / 2) {
+                  sx += 2;
+                  lengthX = Math.abs(sx);
+                  // lengthX += 2;
+                }
               }
 
-              let aimg = this.createPng(
-                oimg,
-                iw,
-                ih,
-                tw,
-                th,
-                high,
-                lengthX,
-                lengthY,
-                cx,
-                cy,
-                type
-              );
               aimg.write(
                 output_path + "/" + texture + "_" + m + "_" + n + ".png"
               );
@@ -287,14 +369,54 @@ export default {
         resolve();
       }
     },
-    createPng(oimg, iw, ih, tw, th, high, lengthX, lengthY, cx, cy, type) {
-      let sx = 0;
-      let sy = 0;
+
+    /**
+     * @param type
+     * 1:
+     *  /\
+     *  \/
+     *
+     * 2:
+     *  ____
+     *  |  |
+     *  |  |
+     *  |  |
+     *   \/
+     *
+     * 3:
+     *  ____
+     *  ||
+     *  ||
+     *  | \
+     *   \/
+     *
+     * 4:
+     *  ____
+     *    ||
+     *   / |
+     *   \/
+     */
+    createPng(
+      oimg,
+      iw,
+      ih,
+      tw,
+      th,
+      gridHeight,
+      lengthX,
+      lengthY,
+      cx,
+      cy,
+      sx,
+      sy,
+      type
+    ) {
       if (type == 2) {
         sx = -tw / 2;
       }
 
-      let aimg = new jimp(tw, th + high);
+      let aimg = new jimp(tw, th + gridHeight);
+      let overHalf = false;
       for (let m = sy; m <= lengthY; m++) {
         for (let n = sx; n <= lengthX; n++) {
           let px = cx + n + tw / 2;
@@ -308,24 +430,31 @@ export default {
           // hex = 3904926462;
           aimg.setPixelColor(hex, n + tw / 2, m);
         }
-        switch (type) {
-          case 1:
-            sx -= 2;
-            if (sx <= -tw / 2) {
-              type = 2;
-            }
-            break;
-          case 2:
-            if (m > high + th / 2) {
-              type = 3;
-            }
-            break;
-          case 3:
-            sx += 2;
-            break;
-          default:
-            break;
+
+        if (m > gridHeight + th / 2) {
+          overHalf = true;
         }
+
+        if (overHalf) {
+          sx += 2;
+        }
+        // switch (type) {
+        //   case 1:
+        //     sx -= 2;
+        //     if (sx <= -tw / 2) {
+        //       type = 2;
+        //     }
+        //     break;
+        //   case 2:
+        //     if (m > gridHeight + th / 2) {
+        //       type = 3;
+        //     }
+        //     break;
+        //   case 3:
+        //     break;
+        //   default:
+        //     break;
+        // }
         lengthX = Math.abs(sx);
       }
 

@@ -212,7 +212,7 @@ export default {
     //   "client_remote_assets_path"
     // );
 
-    ipcRenderer.on("client_show_message", (event, msg) => {
+    ipcRenderer.on("client_show_toast", (event, msg) => {
       this.showToast(msg);
       console.log(msg);
     });

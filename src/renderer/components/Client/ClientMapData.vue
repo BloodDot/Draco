@@ -50,7 +50,7 @@ export default {
         process.on("exit", code => {
           if (code == 0) {
             this.isUpdateSvnLoading = false;
-            ipcRenderer.send("client_show_message", "更新mapData成功");
+            ipcRenderer.send("client_show_toast", "更新mapData成功");
             resolve();
           } else {
             this.isUpdateSvnLoading = false;
@@ -76,7 +76,7 @@ export default {
         process.on("exit", code => {
           if (code == 0) {
             this.isExecuteFileLoading = false;
-            ipcRenderer.send("client_show_message", "执行bat成功");
+            ipcRenderer.send("client_show_toast", "执行bat成功");
             if (showDialog) {
               ipcRenderer.send("client_show_dialog", "执行bat成功");
             }
@@ -106,7 +106,7 @@ export default {
           }
         }
 
-        ipcRenderer.send("client_show_message", "清空文件成功");
+        ipcRenderer.send("client_show_toast", "清空文件成功");
         this.isClearFileLoading = false;
       } catch (error) {
         ipcRenderer.send("client_show_snack", "清空文件失败,错误码:" + error);
@@ -126,7 +126,7 @@ export default {
 
         await this.folderCopyFile(copy_from_path, copy_to_path);
         this.isCopyFileLoading = false;
-        ipcRenderer.send("client_show_message", "拷入文件成功");
+        ipcRenderer.send("client_show_toast", "拷入文件成功");
       } catch (error) {
         this.isCopyFileLoading = false;
         ipcRenderer.send("client_show_snack", "拷入文件错误:" + error);
@@ -142,7 +142,7 @@ export default {
         await this.copyMapDataFile();
 
         ipcRenderer.send("client_hide_loading");
-        ipcRenderer.send("client_show_message", "One·for·All Success");
+        ipcRenderer.send("client_show_toast", "One·for·All Success");
         ipcRenderer.send("client_show_dialog", "One·for·All Success");
       } catch (e) {
         ipcRenderer.send("client_hide_loading");

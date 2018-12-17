@@ -1,19 +1,43 @@
 <template>
   <mu-container>
     <div class="button-wrapper">
-      <mu-button v-loading="isUpdateGitLoading" data-mu-loading-size="24" color="pink500" @click="updateGit">更新git文件</mu-button>
-      <mu-button v-loading="isComposeProtoLoading" data-mu-loading-size="24" color="orange500" @click="composeProto">合成proto文件</mu-button>
-      <mu-button v-loading="isCreateJsLoading" data-mu-loading-size="24" color="cyan500" @click="createJs">生成js文件</mu-button>
-      <mu-button v-loading="isCreateTsLoading" data-mu-loading-size="24" color="blue500" @click="createTs">生成ts文件</mu-button>
-      <mu-button v-loading="isModifyTsLoading" data-mu-loading-size="24" color="purple500" @click="modifyTs">修改ts文件</mu-button>
+      <mu-button
+        v-loading="isUpdateGitLoading"
+        data-mu-loading-size="24"
+        color="pink500"
+        @click="updateGit"
+      >更新git文件</mu-button>
+      <mu-button
+        v-loading="isComposeProtoLoading"
+        data-mu-loading-size="24"
+        color="orange500"
+        @click="composeProto"
+      >合成proto文件</mu-button>
+      <mu-button
+        v-loading="isCreateJsLoading"
+        data-mu-loading-size="24"
+        color="cyan500"
+        @click="createJs"
+      >生成js文件</mu-button>
+      <mu-button
+        v-loading="isCreateTsLoading"
+        data-mu-loading-size="24"
+        color="blue500"
+        @click="createTs"
+      >生成ts文件</mu-button>
+      <mu-button
+        v-loading="isModifyTsLoading"
+        data-mu-loading-size="24"
+        color="purple500"
+        @click="modifyTs"
+      >修改ts文件</mu-button>
     </div>
     <div class="button-wrapper">
       <mu-button full-width color="red500" @click="oneForAll">One·for·All</mu-button>
     </div>
   </mu-container>
 
-
-        <!-- <mu-list>
+  <!-- <mu-list>
           <mu-list-item>
               <mu-list-item-action>
                 <mu-button color="primary" @click="updateGit">更新git文件</mu-button>
@@ -38,14 +62,10 @@
                 <mu-button color="primary" @click="oneForAll">One·for·All</mu-button>
               </mu-list-item-action>
             </mu-list-item>
-        </mu-list> -->
-
-
-        
-        <!-- <mu-button label="生成javascript文件" class="demo-snackbar-button" @click="createJavascript" primary/> -->
-        <!-- <mu-button label="移动proto文件" class="demo-snackbar-button" @click="moveProto" primary/> -->
-
-        <!-- <mu-card>
+  </mu-list>-->
+  <!-- <mu-button label="生成javascript文件" class="demo-snackbar-button" @click="createJavascript" primary/> -->
+  <!-- <mu-button label="移动proto文件" class="demo-snackbar-button" @click="moveProto" primary/> -->
+  <!-- <mu-card>
             <mu-card-title title="协议配置" subTitle="" />
             <div class="content">
                 <div class="content-left">
@@ -97,7 +117,7 @@
                 <mu-button label="清除" class="demo-snackbar-button" @click="clearData" backgroundColor="#e91e63" primary/>
                 <mu-button label="刷新" class="demo-snackbar-button" @click="protoRefresh" backgroundColor="#6495ed" primary/>
             </mu-card-actions>
-        </mu-card> -->
+  </mu-card>-->
 </template>
 
 <script>
@@ -108,6 +128,8 @@ const fs = require("fs");
 const removeSpaces = require("strman").removeSpaces;
 const replace = require("strman").replace;
 const spawn = require("child_process").spawn;
+
+import { mdProto } from "../js/MdProto.js";
 
 export default {
   data() {
@@ -142,123 +164,115 @@ export default {
     }
   },
   methods: {
-    updateGit() {
-      return new Promise((resolve, reject) => {
-        this.isUpdateGitLoading = true;
-
-        let process = spawn("git", ["pull"], { cwd: this.proto_path });
-        process.stdout.on("data", data => {
-          console.log("stdout: " + data);
-        });
-
-        process.stderr.on("data", data => {
-          console.log("stderr: " + data);
-        });
-
-        process.on("exit", code => {
-          if (code != 0) {
-            this.isUpdateGitLoading = false;
-            ipcRenderer.send("client_show_snack", "更新git错误:" + code);
-            reject();
-          } else {
-            this.isUpdateGitLoading = false;
-            ipcRenderer.send("client_show_message", "更新git成功");
-            resolve();
-          }
-        });
-      });
+    async updateGit() {
+      this.isUpdateGitLoading = true;
+      try {
+        await mdProto.updateGit();
+        this.isUpdateGitLoading = false;
+      } catch (error) {
+        this.isUpdateGitLoading = false;
+      }
     },
-    composeProto() {
-      return new Promise((resolve, reject) => {
-        this.isComposeProtoLoading = true;
+    async composeProto() {
+      // return new Promise((resolve, reject) => {
+      //   this.isComposeProtoLoading = true;
 
-        let pa = fs.readdirSync(this.proto_path);
-        let content = "";
-        content += "syntax = 'proto3';\r\n";
-        content += "package Bian;\r\n";
-        for (let i = 0; i < pa.length; i++) {
-          const element = pa[i];
-          if (element.indexOf(".proto") != -1) {
-            let eleContent = fs.readFileSync(
-              this.proto_path + "/" + element,
-              "utf-8"
-            );
+      //   let pa = fs.readdirSync(this.proto_path);
+      //   let content = "";
+      //   content += "syntax = 'proto3';\r\n";
+      //   content += "package Bian;\r\n";
+      //   for (let i = 0; i < pa.length; i++) {
+      //     const element = pa[i];
+      //     if (element.indexOf(".proto") != -1) {
+      //       let eleContent = fs.readFileSync(
+      //         this.proto_path + "/" + element,
+      //         "utf-8"
+      //       );
 
-            eleContent = eleContent
-              .split("\n")
-              .filter(i => {
-                return i.indexOf("import") !== 0;
-              })
-              .join("\n");
+      //       eleContent = eleContent
+      //         .split("\n")
+      //         .filter(i => {
+      //           return i.indexOf("import") !== 0;
+      //         })
+      //         .join("\n");
 
-            eleContent = eleContent.replace("syntax = 'proto3';", "");
-            eleContent = eleContent.replace('syntax = "proto3";', "");
-            eleContent = eleContent.replace("package Bian;", "");
+      //       eleContent = eleContent.replace("syntax = 'proto3';", "");
+      //       eleContent = eleContent.replace('syntax = "proto3";', "");
+      //       eleContent = eleContent.replace("package Bian;", "");
 
-            eleContent = eleContent.replace("option go_package Bian;", "");
-            content += "// ----- from " + element + " ---- \n";
-            content += eleContent + "\n";
-          }
-        }
+      //       eleContent = eleContent.replace("option go_package Bian;", "");
+      //       content += "// ----- from " + element + " ---- \n";
+      //       content += eleContent + "\n";
+      //     }
+      //   }
 
-        let ppath =
-          this.project_path + "/resource/assets/proto/pbmessage.proto";
-        try {
-          fs.writeFileSync(ppath, content);
-          this.isComposeProtoLoading = false;
-          ipcRenderer.send("client_show_message", "合成proto成功");
-          resolve();
-        } catch (error) {
-          this.isComposeProtoLoading = false;
-          ipcRenderer.send("client_show_snack", "合成proto错误:" + error);
-          reject();
-        }
-      });
+      //   let ppath =
+      //     this.project_path + "/resource/assets/proto/pbmessage.proto";
+      //   try {
+      //     fs.writeFileSync(ppath, content);
+      //     this.isComposeProtoLoading = false;
+      //     ipcRenderer.send("client_show_toast", "合成proto成功");
+      //     resolve();
+      //   } catch (error) {
+      //     this.isComposeProtoLoading = false;
+      //     ipcRenderer.send("client_show_snack", "合成proto错误:" + error);
+      //     reject();
+      //   }
+      // });
+      this.isComposeProtoLoading = true;
+      await mdProto.composeProto();
+      this.isComposeProtoLoading = false;
     },
-    createJs() {
-      return new Promise((resolve, reject) => {
-        this.isCreateJsLoading = true;
+    async createJs() {
+      // return new Promise((resolve, reject) => {
+      //   this.isCreateJsLoading = true;
 
-        let cmdStr =
-          "pbjs -t static-module -w commonjs -o " +
-          this.proto_path +
-          "/pbmessage.js " +
-          this.project_path +
-          "/resource/assets/proto/pbmessage.proto";
-        exec(cmdStr, (error, stdout, stderr) => {
-          if (error) {
-            this.isCreateJsLoading = false;
-            ipcRenderer.send("client_show_snack", "生成js错误:" + error);
-            reject();
-          } else {
-            this.isCreateJsLoading = false;
-            ipcRenderer.send("client_show_message", "生成js成功");
-            resolve();
-          }
-        });
-      });
+      //   let cmdStr =
+      //     "pbjs -t static-module -w commonjs -o " +
+      //     this.proto_path +
+      //     "/pbmessage.js " +
+      //     this.project_path +
+      //     "/resource/assets/proto/pbmessage.proto";
+      //   exec(cmdStr, (error, stdout, stderr) => {
+      //     if (error) {
+      //       this.isCreateJsLoading = false;
+      //       ipcRenderer.send("client_show_snack", "生成js错误:" + error);
+      //       reject();
+      //     } else {
+      //       this.isCreateJsLoading = false;
+      //       ipcRenderer.send("client_show_toast", "生成js成功");
+      //       resolve();
+      //     }
+      //   });
+      // });
+      this.isCreateJsLoading = true;
+      await mdProto.createJs();
+      this.isCreateJsLoading = false;
     },
-    createTs() {
-      return new Promise((resolve, reject) => {
-        this.isCreateTsLoading = true;
-        let cmdStr =
-          "pbts -o " +
-          this.project_path +
-          "/src/protocol/pbmessage.d.ts " +
-          this.proto_path +
-          "/pbmessage.js";
-        exec(cmdStr, (error, stdout, stderr) => {
-          if (error) {
-            this.isCreateTsLoading = false;
-            ipcRenderer.send("client_show_snack", "生成ts错误:" + error);
-            reject();
-          } else {
-            this.isCreateTsLoading = false;
-            ipcRenderer.send("client_show_message", "生成ts成功");
-            resolve();
-          }
-        });
-      });
+    async createTs() {
+      // return new Promise((resolve, reject) => {
+      //   this.isCreateTsLoading = true;
+      //   let cmdStr =
+      //     "pbts -o " +
+      //     this.project_path +
+      //     "/src/protocol/pbmessage.d.ts " +
+      //     this.proto_path +
+      //     "/pbmessage.js";
+      //   exec(cmdStr, (error, stdout, stderr) => {
+      //     if (error) {
+      //       this.isCreateTsLoading = false;
+      //       ipcRenderer.send("client_show_snack", "生成ts错误:" + error);
+      //       reject();
+      //     } else {
+      //       this.isCreateTsLoading = false;
+      //       ipcRenderer.send("client_show_toast", "生成ts成功");
+      //       resolve();
+      //     }
+      //   });
+      // });
+      this.isCreateTsLoading = true;
+      await mdProto.createTs();
+      this.isCreateTsLoading = false;
     },
     modifyTs() {
       return new Promise((resolve, reject) => {
@@ -289,7 +303,7 @@ export default {
         try {
           fs.writeFileSync(msgptah, content);
           this.isModifyTsLoading = false;
-          ipcRenderer.send("client_show_message", "修改ts成功");
+          ipcRenderer.send("client_show_toast", "修改ts成功");
           resolve();
         } catch (error) {
           this.isModifyTsLoading = false;
@@ -309,7 +323,7 @@ export default {
         await this.modifyTs();
 
         ipcRenderer.send("client_hide_loading");
-        ipcRenderer.send("client_show_message", "One·for·All Success");
+        ipcRenderer.send("client_show_toast", "One·for·All Success");
         ipcRenderer.send("client_show_dialog", "One·for·All Success");
       } catch (e) {
         ipcRenderer.send("client_hide_loading");
@@ -328,7 +342,7 @@ export default {
 
         try {
           fs.writeFileSync(ppath, content);
-          ipcRenderer.send("client_show_message", "移动proto成功");
+          ipcRenderer.send("client_show_toast", "移动proto成功");
           resolve();
         } catch (error) {
           ipcRenderer.send("client_show_snack", "移动proto错误:" + error);
@@ -347,7 +361,7 @@ export default {
         if (error) {
           ipcRenderer.send("client_show_snack", "生成json错误:" + error);
         } else {
-          ipcRenderer.send("client_show_message", "生成json成功");
+          ipcRenderer.send("client_show_toast", "生成json成功");
         }
       });
     },
@@ -364,7 +378,7 @@ export default {
         if (error) {
           ipcRenderer.send("client_show_snack", "生成typescript错误:" + error);
         } else {
-          ipcRenderer.send("client_show_message", "生成typescript成功");
+          ipcRenderer.send("client_show_toast", "生成typescript成功");
         }
       });
     },

@@ -75,7 +75,10 @@
       </div>
       <div class="control-group">
         <mu-row gutter>
-          <mu-col span="12" lg="8" sm="6">
+          <mu-col span="12" lg="2" sm="4">
+            <mu-text-field class="text-version" v-model="new_version" label="当前版本号" label-float />
+          </mu-col>
+          <mu-col span="12" lg="2" sm="6">
             <mu-text-field class="text-path" v-model="cdn_path" label="CDN目录" label-float />
           </mu-col>
         </mu-row>
@@ -225,7 +228,7 @@ export default {
             console.log(ppath);
             try {
               await fs.writeFileSync(ppath, content);
-              ipcRenderer.send("client_show_message", "发布项目成功");
+              ipcRenderer.send("client_show_toast", "发布项目成功");
               ipcRenderer.send("client_show_dialog", "发布项目成功");
               this.new_version_path =
                 this.project_path + "/bin-release/web/" + this.cur_game_version;
@@ -284,7 +287,10 @@ export default {
             return a <= b ? -1 : 1;
           });
           for (const iterator of versionList.versionList) {
-            if (this.old_version < iterator && iterator < this.new_version) {
+            if (
+              parseInt(this.old_version) < parseInt(iterator) &&
+              parseInt(iterator) < parseInt(this.new_version)
+            ) {
               await this.mergeVersion(this.new_version, iterator, false);
             }
           }
@@ -299,7 +305,7 @@ export default {
           versionListContent
         );
         this.isMergeVersionLoading = false;
-        ipcRenderer.send("client_show_message", "比较版本成功");
+        ipcRenderer.send("client_show_toast", "比较版本成功");
         ipcRenderer.send("client_show_dialog", "比较版本成功");
       } catch (error) {
         this.isMergeVersionLoading = false;
@@ -335,7 +341,7 @@ export default {
           }
         }
         this.isExportVersionLoading = false;
-        ipcRenderer.send("client_show_message", "导出其他版本成功");
+        ipcRenderer.send("client_show_toast", "导出其他版本成功");
       } catch (error) {
         ipcRenderer.send("client_show_snack", "导出其他版本错误:" + error);
         console.log("导出其他版本错误:" + error);
@@ -493,7 +499,7 @@ export default {
               this.android_path + "/app/build/outputs/apk/app-release.apk",
               this.svn_path + "/client/app/planet.apk"
             );
-            ipcRenderer.send("client_show_message", "打包APK成功");
+            ipcRenderer.send("client_show_toast", "打包APK成功");
             if (showDialog) {
               ipcRenderer.send("client_show_dialog", "打包APK成功");
             }
@@ -546,7 +552,7 @@ export default {
         //   await this.excuteIpaCmd(cleanCmd, "clean");
         //   await this.excuteIpaCmd(archiveCmd, "archive");
         //   await this.excuteIpaCmd(exportCmd, "export");
-        //   ipcRenderer.send("client_show_message", "打包IPA成功");
+        //   ipcRenderer.send("client_show_toast", "打包IPA成功");
         //   if (showDialog) {
         //     ipcRenderer.send("client_show_dialog", "打包IPA成功");
         //   }
@@ -571,7 +577,7 @@ export default {
         process.on("exit", code => {
           if (code == 0) {
             this.isExportIpaLoading = false;
-            ipcRenderer.send("client_show_message", "打包IPA成功");
+            ipcRenderer.send("client_show_toast", "打包IPA成功");
             if (showDialog) {
               ipcRenderer.send("client_show_dialog", "打包IPA成功");
             }
@@ -1074,7 +1080,7 @@ export default {
         await this.onPublishProjectClick();
         await this.onMergetVersionClick();
         ipcRenderer.send("client_hide_loading");
-        ipcRenderer.send("client_show_message", "One·for·All Success");
+        ipcRenderer.send("client_show_toast", "One·for·All Success");
       } catch (e) {
         ipcRenderer.send("client_hide_loading");
         ipcRenderer.send("client_show_snack", "One·for·All Error:" + e);

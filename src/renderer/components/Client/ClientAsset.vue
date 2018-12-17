@@ -63,7 +63,7 @@ export default {
         await fs.writeFileSync(configPath, content);
 
         this.isImportDefaultLoading = false;
-        ipcRenderer.send("client_show_message", "导入default成功");
+        ipcRenderer.send("client_show_toast", "导入default成功");
       } catch (error) {
         this.isImportDefaultLoading = false;
         ipcRenderer.send("client_show_snack", "导入default错误:" + error);
@@ -83,7 +83,7 @@ export default {
         await fs.writeFileSync(configPath, content);
 
         this.isImportAsyncLoading = false;
-        ipcRenderer.send("client_show_message", "导入async成功");
+        ipcRenderer.send("client_show_toast", "导入async成功");
       } catch (error) {
         this.isImportAsyncLoading = false;
         ipcRenderer.send("client_show_snack", "导入async错误:" + error);
@@ -124,7 +124,7 @@ export default {
         await fs.writeFileSync(configPath, content);
 
         this.isImportIndieLoading = false;
-        ipcRenderer.send("client_show_message", "导入indie成功");
+        ipcRenderer.send("client_show_toast", "导入indie成功");
       } catch (error) {
         this.isImportIndieLoading = false;
         ipcRenderer.send("client_show_snack", "导入indie错误:" + error);
@@ -145,7 +145,7 @@ export default {
         await fs.writeFileSync(configPath, content);
 
         this.isImportMapDataLoading = false;
-        ipcRenderer.send("client_show_message", "导入mapData成功");
+        ipcRenderer.send("client_show_toast", "导入mapData成功");
       } catch (error) {
         this.isImportMapDataLoading = false;
         ipcRenderer.send("client_show_snack", "导入mapData错误:" + error);
@@ -160,7 +160,7 @@ export default {
         await this.importMapData();
 
         ipcRenderer.send("client_hide_loading");
-        ipcRenderer.send("client_show_message", "One·for·All Success");
+        ipcRenderer.send("client_show_toast", "One·for·All Success");
         ipcRenderer.send("client_show_dialog", "One·for·All Success");
       } catch (error) {
         ipcRenderer.send("client_hide_loading");

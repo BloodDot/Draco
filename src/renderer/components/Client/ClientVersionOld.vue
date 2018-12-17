@@ -88,7 +88,7 @@ export default {
       process.on("exit", function(code) {
         if (code == 0) {
           console.log("修改版本号成功,错误码:" + code);
-          ipcRenderer.send("client_show_message", "修改版本号成功");
+          ipcRenderer.send("client_show_toast", "修改版本号成功");
           self.loadVersion();
         } else {
           console.log("修改版本号失败,错误码:" + code);
@@ -111,7 +111,7 @@ export default {
       process.on("exit", function(code) {
         if (code == 0) {
           console.log("编译代码成功,错误码:" + code);
-          ipcRenderer.send("client_show_message", "编译代码成功");
+          ipcRenderer.send("client_show_toast", "编译代码成功");
         } else {
           console.log("编译代码失败,错误码:" + code);
         }
@@ -133,7 +133,7 @@ export default {
       process.on("exit", function(code) {
         if (code == 0) {
           console.log("生成版本成功,错误码:" + code);
-          ipcRenderer.send("client_show_message", "生成版本成功");
+          ipcRenderer.send("client_show_toast", "生成版本成功");
         } else {
           console.log("生成版本失败,错误码:" + code);
         }
@@ -191,7 +191,7 @@ export default {
             console.log(err);
           } else {
             console.log("传输zip成功");
-            ipcRenderer.send("client_show_message", "传输zip成功");
+            ipcRenderer.send("client_show_toast", "传输zip成功");
           }
         }
       );
@@ -211,7 +211,7 @@ export default {
       });
       output.on("close", function() {
         console.log("压缩zip成功");
-        ipcRenderer.send("client_show_message", "压缩zip成功");
+        ipcRenderer.send("client_show_toast", "压缩zip成功");
       });
 
       archive.pipe(output);
@@ -248,7 +248,7 @@ export default {
                 .on("close", function(code, signal) {
                   conn.end();
                   console.log("解压zip成功");
-                  ipcRenderer.send("client_show_message", "解压zip成功");
+                  ipcRenderer.send("client_show_toast", "解压zip成功");
                 })
                 .on("data", function(data) {
                   console.log("STDOUT: " + data);
@@ -289,7 +289,7 @@ export default {
               .on("close", function(code, signal) {
                 conn.end();
                 console.log("执行python成功");
-                ipcRenderer.send("client_show_message", "执行python成功");
+                ipcRenderer.send("client_show_toast", "执行python成功");
               })
               .on("data", function(data) {
                 console.log("STDOUT: " + data);

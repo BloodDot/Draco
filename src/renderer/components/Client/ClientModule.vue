@@ -89,18 +89,18 @@ export default {
     },
     createModule() {
       if (!this.module_name) {
-        ipcRenderer.send("client_show_message", "模块名不能为空");
+        ipcRenderer.send("client_show_toast", "模块名不能为空");
         return;
       }
 
       if (!this.module_cn_name) {
-        ipcRenderer.send("client_show_message", "模块中文名不能为空");
+        ipcRenderer.send("client_show_toast", "模块中文名不能为空");
         return;
       }
 
       for (var i = 0; i < this.tableData.length; i++) {
         if (this.tableData[i].moduleName == this.module_name) {
-          ipcRenderer.send("client_show_message", "已存在该模块");
+          ipcRenderer.send("client_show_toast", "已存在该模块");
           this.hideModuleDialog();
           return;
         }
@@ -126,17 +126,17 @@ export default {
     },
     createWindow() {
       if (!this.window_name) {
-        ipcRenderer.send("client_show_message", "窗体名不能为空");
+        ipcRenderer.send("client_show_toast", "窗体名不能为空");
         return;
       }
 
       if (!this.window_cn_name) {
-        ipcRenderer.send("client_show_message", "窗体中文名不能为空");
+        ipcRenderer.send("client_show_toast", "窗体中文名不能为空");
         return;
       }
 
       if (!this.window_module_name) {
-        ipcRenderer.send("client_show_message", "窗体模块名不能为空");
+        ipcRenderer.send("client_show_toast", "窗体模块名不能为空");
         return;
       }
 

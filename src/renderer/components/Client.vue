@@ -1,105 +1,107 @@
 <template>
-    <div class="layout">
-        <div class="header">
-              <mu-appbar color="primary" title="Client"></mu-appbar>
-        </div>
-        <div class="content">
-          <div class="alert-demo-wrapper">
-            <mu-alert color="warning" @delete="alert1 = false" delete v-if="alert1" transition="mu-scale-transition">
-              <mu-icon left value="warning"></mu-icon> this is warning alert
-            </mu-alert>
-          </div>
-          <div class="content-left">
-            <mu-list @change="handleListChange" :value="activeList">
-                <!-- <mu-list-item title="Module" value="ClientModule">
+  <div class="layout">
+    <div class="header">
+      <mu-appbar color="primary" title="Client"></mu-appbar>
+    </div>
+    <div class="content">
+      <div class="alert-demo-wrapper">
+        <mu-alert
+          color="warning"
+          @delete="alert1 = false"
+          delete
+          v-if="alert1"
+          transition="mu-scale-transition"
+        >
+          <mu-icon left value="warning"></mu-icon>this is warning alert
+        </mu-alert>
+      </div>
+      <div class="content-left">
+        <mu-list @change="handleListChange" :value="activeList">
+          <!-- <mu-list-item title="Module" value="ClientModule">
                     <mu-icon slot="left" value="assignment" />
-                </mu-list-item> -->
+          </mu-list-item>-->
+          <mu-list-item button :ripple="false" value="ClientProto">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="swap_vert"/>
+            </mu-list-item-action>
+            <mu-list-item-title>Proto</mu-list-item-title>
+          </mu-list-item>
 
-                <mu-list-item button :ripple="false" value="ClientProto">
-                  <mu-list-item-action>
-                    <mu-icon slot="left" value="swap_vert" />
-                  </mu-list-item-action>
-                  <mu-list-item-title>Proto</mu-list-item-title>
-                </mu-list-item>
+          <mu-list-item button :ripple="false" value="ClientCsv">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="extension"/>
+            </mu-list-item-action>
+            <mu-list-item-title>Csv</mu-list-item-title>
+          </mu-list-item>
 
-                <mu-list-item button :ripple="false" value="ClientCsv">
-                  <mu-list-item-action>
-                    <mu-icon slot="left" value="extension" />
-                  </mu-list-item-action>
-                  <mu-list-item-title>Csv</mu-list-item-title>
-                </mu-list-item>
+          <mu-list-item button :ripple="false" value="ClientTexture">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="crop_original"/>
+            </mu-list-item-action>
+            <mu-list-item-title>Texture</mu-list-item-title>
+          </mu-list-item>
 
-                <mu-list-item button :ripple="false" value="ClientTexture">
-                  <mu-list-item-action>
-                    <mu-icon slot="left" value="crop_original" />
-                  </mu-list-item-action>
-                  <mu-list-item-title>Texture</mu-list-item-title>
-                </mu-list-item>
+          <mu-list-item button :ripple="false" value="ClientMapData">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="map"/>
+            </mu-list-item-action>
+            <mu-list-item-title>MapData</mu-list-item-title>
+          </mu-list-item>
 
-                <mu-list-item button :ripple="false" value="ClientMapData">
-                  <mu-list-item-action>
-                    <mu-icon slot="left" value="map" />
-                  </mu-list-item-action>
-                  <mu-list-item-title>MapData</mu-list-item-title>
-                </mu-list-item>
-                
-                <mu-list-item button :ripple="false" value="ClientAsset">
-                  <mu-list-item-action>
-                    <mu-icon slot="left" value="apps" />
-                  </mu-list-item-action>
-                  <mu-list-item-title>Asset</mu-list-item-title>
-                </mu-list-item>
+          <mu-list-item button :ripple="false" value="ClientAsset">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="apps"/>
+            </mu-list-item-action>
+            <mu-list-item-title>Asset</mu-list-item-title>
+          </mu-list-item>
 
-                <mu-list-item button :ripple="false" value="ClientPublish">
-                  <mu-list-item-action>
-                    <mu-icon slot="left" value="timeline" />
-                  </mu-list-item-action>
-                  <mu-list-item-title>Publish</mu-list-item-title>
-                </mu-list-item>
+          <mu-list-item button :ripple="false" value="ClientPublish">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="timeline"/>
+            </mu-list-item-action>
+            <mu-list-item-title>Publish</mu-list-item-title>
+          </mu-list-item>
 
-                <!-- <mu-list-item button :ripple="false" value="ClientTest">
+          <!-- <mu-list-item button :ripple="false" value="ClientTest">
                   <mu-list-item-action>
                     <mu-icon slot="left" value="crop_original" />
                   </mu-list-item-action>
                   <mu-list-item-title>Test</mu-list-item-title>
-                </mu-list-item> -->
-
-                <mu-divider/>
-                <mu-list-item button :ripple="false" value="ClientSetting">
-                  <mu-list-item-action>
-                    <mu-icon slot="left" value="build" />
-                  </mu-list-item-action>
-                  <mu-list-item-title>Setting</mu-list-item-title>
-                </mu-list-item>
-              </mu-list>
-            </div>
-            <div class="content-right">
-                <div class="body">
-                    <component :is='currentView' keep-alive></component>
-                </div>
-            </div>
+          </mu-list-item>-->
+          <mu-divider/>
+          <mu-list-item button :ripple="false" value="ClientSetting">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="build"/>
+            </mu-list-item-action>
+            <mu-list-item-title>Setting</mu-list-item-title>
+          </mu-list-item>
+        </mu-list>
+      </div>
+      <div class="content-right">
+        <div class="body">
+          <component :is="currentView" keep-alive></component>
         </div>
-        <div class="footer">
-            Draco ©2018 Created by Muse-UI
-        </div>
-
-        <mu-snackbar position="bottom-end" color="success" :open.sync="toast" @close="hideToast">
-          <mu-icon left value="check_circle"></mu-icon>
-          {{toastContent}}
-          <mu-button flat slot="action" color="#ffffff" @click="hideToast">关闭</mu-button>
-        </mu-snackbar>
-
-        <mu-snackbar position="bottom-end" color="error" :open.sync="snackbar" @close="hideSnackbar">
-          <mu-icon left value="warning"></mu-icon>
-          {{snackContent}}
-          <mu-button flat slot="action" color="#ffffff" @click="hideSnackbar">关闭</mu-button>
-        </mu-snackbar>
-
-        <mu-dialog width="360" :open.sync="dialog">
-          {{dialogContent}}
-          <mu-button slot="actions" flat color="primary" @click="closeDialog">关闭</mu-button>
-        </mu-dialog>
+      </div>
     </div>
+    <div class="footer">Draco ©2018 Created by Muse-UI</div>
+
+    <mu-snackbar position="bottom-end" color="success" :open.sync="toast" @close="hideToast">
+      <mu-icon left value="check_circle"></mu-icon>
+      {{toastContent}}
+      <mu-button flat slot="action" color="#ffffff" @click="hideToast">关闭</mu-button>
+    </mu-snackbar>
+
+    <mu-snackbar position="bottom-end" color="error" :open.sync="snackbar" @close="hideSnackbar">
+      <mu-icon left value="warning"></mu-icon>
+      {{snackContent}}
+      <mu-button flat slot="action" color="#ffffff" @click="hideSnackbar">关闭</mu-button>
+    </mu-snackbar>
+
+    <mu-dialog width="360" :open.sync="dialog">
+      {{dialogContent}}
+      <mu-button slot="actions" flat color="primary" @click="closeDialog">关闭</mu-button>
+    </mu-dialog>
+  </div>
 </template>
 <script>
 const ipcRenderer = require("electron").ipcRenderer;
@@ -182,15 +184,15 @@ export default {
     }
   },
   components: {
-    ClientModule: require("./Client/ClientModule"),
     ClientCsv: require("./Client/ClientCsv"),
     ClientProto: require("./Client/ClientProto"),
     ClientTexture: require("./Client/ClientTexture"),
     ClientMapData: require("./Client/ClientMapData"),
     ClientSetting: require("./Client/ClientSetting"),
-    ClientTest: require("./Client/ClientTest"),
     ClientPublish: require("./Client/ClientPublish"),
     ClientAsset: require("./Client/ClientAsset")
+    // ClientModule: require("./backup/ClientModule"),
+    // ClientTest: require("./backup/ClientTest")
   },
   mounted() {
     // this.client_author = localStorage.getItem("client_author");
@@ -275,7 +277,7 @@ export default {
 }
 
 .content-left {
-  width: 30%;
+  width: 20%;
   float: left;
   background-color: white;
   margin-bottom: -4000px;
@@ -283,7 +285,7 @@ export default {
 }
 
 .content-right {
-  width: 70%;
+  width: 80%;
   display: inline-block;
   padding: 10px 10px;
   background-color: rgba(0, 0, 0, 0);
@@ -316,6 +318,14 @@ export default {
     margin: 0 auto;
     display: block;
   }
+}
+
+.button-wrapper {
+  text-align: left;
+}
+.mu-button {
+  margin: 8px;
+  vertical-align: top;
 }
 
 .mu-scale-transition-enter-active,

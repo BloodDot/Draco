@@ -1,12 +1,37 @@
 <template>
   <div>
-    <mu-container >
+    <mu-container>
       <div class="button-wrapper">
-        <mu-button v-loading="isPublishProjectLoading" data-mu-loading-size="24" color="pink500" @click="onPublishProjectClick">发布当前项目</mu-button>
-        <mu-button v-loading="isMergeVersionLoading" data-mu-loading-size="24" color="orange500" @click="onMergetVersionClick">比较新旧版本</mu-button>
-        <mu-button v-loading="isExportVersionLoading" data-mu-loading-size="24" color="cyan500" @click="onExportVersionClick">导出其他版本</mu-button>
-        <mu-button v-loading="isExportApkLoading" data-mu-loading-size="24" color="blue500" @click="onExportApkClick">导出apk</mu-button>
-        <mu-button v-loading="isExportIpaLoading" data-mu-loading-size="24" color="purple500" @click="onExportIpaClick">导出ipa</mu-button>
+        <mu-button
+          v-loading="isPublishProjectLoading"
+          data-mu-loading-size="24"
+          color="pink500"
+          @click="onPublishProjectClick"
+        >发布当前项目</mu-button>
+        <mu-button
+          v-loading="isMergeVersionLoading"
+          data-mu-loading-size="24"
+          color="orange500"
+          @click="onMergetVersionClick"
+        >比较新旧版本</mu-button>
+        <mu-button
+          v-loading="isExportVersionLoading"
+          data-mu-loading-size="24"
+          color="cyan500"
+          @click="onExportVersionClick"
+        >导出其他版本</mu-button>
+        <mu-button
+          v-loading="isExportApkLoading"
+          data-mu-loading-size="24"
+          color="blue500"
+          @click="onExportApkClick"
+        >导出apk</mu-button>
+        <mu-button
+          v-loading="isExportIpaLoading"
+          data-mu-loading-size="24"
+          color="purple500"
+          @click="onExportIpaClick"
+        >导出ipa</mu-button>
       </div>
       <div class="button-wrapper">
         <mu-button full-width color="red" @click="oneForAll">One·for·All</mu-button>
@@ -14,52 +39,71 @@
     </mu-container>
     <mu-container>
       <div>
-          <mu-flex class="flex-wrapper" align-items="center">
-            <mu-col span="12" lg="2" sm="4">
-              <mu-text-field class="text-version" v-model="cur_game_version" label="发布版本号" label-float/>
-            </mu-col>
-            <mu-col span="12" lg="2" sm="4">
-              <mu-text-field class="text-version" v-model="cur_display_version" label="显示版本号" label-float/>
-            </mu-col>
-            <mu-col span="12" lg="2" sm="4">
-              <mu-select label="选择类型" filterable v-model="versionType" label-float full-width>
-                <mu-option v-for="type,index in versionTypes" :key="type" :label="type" :value="type"></mu-option>
-              </mu-select>
-            </mu-col>
-              <mu-flex class="flex-wrapper">
-                <mu-checkbox label="全选" :input-value="checkAll" @change="handleCheckAll" :checked-icon="checkBoxData.length < checkBoxValues.length ? 'indeterminate_check_box' : undefined"></mu-checkbox>
-              </mu-flex>
-              <mu-flex class="flex-wrapper" :key="checkBoxValue" v-for="checkBoxValue in checkBoxValues">
-                <mu-checkbox :value="checkBoxValue" v-model="checkBoxData" :label="checkBoxValue"></mu-checkbox>
-              </mu-flex>
+        <mu-flex class="flex-wrapper" align-items="center">
+          <mu-col span="12" lg="2" sm="4">
+            <mu-text-field class="text-version" v-model="releaseVersion" label="发布版本号" label-float/>
+          </mu-col>
+          <mu-col span="12" lg="2" sm="4">
+            <mu-text-field class="text-version" v-model="displayVersion" label="显示版本号" label-float/>
+          </mu-col>
+          <mu-col span="12" lg="2" sm="4">
+            <mu-select label="选择类型" filterable v-model="versionType" label-float full-width>
+              <mu-option v-for="type,index in versionTypes" :key="type" :label="type" :value="type"></mu-option>
+            </mu-select>
+          </mu-col>
+          <mu-flex class="flex-wrapper">
+            <mu-checkbox
+              label="全选"
+              :input-value="checkAll"
+              @change="handleCheckAll"
+              :checked-icon="checkBoxData.length < checkBoxValues.length ? 'indeterminate_check_box' : undefined"
+            ></mu-checkbox>
           </mu-flex>
+          <mu-flex
+            class="flex-wrapper"
+            :key="checkBoxValue"
+            v-for="checkBoxValue in checkBoxValues"
+          >
+            <mu-checkbox :value="checkBoxValue" v-model="checkBoxData" :label="checkBoxValue"></mu-checkbox>
+          </mu-flex>
+        </mu-flex>
       </div>
       <div class="control-group">
         <!-- <mu-row gutter> -->
-          <!-- <mu-col span="12" lg="2" sm="6">
-            <mu-text-field class="text-version" v-model="new_version" label="新版本号" :disabled="true" />
+        <!-- <mu-col span="12" lg="2" sm="6">
+            <mu-text-field class="text-version" v-model="newVersion" label="新版本号" :disabled="true" />
           </mu-col>
           <mu-col span="12" lg="8" sm="6">
             <mu-text-field class="text-path" v-model="new_version_path" label="新版本目录" @change="onNewVersionPathChange" label-float />
           </mu-col>
           <mu-col span="2" lg="2" sm="6">
             <mu-button color="pink500" @click="onNewVersionClick">选择</mu-button>
-          </mu-col> -->
-
-          <mu-select label="新版本号" filterable v-model="new_version" @change="onNewVersionChange" label-float full-width>
+        </mu-col>-->
+        <mu-select
+          label="新版本号"
+          filterable
+          v-model="newVersion"
+          @change="onNewVersionChange"
+          label-float
+          full-width
+        >
+          <mu-option
+            v-for="value,index in newVersionList"
+            :key="value"
+            :label="value"
+            :value="value"
+          ></mu-option>
+        </mu-select>
+        <!-- <mu-auto-complete :data="newVersionList" label="新版本号" v-model="newVersion" open-on-focus></mu-auto-complete> -->
+        <!-- <mu-select label="新版本号" filterable v-model="newVersion" full-width>
             <mu-option v-for="value,index in newVersionList" :key="value" :label="value" :value="value"></mu-option>
-          </mu-select>
-          <!-- <mu-auto-complete :data="newVersionList" label="新版本号" v-model="new_version" open-on-focus></mu-auto-complete> -->
-
-          <!-- <mu-select label="新版本号" filterable v-model="new_version" full-width>
-            <mu-option v-for="value,index in newVersionList" :key="value" :label="value" :value="value"></mu-option>
-          </mu-select> -->
+        </mu-select>-->
         <!-- </mu-row> -->
       </div>
       <div class="control-group">
         <!-- <mu-row gutter>
           <mu-col span="12" lg="2" sm="6">
-            <mu-text-field class="text-version" v-model="old_version" label="旧版本号" :disabled="true" />
+            <mu-text-field class="text-version" v-model="oldVersion" label="旧版本号" :disabled="true" />
           </mu-col>
           <mu-col span="12" lg="8" sm="6">
             <mu-text-field class="text-path" v-model="old_version_path" label="旧版本目录" @change="onOldVersionPathChange" label-float />
@@ -67,19 +111,31 @@
           <mu-col span="2" lg="2" sm="6">
             <mu-button color="orange500" @click="onOldVersionClick">选择</mu-button>
           </mu-col>
-        </mu-row> -->
-        <mu-select label="旧版本号" filterable v-model="old_version"  @change="onOldVersionChange" label-float full-width>
-          <mu-option v-for="value,index in oldVersionList" :key="value" :label="value" :value="value"></mu-option>
+        </mu-row>-->
+        <mu-select
+          label="旧版本号"
+          filterable
+          v-model="oldVersion"
+          @change="onOldVersionChange"
+          label-float
+          full-width
+        >
+          <mu-option
+            v-for="value,index in oldVersionList"
+            :key="value"
+            :label="value"
+            :value="value"
+          ></mu-option>
         </mu-select>
-          <!-- <mu-auto-complete :data="oldVersionList" label="旧版本号" @change="onOldVersionChange" v-model="old_version" open-on-focus></mu-auto-complete> -->
+        <!-- <mu-auto-complete :data="oldVersionList" label="旧版本号" @change="onOldVersionChange" v-model="oldVersion" open-on-focus></mu-auto-complete> -->
       </div>
       <div class="control-group">
         <mu-row gutter>
           <mu-col span="12" lg="2" sm="4">
-            <mu-text-field class="text-version" v-model="new_version" label="当前版本号" label-float />
+            <mu-text-field class="text-version" v-model="newVersion" label="新版本号" label-float/>
           </mu-col>
           <mu-col span="12" lg="2" sm="6">
-            <mu-text-field class="text-path" v-model="cdn_path" label="CDN目录" label-float />
+            <mu-text-field class="text-path" v-model="cdnPath" label="CDN目录" label-float/>
           </mu-col>
         </mu-row>
       </div>
@@ -88,6 +144,11 @@
 </template>
 
 <script>
+import * as mdPublish from "../js/MdPublish.js";
+
+import * as fsExc from "../js/FsExecute.js";
+import * as global from "../js/Global.js";
+
 const exec = require("child_process").exec;
 const ipcRenderer = require("electron").ipcRenderer;
 const remote = require("electron").remote;
@@ -106,28 +167,28 @@ export default {
   data() {
     return {
       project_path: "",
-      publish_path: "",
+      // publish_path: "",
       isPublishProjectLoading: false,
       isMergeVersionLoading: false,
       isExportVersionLoading: false,
       isExportApkLoading: false,
       isExportIpaLoading: false,
       publish_version: "",
-      new_version: "",
+      newVersion: "",
       new_version_path: "",
-      old_version: "",
+      oldVersion: "",
       old_version_path: "",
-      cur_game_version: "",
-      cur_display_version: "",
-      cdn_path: "",
+      releaseVersion: "",
+      displayVersion: "",
+      cdnPath: "",
       android_path: "",
       ios_path: "",
       wechat_path: "",
       svn_path: "",
       versionType: "",
-      versionTypes: ["强制更新", "选择更新", "静态更新"],
-      checkBoxValues: ["Android端", "IOS端", "小游戏端"],
-      checkBoxData: [],
+      versionTypes: mdPublish.versionTypes,
+      checkBoxValues: mdPublish.checkBoxValues,
+      checkBoxData: mdPublish.getCheckBoxData(),
       checkAll: true,
 
       newVersionList: [],
@@ -135,186 +196,212 @@ export default {
     };
   },
   watch: {
-    cdn_path: (val, oldVal) => {
-      if (val != oldVal) {
-        localStorage.setItem("client_cdn_path", val);
-      }
+    checkBoxData: val => {
+      mdPublish.setCheckBoxData(val);
+    },
+    cdnPath: val => {
+      localStorage.setItem("client_cdn_path", val);
+      mdPublish.setCdnPath(val);
+    },
+    releaseVersion: val => {
+      mdPublish.setReleaseVersion(val);
+    },
+    displayVersion: val => {
+      mdPublish.setDisplayVersion(val);
+    },
+    versionType: val => {
+      mdPublish.setVersionType(val);
+    },
+    newVersion: val => {
+      mdPublish.setNewVersion(val);
+    },
+    oldVersion: val => {
+      mdPublish.setOldVersion(val);
     }
   },
   methods: {
     handleCheckAll() {
       this.checkAll = !this.checkAll;
       if (this.checkAll) {
-        this.checkBoxData = this.checkBoxValues.concat();
+        this.checkBoxData = mdPublish.checkBoxValues.concat();
       } else {
         this.checkBoxData.length = 0;
       }
     },
-    onNewVersionChange() {
-      this.new_version_path =
-        this.project_path + "/bin-release/web/" + this.new_version;
-    },
+    onNewVersionChange() {},
     onOldVersionChange() {
-      this.cur_game_version = parseInt(this.old_version) + 1 + "";
+      this.releaseVersion = parseInt(this.oldVersion) + 1 + "";
 
-      if (this.old_version != "0") {
+      if (this.oldVersion != "0") {
         let versionContent = fs.readFileSync(
-          this.publish_path +
+          mdPublish.svnPublishPath +
             "/web/release_v" +
-            this.old_version +
+            this.oldVersion +
             "/version.json",
           "utf-8"
         );
 
         let versionObj = JSON.parse(versionContent);
-        this.cur_display_version = versionObj.displayVersion;
+        this.displayVersion = versionObj.displayVersion;
       }
     },
-    // onNewVersionClick() {
-    //   ipcRenderer.send("open_new_version_path");
-    // },
-    // onOldVersionClick() {
-    //   ipcRenderer.send("open_old_version_path");
-    // },
     async onPublishProjectClick() {
-      if (!this.cur_game_version) {
-        ipcRenderer.send(
-          "client_show_snack",
-          "游戏版本号为空,请先设置旧版本号"
-        );
-        return;
-      }
+      // if (!this.releaseVersion) {
+      //   ipcRenderer.send(
+      //     "client_show_snack",
+      //     "游戏版本号为空,请先设置旧版本号"
+      //   );
+      //   return;
+      // }
 
-      if (!this.cur_display_version) {
-        ipcRenderer.send(
-          "client_show_snack",
-          "显示版本号为空,请先设置显示版本号或者设置旧版本号"
-        );
-        return;
-      }
+      // if (!this.displayVersion) {
+      //   ipcRenderer.send(
+      //     "client_show_snack",
+      //     "显示版本号为空,请先设置显示版本号或者设置旧版本号"
+      //   );
+      //   return;
+      // }
 
-      if (!this.versionType) {
-        ipcRenderer.send("client_show_snack", "请先选择版本更新类型");
-        return;
-      }
+      // if (!this.versionType) {
+      //   ipcRenderer.send("client_show_snack", "请先选择版本更新类型");
+      //   return;
+      // }
+
+      // this.isPublishProjectLoading = true;
+
+      // let cmdStr = "egret publish --version " + this.releaseVersion;
+      // console.log(cmdStr);
+      // exec(
+      //   cmdStr,
+      //   { cwd: this.project_path },
+      //   async (error, stdout, stderr) => {
+      //     if (error) {
+      //       this.isPublishProjectLoading = false;
+      //       ipcRenderer.send("client_show_snack", "发布项目错误:" + error);
+      //       console.error("发布项目错误:" + error);
+      //     } else {
+      //       this.isPublishProjectLoading = false;
+
+      //       let content = JSON.stringify({
+      //         gameVersion: this.releaseVersion,
+      //         displayVersion: this.displayVersion,
+      //         tag: false,
+      //         versionType: this.versionTypes.indexOf(this.versionType),
+      //         cdnPath: this.cdnPath
+      //       });
+      //       let ppath =
+      //         this.project_path +
+      //         "/bin-release/web/" +
+      //         this.releaseVersion +
+      //         "/version.json";
+      //       console.log(ppath);
+      //       try {
+      //         await fs.writeFileSync(ppath, content);
+      //         ipcRenderer.send("client_show_toast", "发布项目成功");
+      //         ipcRenderer.send("client_show_dialog", "发布项目成功");
+      //         mdPublish.getProjNewVersionPath() =
+      //           this.project_path + "/bin-release/web/" + this.releaseVersion;
+      //         this.newVersion = this.releaseVersion;
+      //         this.refreshNewVersionList();
+      //       } catch (error) {
+      //         ipcRenderer.send(
+      //           "client_show_snack",
+      //           "写入版本文件错误:" + error
+      //         );
+      //         console.error("写入版本文件错误:" + error);
+      //       }
+      //     }
+
+      //     if (stdout) {
+      //       console.log("stdout: " + stdout);
+      //     }
+      //     if (stderr) {
+      //       console.log("stderr: " + stderr);
+      //     }
+      //   }
+      // );
 
       this.isPublishProjectLoading = true;
-
-      let cmdStr = "egret publish --version " + this.cur_game_version;
-      console.log(cmdStr);
-      exec(
-        cmdStr,
-        { cwd: this.project_path },
-        async (error, stdout, stderr) => {
-          if (error) {
-            this.isPublishProjectLoading = false;
-            ipcRenderer.send("client_show_snack", "发布项目错误:" + error);
-            console.error("发布项目错误:" + error);
-          } else {
-            this.isPublishProjectLoading = false;
-
-            let content = JSON.stringify({
-              gameVersion: this.cur_game_version,
-              displayVersion: this.cur_display_version,
-              tag: false,
-              versionType: this.versionTypes.indexOf(this.versionType),
-              cdnPath: this.cdn_path
-            });
-            let ppath =
-              this.project_path +
-              "/bin-release/web/" +
-              this.cur_game_version +
-              "/version.json";
-            console.log(ppath);
-            try {
-              await fs.writeFileSync(ppath, content);
-              ipcRenderer.send("client_show_toast", "发布项目成功");
-              ipcRenderer.send("client_show_dialog", "发布项目成功");
-              this.new_version_path =
-                this.project_path + "/bin-release/web/" + this.cur_game_version;
-              this.new_version = this.cur_game_version;
-              this.refreshNewVersionList();
-            } catch (error) {
-              ipcRenderer.send(
-                "client_show_snack",
-                "写入版本文件错误:" + error
-              );
-              console.error("写入版本文件错误:" + error);
-            }
-          }
-
-          if (stdout) {
-            console.log("stdout: " + stdout);
-          }
-          if (stderr) {
-            console.log("stderr: " + stderr);
-          }
-        }
-      );
+      try {
+        await mdPublish.publishProject();
+        this.newVersion = this.releaseVersion;
+        this.refreshNewVersionList();
+        this.isPublishProjectLoading = false;
+      } catch (error) {
+        this.isPublishProjectLoading = false;
+      }
     },
     async onMergetVersionClick() {
-      if (!this.new_version) {
-        ipcRenderer.send("client_show_snack", "请先选择新版本号");
-        return;
-      }
-      if (
-        this.old_version &&
-        parseInt(this.old_version) >= parseInt(this.new_version)
-      ) {
-        ipcRenderer.send("client_show_snack", "新版本号应该比旧版本号大");
-        return;
-      }
+      // if (!this.newVersion) {
+      //   ipcRenderer.send("client_show_snack", "请先选择新版本号");
+      //   return;
+      // }
+      // if (
+      //   this.oldVersion &&
+      //   parseInt(this.oldVersion) >= parseInt(this.newVersion)
+      // ) {
+      //   ipcRenderer.send("client_show_snack", "新版本号应该比旧版本号大");
+      //   return;
+      // }
 
-      if (!this.publish_path) {
-        ipcRenderer.send("client_show_snack", "请在设置选项中设置发布目录");
-        return;
-      }
+      // if (!mdPublish.svnPublishPath) {
+      //   ipcRenderer.send("client_show_snack", "请在设置选项中设置发布目录");
+      //   return;
+      // }
+      // this.isMergeVersionLoading = true;
+
+      // try {
+      //   let versionListContent = await fs.readFileSync(
+      //     mdPublish.svnPublishPath + "/versionList.json",
+      //     "utf-8"
+      //   );
+      //   let versionList = JSON.parse(versionListContent);
+      //   if (versionList.versionList.indexOf(this.newVersion) == -1) {
+      //     versionList.versionList.push(this.newVersion);
+      //     versionListContent = JSON.stringify(versionList);
+      //   }
+
+      //   if (this.oldVersion && this.oldVersion != "0") {
+      //     versionList.versionList = versionList.versionList.sort((a, b) => {
+      //       return a <= b ? -1 : 1;
+      //     });
+      //     for (const iterator of versionList.versionList) {
+      //       if (
+      //         parseInt(this.oldVersion) < parseInt(iterator) &&
+      //         parseInt(iterator) < parseInt(this.newVersion)
+      //       ) {
+      //         await this.mergeVersion(this.newVersion, iterator, false);
+      //       }
+      //     }
+
+      //     await this.mergeVersion(this.newVersion, this.oldVersion, true);
+      //   } else {
+      //     await this.mergeVersion(this.newVersion, null, true);
+      //   }
+
+      //   await fs.writeFileSync(
+      //     mdPublish.svnPublishPath + "/versionList.json",
+      //     versionListContent
+      //   );
+      //   this.isMergeVersionLoading = false;
+      //   ipcRenderer.send("client_show_toast", "比较版本成功");
+      //   ipcRenderer.send("client_show_dialog", "比较版本成功");
+      // } catch (error) {
+      //   this.isMergeVersionLoading = false;
+      //   ipcRenderer.send("client_show_snack", "比较版本错误:" + error);
+      //   console.error("比较版本错误:" + error);
+      // }
+
       this.isMergeVersionLoading = true;
-
       try {
-        let versionListContent = await fs.readFileSync(
-          this.publish_path + "/versionList.json",
-          "utf-8"
-        );
-        let versionList = JSON.parse(versionListContent);
-        if (versionList.versionList.indexOf(this.new_version) == -1) {
-          versionList.versionList.push(this.new_version);
-          versionListContent = JSON.stringify(versionList);
-        }
-
-        if (this.old_version && this.old_version != "0") {
-          versionList.versionList = versionList.versionList.sort((a, b) => {
-            return a <= b ? -1 : 1;
-          });
-          for (const iterator of versionList.versionList) {
-            if (
-              parseInt(this.old_version) < parseInt(iterator) &&
-              parseInt(iterator) < parseInt(this.new_version)
-            ) {
-              await this.mergeVersion(this.new_version, iterator, false);
-            }
-          }
-
-          await this.mergeVersion(this.new_version, this.old_version, true);
-        } else {
-          await this.mergeVersion(this.new_version, null, true);
-        }
-
-        await fs.writeFileSync(
-          this.publish_path + "/versionList.json",
-          versionListContent
-        );
+        await mdPublish.mergeVersion();
         this.isMergeVersionLoading = false;
-        ipcRenderer.send("client_show_toast", "比较版本成功");
-        ipcRenderer.send("client_show_dialog", "比较版本成功");
       } catch (error) {
         this.isMergeVersionLoading = false;
-        ipcRenderer.send("client_show_snack", "比较版本错误:" + error);
-        console.error("比较版本错误:" + error);
       }
     },
     async onExportVersionClick() {
-      if (!this.new_version) {
+      if (!this.newVersion) {
         ipcRenderer.send("client_show_snack", "请先设置新版本目录");
         return;
       }
@@ -356,9 +443,9 @@ export default {
 
       let gamePath = this.android_path + "/assets/game";
       let webReleasePath =
-        this.publish_path + "/web/release_v" + this.new_version;
+        mdPublish.svnPublishPath + "/web/release_v" + this.newVersion;
       let cdnReleasePath =
-        this.publish_path + "/cdn/release_v" + this.new_version;
+        mdPublish.svnPublishPath + "/cdn/release_v" + this.newVersion;
 
       //js
       this.deleteFolder(gamePath + "/js");
@@ -391,9 +478,9 @@ export default {
 
       let gamePath = this.ios_path + "/assets/game";
       let webReleasePath =
-        this.publish_path + "/web/release_v" + this.new_version;
+        mdPublish.svnPublishPath + "/web/release_v" + this.newVersion;
       let cdnReleasePath =
-        this.publish_path + "/cdn/release_v" + this.new_version;
+        mdPublish.svnPublishPath + "/cdn/release_v" + this.newVersion;
 
       //js
       this.deleteFolder(gamePath + "/js");
@@ -437,9 +524,9 @@ export default {
 
             //version.js
             let versionContent = fs.readFileSync(
-              this.publish_path +
+              mdPublish.svnPublishPath +
                 "/web/release_v" +
-                this.new_version +
+                this.newVersion +
                 "/version.json",
               "utf-8"
             );
@@ -617,8 +704,10 @@ export default {
       let webReleasePath;
       let cdnReleasePath;
       if (isRelease) {
-        webReleasePath = this.publish_path + "/web/release_v" + newVersion;
-        cdnReleasePath = this.publish_path + "/cdn/release_v" + newVersion;
+        webReleasePath =
+          mdPublish.svnPublishPath + "/web/release_v" + newVersion;
+        cdnReleasePath =
+          mdPublish.svnPublishPath + "/cdn/release_v" + newVersion;
       }
 
       let webPatchPath;
@@ -627,11 +716,21 @@ export default {
       let oldCdnReleasePath;
       if (oldVersion) {
         webPatchPath =
-          this.publish_path + "/web/patch_v" + oldVersion + "-" + newVersion;
+          mdPublish.svnPublishPath +
+          "/web/patch_v" +
+          oldVersion +
+          "-" +
+          newVersion;
         cdnPatchPath =
-          this.publish_path + "/cdn/patch_v" + oldVersion + "-" + newVersion;
-        oldWebReleasePath = this.publish_path + "/web/release_v" + oldVersion;
-        oldCdnReleasePath = this.publish_path + "/cdn/release_v" + oldVersion;
+          mdPublish.svnPublishPath +
+          "/cdn/patch_v" +
+          oldVersion +
+          "-" +
+          newVersion;
+        oldWebReleasePath =
+          mdPublish.svnPublishPath + "/web/release_v" + oldVersion;
+        oldCdnReleasePath =
+          mdPublish.svnPublishPath + "/cdn/release_v" + oldVersion;
         let webExists = await fs.existsSync(oldWebReleasePath);
         if (!webExists) {
           console.error("不存在release版本:" + oldWebReleasePath);
@@ -643,8 +742,8 @@ export default {
           return;
         }
       } else {
-        webPatchPath = this.publish_path + "/web/patch_v" + newVersion;
-        cdnPatchPath = this.publish_path + "/cdn/patch_v" + newVersion;
+        webPatchPath = mdPublish.svnPublishPath + "/web/patch_v" + newVersion;
+        cdnPatchPath = mdPublish.svnPublishPath + "/cdn/patch_v" + newVersion;
       }
 
       newVersion = newVersion.replace(new RegExp("[.]", "g"), "-");
@@ -673,7 +772,7 @@ export default {
         await this.copyFileInVersion("manifest.json", webPatchPath);
 
         let versionContent = await fs.readFileSync(
-          this.new_version_path + "/version.json",
+          mdPublish.getProjNewVersionPath() + "/version.json",
           "utf-8"
         );
         let versionObj = JSON.parse(versionContent);
@@ -819,7 +918,7 @@ export default {
     ) {
       let useNew = false;
       let newResContent = await fs.readFileSync(
-        this.new_version_path + "/" + resFilePath,
+        mdPublish.getProjNewVersionPath() + "/" + resFilePath,
         "utf-8"
       );
       let newResObj = JSON.parse(newResContent);
@@ -859,7 +958,7 @@ export default {
             if (newResIterator.type == "sheet") {
               //是图集,比较图集配置文件中的图片是否相同
               let newConfigContent = await fs.readFileSync(
-                this.new_version_path + "/" + newPath
+                mdPublish.getProjNewVersionPath() + "/" + newPath
               );
               let newConfigObj = JSON.parse(newConfigContent);
               let newFilePath =
@@ -951,7 +1050,7 @@ export default {
             }
             let newPath = "resource/" + iterator.url;
             let newConfigContent = await fs.readFileSync(
-              this.new_version_path + "/" + newPath
+              mdPublish.getProjNewVersionPath() + "/" + newPath
             );
             let newConfigObj = JSON.parse(newConfigContent);
             let filePath =
@@ -1022,7 +1121,7 @@ export default {
         //release
         if (releasePath) {
           await this.copyFile(
-            this.new_version_path + "/" + newPath,
+            mdPublish.getProjNewVersionPath() + "/" + newPath,
             releasePath + "/" + newPath,
             newVersion
           );
@@ -1030,7 +1129,7 @@ export default {
 
         //patch
         await this.copyFile(
-          this.new_version_path + "/" + newPath,
+          mdPublish.getProjNewVersionPath() + "/" + newPath,
           patchPath + "/" + newPath,
           newVersion
         );
@@ -1038,7 +1137,7 @@ export default {
         //修改图集配置文件
         if (releasePath) {
           let releaseFileContent = await fs.readFileSync(
-            this.new_version_path + "/resource/" + sheetUrl
+            mdPublish.getProjNewVersionPath() + "/resource/" + sheetUrl
           );
 
           let releaseFileObj = JSON.parse(releaseFileContent);
@@ -1057,7 +1156,7 @@ export default {
         }
 
         let patchFileContent = await fs.readFileSync(
-          this.new_version_path + "/resource/" + sheetUrl
+          mdPublish.getProjNewVersionPath() + "/resource/" + sheetUrl
         );
         let patchFileObj = JSON.parse(patchFileContent);
         let originFileName = patchFileObj.file;
@@ -1088,12 +1187,12 @@ export default {
     },
     // //刷新新版本号
     // async refreshNewVersion() {
-    //   let versionPath = this.new_version_path + "/version.json";
+    //   let versionPath = mdPublish.getProjNewVersionPath() + "/version.json";
     //   if (await fs.existsSync(versionPath)) {
     //     let content = await fs.readFileSync(versionPath, "utf-8");
-    //     this.new_version = JSON.parse(content).version;
+    //     this.newVersion = JSON.parse(content).version;
     //   } else {
-    //     this.new_version = "";
+    //     this.newVersion = "";
     //     ipcRenderer.send("client_show_snack", "新版本不存在version.json");
     //   }
     // },
@@ -1102,9 +1201,9 @@ export default {
     //   let versionPath = this.old_version_path + "/version.json";
     //   if (await fs.existsSync(versionPath)) {
     //     let content = await fs.readFileSync(versionPath, "utf-8");
-    //     this.old_version = JSON.parse(content).version;
+    //     this.oldVersion = JSON.parse(content).version;
     //   } else {
-    //     this.old_version = "";
+    //     this.oldVersion = "";
     //     ipcRenderer.send("client_show_snack", "旧版本不存在version.json");
     //   }
     // },
@@ -1119,21 +1218,27 @@ export default {
       oldVersionPath
     ) {
       let newFileExist = await fs.existsSync(
-        this.new_version_path + "/" + newFilePath
+        mdPublish.getProjNewVersionPath() + "/" + newFilePath
       );
       let oldFileExist = await fs.existsSync(
         oldVersionPath + "/" + oldFilePath
       );
       if (!newFileExist) {
         console.log(
-          "新版本删除的文件:" + this.new_version_path + "/" + newFilePath
+          "新版本删除的文件:" +
+            mdPublish.getProjNewVersionPath() +
+            "/" +
+            newFilePath
         );
         return false;
       }
 
       if (!oldFileExist) {
         console.log(
-          "新版本添加的文件:" + this.new_version_path + "/" + newFilePath
+          "新版本添加的文件:" +
+            mdPublish.getProjNewVersionPath() +
+            "/" +
+            newFilePath
         );
         // return false;
       }
@@ -1142,7 +1247,7 @@ export default {
       if (oldFileExist) {
         fileEqual = await this.mergeFileByMd5(
           oldVersionPath + "/" + oldFilePath,
-          this.new_version_path + "/" + newFilePath
+          mdPublish.getProjNewVersionPath() + "/" + newFilePath
         );
       }
 
@@ -1181,7 +1286,7 @@ export default {
     //根据版本拷贝目录中的文件
     folderCopyFileInVersion(folderName, targetPath, version) {
       this.folderCopyFile(
-        this.new_version_path + "/" + folderName,
+        mdPublish.getProjNewVersionPath() + "/" + folderName,
         targetPath + "/" + folderName,
         version
       );
@@ -1189,7 +1294,7 @@ export default {
     //根据版本拷贝文件,不存在的目录会自动创建
     async copyFileInVersion(fileName, targetPath, version, fromPath) {
       if (!fromPath) {
-        fromPath = this.new_version_path;
+        fromPath = mdPublish.getProjNewVersionPath();
       }
 
       let fileNameArr = fileName.split("/");
@@ -1434,9 +1539,8 @@ export default {
     },
 
     async refreshNewVersionList() {
-      let path = this.project_path + "/bin-release/web";
-      if (await fs.existsSync(path)) {
-        this.newVersionList = await fs.readdirSync(path);
+      if (await fsExc.exists(mdPublish.releasePath)) {
+        this.newVersionList = await fsExc.readDir(mdPublish.releasePath);
       } else {
         this.newVersionList = [];
       }
@@ -1444,20 +1548,19 @@ export default {
 
     async refreshOldVersionList() {
       let versionListContent = await fs.readFileSync(
-        this.publish_path + "/versionList.json",
+        mdPublish.svnPublishPath + "/versionList.json",
         "utf-8"
       );
       let versionList = JSON.parse(versionListContent);
       this.oldVersionList = versionList.versionList;
 
-      this.old_version = this.oldVersionList[this.oldVersionList.length - 1];
+      this.oldVersion = this.oldVersionList[this.oldVersionList.length - 1];
       this.onOldVersionChange();
     }
   },
   mounted() {
     this.project_path = localStorage.getItem("client_project_path");
-    this.publish_path = localStorage.getItem("client_publish_path");
-    this.cdn_path = localStorage.getItem("client_cdn_path");
+    this.cdnPath = localStorage.getItem("client_cdn_path");
     this.android_path = localStorage.getItem("client_android_path");
     this.ios_path = localStorage.getItem("client_ios_path");
     this.wechat_path = localStorage.getItem("client_wechat_path");
@@ -1467,12 +1570,8 @@ export default {
       this.project_path = "";
     }
 
-    if (!this.publish_path) {
-      this.publish_path = "";
-    }
-
-    if (!this.cdn_path) {
-      this.cdn_path = "";
+    if (!this.cdnPath) {
+      this.cdnPath = "";
     }
 
     if (!this.android_path) {
@@ -1497,7 +1596,7 @@ export default {
 
     // ipcRenderer.on("selected_new_version_path", (event, path) => {
     //   if (path) {
-    //     this.new_version_path = path[0];
+    //     mdPublish.getProjNewVersionPath() = path[0];
     //     this.refreshNewVersion();
     //   }
     // });
@@ -1518,16 +1617,6 @@ export default {
 
 .text-path {
   width: 512px;
-}
-
-.demo-list-wrap {
-  width: 100%;
-  max-width: 640px;
-  overflow: hidden;
-}
-
-.button-wrapper {
-  text-align: left;
 }
 
 .control-group {

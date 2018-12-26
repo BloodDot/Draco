@@ -9,7 +9,7 @@ import * as cpy from 'cpy';
  * @param {*} toPath 目标路径
  * @param needLoop 是否循环文件夹拷贝
  */
-async function copyFile(fromPath, toPath, needLoop) {
+export async function copyFile(fromPath, toPath, needLoop) {
     if (!needLoop) {
         await cpy(fromPath, toPath);
         return;
@@ -31,7 +31,7 @@ async function copyFile(fromPath, toPath, needLoop) {
  * 删除指定文件夹下所有文件
  * @param {*} path 
  */
-async function delFile(path) {
+export async function delFile(path) {
     await fs.unlinkSync(path);
     // await del.sync(path, { force: true });
 }
@@ -41,7 +41,7 @@ async function delFile(path) {
  * 删除指定文件夹下所有文件
  * @param {*} path 
  */
-async function delFiles(path) {
+export async function delFiles(path) {
     await del.sync([path + '/*'], { force: true });
 }
 
@@ -49,7 +49,7 @@ async function delFiles(path) {
  * 删除指定文件夹
  * @param {*} path 
  */
-async function delFolder(path) {
+export async function delFolder(path) {
     await del.sync([path], { force: true });
 }
 
@@ -57,7 +57,7 @@ async function delFolder(path) {
  * 路径是否是目录
  * @param {*} path 
  */
-async function isDirectory(path) {
+export async function isDirectory(path) {
     return await fs.statSync(path).isDirectory();
 }
 
@@ -65,10 +65,14 @@ async function isDirectory(path) {
  * 创建文件夹 只有不存在的时候才会创建
  * @param {*} path 
  */
-async function makeDir(path) {
-    let exists = await fs.existsSync(path);
-    if (!exists) {
-        await fs.mkdirSync(path);
+export async function makeDir(dirname) {
+    if (await fs.existsSync(dirname)) {
+        return true;
+    } else {
+        if (await makeDir(path.dirname(dirname))) {
+            await fs.mkdirSync(dirname);
+            return true;
+        }
     }
 }
 
@@ -76,7 +80,7 @@ async function makeDir(path) {
  * 读取路径
  * @param {*} path 
  */
-async function readDir(path) {
+export async function readDir(path) {
     return await fs.readdirSync(path);
 }
 
@@ -84,8 +88,8 @@ async function readDir(path) {
  * 读取文件
  * @param {*} path 
  */
-async function readFile(path) {
-    return fs.readFileSync(path, "utf-8");
+export async function readFile(path, encoding = "utf-8") {
+    return await fs.readFileSync(path, encoding);
 }
 
 /**
@@ -93,19 +97,24 @@ async function readFile(path) {
  * @param {*} path 
  * @param {*} content 
  */
-async function writeFile(path, content) {
-    await fs.writeFileSync(path, content);
+export function writeFile(path, content) {
+    // await fs.writeFileSync(path, content);
+    return new Promise((resolve, reject) => {
+        fs.writeFile(path, content, writeError => {
+            if (writeError) {
+                console.error(writeError);
+                reject();
+            } else {
+                resolve();
+            }
+        });
+    })
 }
 
-
-export const fsExc = {
-    copyFile,
-    isDirectory,
-    delFile,
-    delFiles,
-    delFolder,
-    makeDir,
-    readDir,
-    readFile,
-    writeFile
+/**
+ * 判断路径是否存在
+ * @param {*} path 
+ */
+export async function exists(path) {
+    return await fs.existsSync(path);
 }

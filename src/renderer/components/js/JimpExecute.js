@@ -1,19 +1,17 @@
-import { ipcRenderer } from "electron";
-import * as fs from "fs";
+// import * as fs from "fs";
 import * as jimp from "jimp";
-import * as cpy from "cpy";
-import * as copy from "copy";
 
-import { global } from "./Global.js";
+import * as fsExc from "./FsExecute.js";
+import * as global from "./Global.js";
 
-function jimpPng(cell, input_path, output_path) {
-    return new Promise((resolve, reject) => {
+export function jimpPng(cell, input_path, output_path) {
+    return new Promise(async (resolve, reject) => {
         const element = cell;
         let area = element.area;
         let texture = element.texture;
         let filePath = input_path + "/" + texture + ".png";
 
-        if (!fs.existsSync(filePath)) {
+        if (!(await fsExc.exists(filePath))) {
             // console.error("文件不存在:" + filePath);
             resolve();
             return;
@@ -42,8 +40,8 @@ function jimpPng(cell, input_path, output_path) {
                     return;
                 }
 
-                for (let m = area.length - 1; m >= 0; m--) {
-                    for (let n = area[m].length - 1; n >= 0; n--) {
+                for (let row = area.length - 1; row >= 0; row--) {
+                    for (let col = area[row].length - 1; col >= 0; col--) {
                         /**
                          * type
                          * 
@@ -78,29 +76,29 @@ function jimpPng(cell, input_path, output_path) {
                         let gridHeight;
                         let itemHigh;
                         let lengthX;
-                        if (m != 0 && n != 0) {
+                        if (row != 0 && col != 0) {
                             type = 1;
                             startX = 0;
                             startY = 0;
                             itemHigh = 0;
                             lengthX = 0;
-                        } else if (m == 0 && n == 0) {
+                        } else if (row == 0 && col == 0) {
                             type = 2;
                             startX = -tileWidth / 2;
-                            startY = (-(m + n) * tileHeight) / 2;
-                            itemHigh = ((m + n) * tileHeight) / 2;
+                            startY = (-(row + col) * tileHeight) / 2;
+                            itemHigh = ((row + col) * tileHeight) / 2;
                             lengthX = tileWidth / 2;
-                        } else if (n == 0) {
+                        } else if (col == 0) {
                             type = 3;
                             startX = -tileWidth / 2;
-                            startY = (-(m + n) * tileHeight) / 2;
-                            itemHigh = ((m + n) * tileHeight) / 2;
+                            startY = (-(row + col) * tileHeight) / 2;
+                            itemHigh = ((row + col) * tileHeight) / 2;
                             lengthX = 0;
-                        } else if (m == 0) {
+                        } else if (row == 0) {
                             type = 4;
                             startX = 0;
-                            startY = (-(m + n) * tileHeight) / 2;
-                            itemHigh = ((m + n) * tileHeight) / 2;
+                            startY = (-(row + col) * tileHeight) / 2;
+                            itemHigh = ((row + col) * tileHeight) / 2;
                             lengthX = tileWidth / 2;
                         } else {
                             //reserve
@@ -110,50 +108,45 @@ function jimpPng(cell, input_path, output_path) {
                         let originX = imageWidth - (tileRow * tileWidth) / 2 - tileWidth / 2;
                         let originY = imageHeight - tileHeight - gridHeight;
                         let lengthY = gridHeight + tileHeight;
-                        let itemX =
-                            originX +
-                            ((area.length - 1 - m - (area[m].length - 1 - n)) * tileWidth) / 2;
-                        let itemY =
-                            originY - ((area.length - 1 - m + area[m].length - 1 - n) * tileHeight) / 2;
+                        let itemX = originX + ((area.length - 1 - row - (area[row].length - 1 - col)) * tileWidth) / 2;
+                        let itemY = originY - ((area.length - 1 - row + area[row].length - 1 - col) * tileHeight) / 2;
 
                         let newImage = new jimp(tileWidth, tileHeight + gridHeight);
-                        for (let m = startY; m <= lengthY; m++) {
-                            for (let n = startX; n <= lengthX; n++) {
-                                let px = itemX + n + tileWidth / 2;
-                                let py = itemY + m;
+                        for (let pointY = startY; pointY <= lengthY; pointY++) {
+                            for (let pointX = startX; pointX <= lengthX; pointX++) {
+                                let pixelX = itemX + pointX + tileWidth / 2;
+                                let pixelY = itemY + pointY;
                                 let hex;
-                                if (px < 0 || px > imageWidth || py < 0 || py > imageHeight) {
+                                if (pixelX < 0 || pixelX > imageWidth || pixelY < 0 || pixelY > imageHeight) {
                                     hex = 0;
                                 } else {
-                                    hex = originImage.getPixelColor(px, py);
+                                    hex = originImage.getPixelColor(pixelX, pixelY);
                                 }
                                 // hex = 3904926462;
-                                newImage.setPixelColor(hex, n + tileWidth / 2, m);
+                                newImage.setPixelColor(hex, pointX + tileWidth / 2, pointY);
                             }
 
-                            if (type == 1 && m <= gridHeight + tileHeight / 2) {
+                            if (type == 1 && pointY <= gridHeight + tileHeight / 2) {
                                 startX -= 2;
                                 lengthX = Math.abs(startX);
                             }
 
-                            if (type == 3 && m > itemHigh) {
+                            if (type == 3 && pointY > itemHigh) {
                                 lengthX += 2;
                             }
 
-                            if (type == 4 && m > itemHigh) {
+                            if (type == 4 && pointY > itemHigh) {
                                 startX -= 2;
                             }
 
-                            if (m > gridHeight + tileHeight / 2) {
+                            if (pointY > gridHeight + tileHeight / 2) {
                                 startX += 2;
                                 lengthX = Math.abs(startX);
                                 // lengthX += 2;
                             }
                         }
 
-                        await newImage.write(
-                            output_path + "/" + texture + "_" + m + "_" + n + ".png"
-                        );
+                        await newImage.write(output_path + "/" + texture + "_" + row + "_" + col + ".png");
                     }
                 }
 
@@ -163,8 +156,4 @@ function jimpPng(cell, input_path, output_path) {
                 resolve();
             });
     });
-}
-
-export const textureExc = {
-    jimpPng
 }

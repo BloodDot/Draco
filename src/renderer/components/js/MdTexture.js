@@ -1,8 +1,8 @@
-import { global } from './Global.js';
-import { tableExc } from './TableExecute.js';
-import { textureExc } from './TextureExecute.js';
-import { spawnExc } from "./SpawnExecute.js";
-import { fsExc } from "./FsExecute.js";
+import * as global from './Global.js';
+import * as tableExc from './TableExecute.js';
+import * as jimpExc from './JimpExecute';
+import * as spawnExc from "./SpawnExecute.js";
+import * as fsExc from "./FsExecute.js";
 
 const input_suffix_path = '/TextureInput/object';
 const output_suffix_path = '/TextureOutput/object';
@@ -18,35 +18,39 @@ const copy_in_suffix_arr = [
     '/settings/resource/object_varia'
 ];
 
-var checkBoxValues = [
+var _checkBoxValues = [
     "itemIcon",
     "mapcell",
     "material",
     "object",
     "objectDecorate"
 ]
+export function getCheckBoxValues() { return _checkBoxValues; }
+export function setCheckBoxValues(value) { _checkBoxValues = value; }
 
-var checkBoxData = [
+var _checkBoxData = [
     "itemIcon",
     "mapcell",
     "material",
     "object",
     "objectDecorate"
 ]
+export function getCheckBoxData() { return _checkBoxData; }
+export function setCheckBoxData(value) { _checkBoxData = value; }
 
 /**
  * 更新svn
  */
-async function updateSvn() {
+export async function updateSvn() {
     await spawnExc.svnUpdate(global.svnResPath, "更新svn成功", "更新svn错误");
 }
 
 /**
  * 清空纹理
  */
-async function clearTexture() {
-    let inputPath = global.artPath + input_suffix_path;
-    let outputPath = global.artPath + output_suffix_path;
+export async function clearTexture() {
+    let inputPath = global.svnArtPath + input_suffix_path;
+    let outputPath = global.svnArtPath + output_suffix_path;
     try {
         await fsExc.delFiles(inputPath);
         await fsExc.delFiles(outputPath);
@@ -59,8 +63,8 @@ async function clearTexture() {
 /**
  * 拷入纹理
  */
-async function copyTextureIn() {
-    let inputPath = global.artPath + input_suffix_path;
+export async function copyTextureIn() {
+    let inputPath = global.svnArtPath + input_suffix_path;
     try {
         await fsExc.makeDir(inputPath);
         for (const iterator of copy_in_suffix_arr) {
@@ -77,41 +81,41 @@ async function copyTextureIn() {
 /**
  * 裁剪纹理
  */
-async function clipTexture() {
-    let input_path = global.artPath + input_suffix_path;
-    let output_path = global.artPath + output_suffix_path;
-    let object_csv_path = global.csvPath + object_csv;
+export async function clipTexture() {
+    let input_path = global.svnArtPath + input_suffix_path;
+    let output_path = global.svnArtPath + output_suffix_path;
 
     try {
-        if (global.objectCells.length == 0) {
-            global.objectCells = await tableExc.getCsvCells(object_csv_path);
+        let object_csv_path = global.svnCsvPath + object_csv;
+        if (global.getObjectCells().length == 0) {
+            global.setObjectCells(await tableExc.getCsvCells(object_csv_path));
         }
 
-        let varia_csv_path = global.csvPath + varia_csv;
-        if (global.variaCells.length == 0) {
-            global.variaCells = await tableExc.getCsvCells(varia_csv_path);
+        let varia_csv_path = global.svnCsvPath + varia_csv;
+        if (global.getVariaCells().length == 0) {
+            global.setVariaCells(await tableExc.getCsvCells(varia_csv_path));
         }
 
-        let material_csv_path = global.csvPath + material_csv;
-        if (global.materialCells.length == 0) {
-            global.materialCells = await tableExc.getCsvCells(material_csv_path);
+        let material_csv_path = global.svnCsvPath + material_csv;
+        if (global.getMaterialCells().length == 0) {
+            global.setMaterialCells(await tableExc.getCsvCells(material_csv_path));
         }
 
         console.log('开始裁剪object纹理');
-        for (const iterator of global.objectCells) {
-            await textureExc.jimpPng(iterator, input_path, output_path);
+        for (const iterator of global.getObjectCells()) {
+            await jimpExc.jimpPng(iterator, input_path, output_path);
         }
         console.log('裁剪object纹理完毕');
 
         console.log('开始裁剪varia纹理');
-        for (const iterator of global.variaCells) {
-            await textureExc.jimpPng(iterator, input_path, output_path);
+        for (const iterator of global.getVariaCells()) {
+            await jimpExc.jimpPng(iterator, input_path, output_path);
         }
         console.log('裁剪varia纹理完毕');
 
         console.log('开始裁剪material纹理');
-        for (const iterator of global.materialCells) {
-            await textureExc.jimpPng(iterator, input_path, output_path);
+        for (const iterator of global.getMaterialCells()) {
+            await jimpExc.jimpPng(iterator, input_path, output_path);
         }
         console.log('裁剪material纹理完毕');
 
@@ -124,9 +128,9 @@ async function clipTexture() {
 /**
  * 打包纹理
  */
-async function packerTexture() {
+export async function packerTexture() {
     try {
-        for (const iterator of checkBoxData) {
+        for (const iterator of _checkBoxData) {
             let inputs = [];
             let output;
             switch (iterator) {
@@ -140,7 +144,7 @@ async function packerTexture() {
                     inputs.push(global.svnPath + '/settings/resource/material');
                     break;
                 case 'object':
-                    inputs.push(global.artPath + output_suffix_path);
+                    inputs.push(global.svnArtPath + output_suffix_path);
                     break;
                 case 'objectDecorate':
                     inputs.push(global.svnPath + '/settings/resource/objectDecorate');
@@ -151,7 +155,7 @@ async function packerTexture() {
             output = global.svnPath + sheet_suffix_path + '/' + iterator;
 
             let cmdStr = getCmdPackerTexture(inputs, output);
-            await spawnExc.runCmd(cmdStr, '处理纹理成功:' + inputs, '处理纹理错误:' + inputs);
+            await spawnExc.runCmd(cmdStr, null, '处理纹理成功:' + inputs, '处理纹理错误:' + inputs);
         }
 
         global.toast('打包纹理成功');
@@ -163,12 +167,12 @@ async function packerTexture() {
 /**
  * 拷出纹理
  */
-async function copyTextureOut() {
-    let sheet_path = global.artPath + sheet_suffix_path;
+export async function copyTextureOut() {
+    let sheet_path = global.svnArtPath + sheet_suffix_path;
     try {
-        for (const iterator of checkBoxData) {
+        for (const iterator of _checkBoxData) {
             let outputPath =
-                global.projectPath +
+                global.projPath +
                 project_sheet_suffix_path;
 
             let targetPa = await fsExc.readDir(outputPath);
@@ -200,21 +204,15 @@ async function copyTextureOut() {
     }
 }
 
-async function oneForAll() {
-    try {
-        await updateSvn();
-        if (checkBoxData.indexOf("object") != -1) {
-            await clearTexture();
-            await copyTextureIn();
-            await clipTexture();
-        }
-        await packerTexture();
-        await copyTextureOut();
-
-        global.toast('One·for·All Success');
-    } catch (e) {
-        global.snack('One·for·All Error', e);
+export async function oneForAll() {
+    await updateSvn();
+    if (_checkBoxData.indexOf("object") != -1) {
+        await clearTexture();
+        await copyTextureIn();
+        await clipTexture();
     }
+    await packerTexture();
+    await copyTextureOut();
 }
 
 function getCmdPackerTexture(inputPaths, outputPath) {
@@ -251,17 +249,4 @@ function getCmdPackerTexture(inputPaths, outputPath) {
     }
 
     return cmd;
-}
-
-export const mdTexture = {
-    checkBoxData,
-    checkBoxValues,
-
-    updateSvn,
-    clearTexture,
-    copyTextureIn,
-    clipTexture,
-    packerTexture,
-    copyTextureOut,
-    oneForAll
 }

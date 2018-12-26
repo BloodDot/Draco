@@ -1,12 +1,12 @@
-import { spawnExc } from "./SpawnExecute.js";
-import { fsExc } from "./FsExecute.js";
-import { global } from "./Global.js";
+import * as spawnExc from "./SpawnExecute.js";
+import * as fsExc from "./FsExecute.js";
+import * as global from "./Global.js";
 
-async function updateGit() {
+export async function updateGit() {
     await spawnExc.gitPull(global.protoPath, '更新git成功', '更新git错误');
 }
 
-async function composeProto() {
+export async function composeProto() {
     let pa = await fsExc.readDir(global.protoPath);
     let content = "";
     content += "syntax = 'proto3';\r\n";
@@ -34,8 +34,7 @@ async function composeProto() {
     }
 
     try {
-        let projectProtoPath =
-            global.projectPath + "/resource/assets/proto/pbmessage.proto";
+        let projectProtoPath = global.projPath + "/resource/assets/proto/pbmessage.proto";
         await fsExc.writeFile(projectProtoPath, content);
         global.toast('合成proto成功');
     } catch (error) {
@@ -43,27 +42,59 @@ async function composeProto() {
     }
 }
 
-async function createJs() {
+export async function createJs() {
     let cmdStr = "pbjs -t static-module -w commonjs -o "
         + global.protoPath
         + "/pbmessage.js "
-        + global.projectPath
+        + global.projPath
         + "/resource/assets/proto/pbmessage.proto";
     await spawnExc.runCmd(cmdStr, '生成js成功', '生成js错误');
 }
 
-async function createTs() {
+export async function createTs() {
     let cmdStr = "pbts -o "
-        + global.projectPath
+        + global.projPath
         + "/src/protocol/pbmessage.d.ts "
         + global.protoPath
         + "/pbmessage.js";
     await spawnExc.runCmd(cmdStr, '生成ts成功', '生成ts错误');
 }
 
-export const mdProto = {
-    updateGit,
-    composeProto,
-    createJs,
-    createTs
-} 
+export async function modifyTs() {
+    let msgPath = global.projPath + "/src/protocol/pbmessage.d.ts";
+    let content = await fsExc.readFile(msgPath);
+    content = content.replace(
+        'import * as $protobuf from "protobufjs";',
+        ""
+    );
+    content = content.replace(
+        "export namespace Bian {",
+        "declare namespace Bian {"
+    );
+    if (content.indexOf("declare class Long") == -1) {
+        content +=
+            "declare class Long {\n" +
+            "\tlow: number;\n" +
+            "\thigh: number;\n" +
+            "\tunsigned: boolean;\n" +
+            "\ttoNumber();\n" +
+            "\tstatic fromNumber(value);\n" +
+            "\tequals(other): any;\n" +
+            "}\n";
+    }
+
+    try {
+        await fsExc.writeFile(msgPath, content);
+        global.toast('修改ts成功');
+    } catch (error) {
+        global.toast('修改ts错误', error);
+    }
+}
+
+export async function oneForAll() {
+    await updateGit();
+    await composeProto();
+    await createJs();
+    await createTs();
+    await modifyTs();
+}

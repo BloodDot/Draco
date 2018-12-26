@@ -67,8 +67,8 @@
 </template>
 
 <script>
-import { global } from "../js/Global.js";
-import { mdTexture } from "../js/MdTexture.js";
+import * as mdTexture from "../js/MdTexture.js";
+import * as global from "../js/Global.js";
 
 export default {
   data() {
@@ -81,21 +81,23 @@ export default {
       isPackerTextureLoading: false,
       isCopyTextureOutLoading: false,
 
-      checkBoxValues: mdTexture.checkBoxValues,
-      checkBoxData: mdTexture.checkBoxData,
+      checkBoxValues: mdTexture.getCheckBoxValues(),
+      checkBoxData: mdTexture.getCheckBoxData(),
       checkAll: true
     };
   },
   watch: {
     checkBoxData: function(val, oldVal) {
-      mdTexture.checkBoxData = val;
+      if (val != oldVal) {
+        mdTexture.setCheckBoxData(val);
+      }
     }
   },
   methods: {
     handleCheckAll() {
       this.checkAll = !this.checkAll;
       if (this.checkAll) {
-        this.checkBoxData = this.checkBoxValues.concat();
+        this.checkBoxData = mdTexture.getCheckBoxValues().concat();
       } else {
         this.checkBoxData.length = 0;
       }
@@ -158,10 +160,11 @@ export default {
       global.showLoading();
       try {
         await mdTexture.oneForAll();
+        global.hideLoading();
         global.dialog("One·for·All Success");
+      } catch (e) {
         global.hideLoading();
-      } catch (error) {
-        global.hideLoading();
+        global.snack("One·for·All Error", e);
       }
     }
   },
@@ -170,33 +173,6 @@ export default {
 </script>
 
 <style lang="css">
-.demo-snackbar-button {
-  margin: 12px;
-}
-
-.demo-table-item-select-field {
-  margin-top: 12px;
-}
-
-.content {
-  overflow: hidden;
-}
-
-.content-left {
-  width: 20%;
-  float: left;
-  background-color: white;
-  margin-bottom: -4000px;
-  padding-bottom: 4000px;
-}
-
-.content-right {
-  width: 80%;
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: rgba(0, 0, 0, 0);
-}
-
 .select-control-row {
   padding: 8px 0;
 }

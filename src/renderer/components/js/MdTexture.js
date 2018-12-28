@@ -152,7 +152,7 @@ export async function packerTexture() {
                 default:
                     break;
             }
-            output = global.svnPath + sheet_suffix_path + '/' + iterator;
+            output = global.svnArtPath + sheet_suffix_path + '/' + iterator;
 
             let cmdStr = getCmdPackerTexture(inputs, output);
             await spawnExc.runCmd(cmdStr, null, '处理纹理成功:' + inputs, '处理纹理错误:' + inputs);

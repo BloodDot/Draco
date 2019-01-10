@@ -48,7 +48,7 @@ export async function createJs() {
         + "/pbmessage.js "
         + global.projPath
         + "/resource/assets/proto/pbmessage.proto";
-    await spawnExc.runCmd(cmdStr, '生成js成功', '生成js错误');
+    await spawnExc.runCmd(cmdStr, null, '生成js成功', '生成js错误');
 }
 
 export async function createTs() {
@@ -57,7 +57,7 @@ export async function createTs() {
         + "/src/protocol/pbmessage.d.ts "
         + global.protoPath
         + "/pbmessage.js";
-    await spawnExc.runCmd(cmdStr, '生成ts成功', '生成ts错误');
+    await spawnExc.runCmd(cmdStr, null, '生成ts成功', '生成ts错误');
 }
 
 export async function modifyTs() {

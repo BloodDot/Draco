@@ -5,16 +5,17 @@ import { ipcRenderer } from 'electron';
 // global.svnArtPath = global.svnPath + '/art';
 // global.svnPublishPath = global.svnPath + '/client/publish';
 
-export const projPath = localStorage.getItem('client_project_path');
-export const protoPath = localStorage.getItem('client_proto_path');
-export const svnPath = localStorage.getItem('client_svn_path');
-export const androidPath = localStorage.getItem('client_android_path');
-export const iosPath = localStorage.getItem('client_ios_path');
-export const weChatPath = localStorage.getItem('client_wechat_path');
-export const svnCsvPath = svnPath + '/settings/csv';
-export const svnResPath = svnPath + '/settings/resource';
-export const svnArtPath = svnPath + '/art';
-export const svnPublishPath = svnPath + '/client/publish';
+export var projPath = localStorage.getItem('client_project_path');
+export var protoPath = localStorage.getItem('client_proto_path');
+export var svnPath = localStorage.getItem('client_svn_path');
+export var androidPath = localStorage.getItem('client_android_path');
+export var iosPath = localStorage.getItem('client_ios_path');
+export var weChatPath = localStorage.getItem('client_wechat_path');
+export var svnCsvPath = svnPath + '/settings/csv';
+export var svnResPath = svnPath + '/settings/resource';
+export var svnArtPath = svnPath + '/art';
+export var svnPublishPath = svnPath + '/client/publish';
+export var pbMessagePath = protoPath + '/pbmessage';
 
 var _objectCells = [];
 export function getObjectCells() { return _objectCells; }
@@ -30,37 +31,37 @@ export function setMaterialCells(value) { _materialCells = value; }
 
 ipcRenderer.on('selected_client_project_path', (event, path) => {
     if (path) {
-        global.projPath = path[0];
+        projPath = path[0];
     }
 });
 
 ipcRenderer.on('selected_client_proto_path', (event, path) => {
     if (path) {
-        global.protoPath = path[0];
+        protoPath = path[0];
     }
 });
 
 ipcRenderer.on('selected_client_svn_path', (event, path) => {
     if (path) {
-        global.svnPath = path[0];
+        svnPath = path[0];
     }
 });
 
 ipcRenderer.on('selected_client_android_path', (event, path) => {
     if (path) {
-        global.androidPath = path[0];
+        androidPath = path[0];
     }
 });
 
 ipcRenderer.on('selected_client_ios_path', (event, path) => {
     if (path) {
-        global.iosPath = path[0];
+        iosPath = path[0];
     }
 });
 
 ipcRenderer.on('selected_client_wechat_path', (event, path) => {
     if (path) {
-        global.weChatPath = path[0];
+        weChatPath = path[0];
     }
 });
 

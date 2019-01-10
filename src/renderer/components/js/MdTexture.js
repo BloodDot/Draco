@@ -103,19 +103,19 @@ export async function clipTexture() {
 
         console.log('开始裁剪object纹理');
         for (const iterator of global.getObjectCells()) {
-            await jimpExc.jimpPng(iterator, input_path, output_path);
+            await jimpExc.jimpPng2(iterator, input_path, output_path);
         }
         console.log('裁剪object纹理完毕');
 
         console.log('开始裁剪varia纹理');
         for (const iterator of global.getVariaCells()) {
-            await jimpExc.jimpPng(iterator, input_path, output_path);
+            await jimpExc.jimpPng2(iterator, input_path, output_path);
         }
         console.log('裁剪varia纹理完毕');
 
         console.log('开始裁剪material纹理');
         for (const iterator of global.getMaterialCells()) {
-            await jimpExc.jimpPng(iterator, input_path, output_path);
+            await jimpExc.jimpPng2(iterator, input_path, output_path);
         }
         console.log('裁剪material纹理完毕');
 

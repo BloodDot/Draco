@@ -5,11 +5,11 @@ import * as global from "./Global.js";
 const m0Bat = 'MapDataBatchProcess.bat';
 const m1Bat = 'XinshouMapBatchProcess.bat';
 
-const projMapM0Path = global.projPath + '/resource/mapData/m0';
-const projMapM1Path = global.projPath + '/resource/mapData/m1';
-const svnMapPath = global.svnPath + '/client/mapdata';
-const svnMapM0OutPath = svnMapPath + '/out';
-const svnMapM1OutPath = svnMapPath + '/xinshoumapOut';
+var projMapM0Path = global.projPath + '/resource/mapData/m0';
+var projMapM1Path = global.projPath + '/resource/mapData/m1';
+var svnMapPath = global.svnPath + '/client/mapdata';
+var svnMapM0OutPath = svnMapPath + '/out';
+var svnMapM1OutPath = svnMapPath + '/xinshoumapOut';
 
 var _checkBoxData = ["m0", "m1"];
 export function getCheckBoxData() { return _checkBoxData; }

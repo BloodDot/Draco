@@ -68,7 +68,7 @@
 
 <script>
 import * as mdTexture from "../js/MdTexture.js";
-import * as global from "../js/Global.js";
+import { Global } from "../js/Global.js";
 
 export default {
   data() {
@@ -104,67 +104,91 @@ export default {
     },
     async updateSvn() {
       this.isUpdateSvnLoading = true;
+      Global.showRegionLoading();
       try {
         await mdTexture.updateSvn();
         this.isUpdateSvnLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isUpdateSvnLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async clearTexture() {
       this.isClearTextureLoading = true;
+      Global.showRegionLoading();
       try {
         await mdTexture.clearTexture();
         this.isClearTextureLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isClearTextureLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async copyTextureIn() {
       this.isCopyTextureInLoading = true;
+      Global.showRegionLoading();
       try {
         await mdTexture.copyTextureIn();
         this.isCopyTextureInLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isCopyTextureInLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async clipTexture() {
       this.isClipTextureLoading = true;
+      Global.showRegionLoading();
       try {
         await mdTexture.clipTexture();
         this.isClipTextureLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isClipTextureLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async packerTexture() {
       this.isPackerTextureLoading = true;
+      Global.showRegionLoading();
       try {
         await mdTexture.packerTexture();
         this.isPackerTextureLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isPackerTextureLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async copyTextureOut() {
       this.isCopyTextureOutLoading = true;
+      Global.showRegionLoading();
       try {
         await mdTexture.copyTextureOut();
         this.isCopyTextureOutLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isCopyTextureOutLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async oneForAll() {
-      global.showLoading();
+      Global.showLoading();
       try {
-        await mdTexture.oneForAll();
-        global.hideLoading();
-        global.dialog("One·for·All Success");
-      } catch (e) {
-        global.hideLoading();
-        global.snack("One·for·All Error", e);
+        await this.updateSvn();
+        await this.clearTexture();
+        await this.copyTextureIn();
+        await this.clipTexture();
+        await this.packerTexture();
+        await this.copyTextureOut();
+
+        Global.hideLoading();
+        Global.dialog("One·for·All Success");
+      } catch (error) {
+        Global.hideLoading();
+        Global.snack("One·for·All Error", error);
       }
     }
   },

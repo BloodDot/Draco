@@ -1,15 +1,16 @@
 import * as spawnExc from "./SpawnExecute.js";
 import * as fsExc from "./FsExecute.js";
-import * as global from "./Global.js";
+import { Global } from "./Global.js";
 
 const m0Bat = 'MapDataBatchProcess.bat';
 const m1Bat = 'XinshouMapBatchProcess.bat';
 
-var projMapM0Path = global.projPath + '/resource/mapData/m0';
-var projMapM1Path = global.projPath + '/resource/mapData/m1';
-var svnMapPath = global.svnPath + '/client/mapdata';
+var projMapM0Path = Global.projPath + '/resource/mapData/m0';
+var projMapM1Path = Global.projPath + '/resource/mapData/m1';
+var svnMapPath = Global.svnPath + '/client/mapdata';
 var svnMapM0OutPath = svnMapPath + '/out';
 var svnMapM1OutPath = svnMapPath + '/xinshoumapOut';
+var svnMapEmptyM1OutPath = svnMapPath + '/xinshouEmptyData';
 
 var _checkBoxData = ["m0", "m1"];
 export function getCheckBoxData() { return _checkBoxData; }
@@ -20,7 +21,7 @@ export function getCheckBoxValues() { return _checkBoxValues; }
 export function setCheckBoxValues(value) { _checkBoxValues = value; }
 
 export async function updateSvn() {
-    await spawnExc.svnUpdate(svnMapPath, '更新mapData成功', '更新mapData错误');
+    await spawnExc.svnUpdate(svnMapPath, '更新svn文件成功', '更新svn文件错误');
 }
 
 export async function executeBatFile() {
@@ -35,13 +36,13 @@ export async function executeBatFile() {
                     break;
             }
         }
-        global.toast('执行bat成功');
+        Global.toast('执行bat文件成功');
     } catch (error) {
-        global.snack('执行bat错误', error);
+        Global.snack('执行bat文件错误', error);
     }
 }
 
-export async function clearMapFile() {
+export async function clearMapData() {
     try {
         for (const iterator of _checkBoxData) {
             switch (iterator) {
@@ -54,13 +55,13 @@ export async function clearMapFile() {
             }
         }
 
-        global.toast('清空文件成功');
+        Global.toast('清空地图数据成功');
     } catch (error) {
-        global.snack('清空文件失败', error);
+        Global.snack('清空地图数据失败', error);
     }
 }
 
-export async function copyMapFile() {
+export async function copyMapData() {
     try {
         for (const iterator of _checkBoxData) {
             switch (iterator) {
@@ -71,19 +72,20 @@ export async function copyMapFile() {
                 case 'm1':
                     await fsExc.makeDir(projMapM1Path);
                     await fsExc.copyFile(svnMapM1OutPath, projMapM1Path);
+                    await fsExc.copyFile(svnMapEmptyM1OutPath, projMapM1Path);
                     break;
             }
         }
 
-        global.toast('拷入文件成功');
+        Global.toast('拷贝地图数据成功');
     } catch (error) {
-        global.snack('拷入文件错误', error);
+        Global.snack('拷贝地图数据错误', error);
     }
 }
 
 export async function oneForAll() {
     await updateSvn();
     await executeBatFile();
-    await clearMapFile();
-    await copyMapFile();
+    await clearMapData();
+    await copyMapData();
 }

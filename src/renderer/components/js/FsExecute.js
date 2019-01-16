@@ -90,6 +90,17 @@ export async function readDir(path) {
  */
 export async function readFile(path, encoding = "utf-8") {
     return await fs.readFileSync(path, encoding);
+
+    // return new Promise((resolve, reject) => {
+    //     fs.readFile(path, (readError, content) => {
+    //         if (readError) {
+    //             console.error(readError);
+    //             reject();
+    //         } else {
+    //             resolve(content);
+    //         }
+    //     });
+    // });
 }
 
 /**

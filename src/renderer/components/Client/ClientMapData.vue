@@ -18,14 +18,14 @@
           v-loading="isClearFileLoading"
           data-mu-loading-size="24"
           color="cyan500"
-          @click="clearMapDataFile"
-        >清空mapData文件</mu-button>
+          @click="clearMapData"
+        >清空地图数据</mu-button>
         <mu-button
           v-loading="isCopyFileLoading"
           data-mu-loading-size="24"
           color="blue500"
-          @click="copyMapDataFile"
-        >拷贝mapData文件</mu-button>
+          @click="copyMapData"
+        >拷贝地图数据</mu-button>
       </div>
       <div class="button-wrapper">
         <mu-button full-width color="red" @click="oneForAll">One·for·All</mu-button>
@@ -55,7 +55,7 @@
 
 <script>
 import * as mdMapData from "../js/MdMapData.js";
-import * as global from "../js/Global.js";
+import { Global } from "../js/Global.js";
 
 // let exec = require("child_process").exec;
 // const ipcRenderer = require("electron").ipcRenderer;
@@ -97,52 +97,70 @@ export default {
     },
     async updateSvn() {
       this.isUpdateSvnLoading = true;
+      Global.showRegionLoading();
       try {
         await mdMapData.updateSvn();
         this.isUpdateSvnLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isUpdateSvnLoading = false;
+        Global.hideRegionLoading();
       }
     },
-    async executeBatFile() {
+    async executeBatFile(showDialog = true) {
       this.isExecuteFileLoading = true;
+      Global.showRegionLoading();
       try {
         await mdMapData.executeBatFile();
-        global.dialog("执行bat成功");
         this.isExecuteFileLoading = false;
+        Global.hideRegionLoading();
+        if (showDialog) {
+          Global.dialog("执行bat成功");
+        }
       } catch (error) {
-        global.dialog("执行bat错误");
         this.isExecuteFileLoading = false;
+        Global.hideRegionLoading();
+        if (showDialog) {
+          Global.dialog("执行bat错误");
+        }
       }
     },
-    async clearMapDataFile() {
+    async clearMapData() {
       this.isClearFileLoading = true;
+      Global.showRegionLoading();
       try {
-        await mdMapData.clearMapFile();
+        await mdMapData.clearMapData();
         this.isClearFileLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isClearFileLoading = false;
+        Global.hideRegionLoading();
       }
     },
-    async copyMapDataFile() {
+    async copyMapData() {
       this.isCopyFileLoading = true;
+      Global.showRegionLoading();
       try {
-        await mdMapData.copyMapFile();
+        await mdMapData.copyMapData();
         this.isCopyFileLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isCopyFileLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async oneForAll() {
-      global.showLoading();
+      Global.showLoading();
       try {
-        await mdMapData.oneForAll();
-
-        global.hideLoading();
-        global.dialog("One·for·All Success");
-      } catch (e) {
-        global.hideLoading();
-        global.snack("One·for·All Error:", e);
+        await this.updateSvn();
+        await this.executeBatFile(false);
+        await this.clearMapData();
+        await this.copyMapData();
+        Global.hideLoading();
+        Global.dialog("One·for·All Success");
+      } catch (error) {
+        Global.hideLoading();
+        Global.snack("One·for·All Error:", error);
       }
     }
   },

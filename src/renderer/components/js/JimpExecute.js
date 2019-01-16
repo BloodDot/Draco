@@ -2,7 +2,7 @@
 import * as jimp from "jimp";
 
 import * as fsExc from "./FsExecute.js";
-import * as global from "./Global.js";
+import { Global } from "./Global.js";
 
 // export function jimpPng(cell, input_path, output_path) {
 //     return new Promise(async (resolve, reject) => {
@@ -421,7 +421,7 @@ import * as global from "./Global.js";
 
 //                 resolve();
 //             }).catch(error => {
-//                 global.snack(`裁剪纹理错误 id:${element.id}`, error);
+//                 Global.snack(`裁剪纹理错误 id:${element.id}`, error);
 //                 resolve();
 //             });
 //     });
@@ -456,8 +456,8 @@ export function jimpPng2(cell, input_path, output_path) {
                         if (!error) {
                             resolve();
                         } else {
-                            reject();
                             console.error(error);
+                            reject();
                         }
                     });
 
@@ -698,7 +698,7 @@ export function jimpPng2(cell, input_path, output_path) {
                 }
                 resolve();
             }).catch(error => {
-                global.snack(`裁剪纹理错误 id:${element.id}`, error);
+                Global.snack(`裁剪纹理错误 id:${element.id}`, error);
                 resolve();
             });
     });

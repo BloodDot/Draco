@@ -1,20 +1,20 @@
 import * as spawnExc from "./SpawnExecute.js";
 import * as fsExc from "./FsExecute.js";
-import * as global from "./Global.js";
+import { Global } from "./Global.js";
 
-export async function updateGit() {
-    await spawnExc.gitPull(global.protoPath, '更新git成功', '更新git错误');
+export async function gitPull() {
+    await spawnExc.gitPull(Global.protoPath, '更新git文件成功', '更新git文件错误');
 }
 
 export async function composeProto() {
-    let pa = await fsExc.readDir(global.protoPath);
+    let pa = await fsExc.readDir(Global.pbMessagePath);
     let content = "";
     content += "syntax = 'proto3';\r\n";
     content += "package Bian;\r\n";
     for (let i = 0; i < pa.length; i++) {
         const element = pa[i];
         if (element.indexOf(".proto") != -1) {
-            let eleContent = await fsExc.readFile(global.protoPath + "/" + element);
+            let eleContent = await fsExc.readFile(Global.pbMessagePath + "/" + element);
 
             eleContent = eleContent
                 .split("\n")
@@ -34,34 +34,34 @@ export async function composeProto() {
     }
 
     try {
-        let projectProtoPath = global.projPath + "/resource/assets/proto/pbmessage.proto";
+        let projectProtoPath = Global.projPath + "/resource/assets/proto/pbmessage.proto";
         await fsExc.writeFile(projectProtoPath, content);
-        global.toast('合成proto成功');
+        Global.toast('合成proto文件成功');
     } catch (error) {
-        global.snack('合成proto错误', error);
+        Global.snack('合成proto文件错误', error);
     }
 }
 
 export async function createJs() {
     let cmdStr = "pbjs -t static-module -w commonjs -o "
-        + global.protoPath
+        + Global.pbMessagePath
         + "/pbmessage.js "
-        + global.projPath
+        + Global.projPath
         + "/resource/assets/proto/pbmessage.proto";
-    await spawnExc.runCmd(cmdStr, null, '生成js成功', '生成js错误');
+    await spawnExc.runCmd(cmdStr, null, '生成js文件成功', '生成js文件错误');
 }
 
 export async function createTs() {
     let cmdStr = "pbts -o "
-        + global.projPath
+        + Global.projPath
         + "/src/protocol/pbmessage.d.ts "
-        + global.protoPath
+        + Global.pbMessagePath
         + "/pbmessage.js";
-    await spawnExc.runCmd(cmdStr, null, '生成ts成功', '生成ts错误');
+    await spawnExc.runCmd(cmdStr, null, '生成ts文件成功', '生成ts文件错误');
 }
 
 export async function modifyTs() {
-    let msgPath = global.projPath + "/src/protocol/pbmessage.d.ts";
+    let msgPath = Global.projPath + "/src/protocol/pbmessage.d.ts";
     let content = await fsExc.readFile(msgPath);
     content = content.replace(
         'import * as $protobuf from "protobufjs";',
@@ -85,14 +85,14 @@ export async function modifyTs() {
 
     try {
         await fsExc.writeFile(msgPath, content);
-        global.toast('修改ts成功');
+        Global.toast('修改ts文件成功');
     } catch (error) {
-        global.toast('修改ts错误', error);
+        Global.toast('修改ts文件错误', error);
     }
 }
 
 export async function oneForAll() {
-    await updateGit();
+    await gitPull();
     await composeProto();
     await createJs();
     await createTs();

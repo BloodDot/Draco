@@ -34,7 +34,7 @@
 
 <script>
 import * as mdAsset from "../js/MdAsset.js";
-import * as global from "../js/Global.js";
+import { Global } from "../js/Global.js";
 
 export default {
   data() {
@@ -49,50 +49,64 @@ export default {
   methods: {
     async importDefault() {
       this.isImportDefaultLoading = true;
-
+      Global.showRegionLoading();
       try {
         await mdAsset.importDefault();
         this.isImportDefaultLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isImportDefaultLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async importAsync() {
       this.isImportAsyncLoading = true;
+      Global.showRegionLoading();
       try {
         await mdAsset.importAsync();
         this.isImportAsyncLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isImportAsyncLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async importIndie() {
       this.isImportIndieLoading = true;
+      Global.showRegionLoading();
       try {
         await mdAsset.importIndie();
         this.isImportIndieLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isImportIndieLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async importMapData() {
       this.isImportMapDataLoading = true;
+      Global.showRegionLoading();
       try {
         await mdAsset.importMapData();
         this.isImportMapDataLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isImportMapDataLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async oneForAll() {
-      global.showLoading();
+      Global.showLoading();
       try {
-        await mdAsset.oneForAll();
-        global.dialog("One·for·All Success");
-        global.hideLoading();
+        await this.importDefault();
+        await this.importAsync();
+        await this.importIndie();
+        await this.importMapData();
+        Global.dialog("One·for·All Success");
+        Global.hideLoading();
       } catch (error) {
-        global.hideLoading();
-        global.snack("One·for·All Error", error);
+        Global.hideLoading();
+        Global.snack("One·for·All Error", error);
       }
     }
   },

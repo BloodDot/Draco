@@ -1,5 +1,5 @@
 
-import * as global from './Global.js';
+import { Global } from './Global.js';
 import * as fsExc from './FsExecute';
 import * as path from 'path';
 
@@ -18,7 +18,7 @@ const mapDataResSuffix = '/resource/mapData.res.json'
 
 export async function importDefault() {
   try {
-    let default_folder_path = global.projPath + assetSuffix;
+    let default_folder_path = Global.projPath + assetSuffix;
     let defaultConfig = {
       groups: [
         { name: 'preload', keyArr: [], keys: '' },
@@ -44,36 +44,54 @@ export async function importDefault() {
     }
 
     let content = JSON.stringify(defaultConfig);
-    let configPath = global.projPath + defaultResSuffix;
+    let configPath = Global.projPath + defaultResSuffix;
     await fsExc.writeFile(configPath, content);
 
-    global.toast('导入default成功');
+    Global.toast('导入default配置成功');
   } catch (error) {
-    global.snack('导入default错误', error);
+    Global.snack('导入default配置错误', error);
   }
 }
 
 export async function importAsync() {
   try {
-    let async_folder_path = global.projPath + asyncSuffix;
+    let async_folder_path = Global.projPath + asyncSuffix;
     let asyncConfig = {
-      groups: [],
+      groups: [
+        { name: 'boyAni', keyArr: [], keys: '' },
+        { name: 'girlAni', keyArr: [], keys: '' }
+      ],
       resources: []
     };
     await importFolderFile(async_folder_path, asyncConfig);
+
+    for (const iterator of asyncConfig.groups) {
+      let keys = '';
+      for (let i = 0; i < iterator.keyArr.length; i++) {
+        const element = iterator.keyArr[i];
+        if (i == iterator.keyArr.length - 1) {
+          keys += element;
+        } else {
+          keys += element + ',';
+        }
+        iterator.keys = keys;
+      }
+      delete iterator.keyArr;
+    }
+
     let content = JSON.stringify(asyncConfig);
-    let configPath = global.projPath + asyncResSuffix;
+    let configPath = Global.projPath + asyncResSuffix;
     await fsExc.writeFile(configPath, content);
 
-    global.toast('导入async成功');
+    Global.toast('导入async配置成功');
   } catch (error) {
-    global.snack('导入async错误', error);
+    Global.snack('导入async配置错误', error);
   }
 }
 
 export async function importIndie() {
   try {
-    let indie_folder_path = global.projPath + indieSuffix;
+    let indie_folder_path = Global.projPath + indieSuffix;
     let indieConfig = {
       groups: [],
       resources: []
@@ -95,30 +113,30 @@ export async function importIndie() {
     }
 
     let content = JSON.stringify(indieConfig);
-    let configPath = global.projPath + indieResSuffix;
+    let configPath = Global.projPath + indieResSuffix;
     await fsExc.writeFile(configPath, content);
 
-    global.toast('导入indie成功');
+    Global.toast('导入indie配置成功');
   } catch (error) {
-    global.snack('导入indie错误', error);
+    Global.snack('导入indie配置错误', error);
   }
 }
 
 export async function importMapData() {
   try {
-    let map_data_folder_path = global.projPath + mapDataSuffix;
+    let map_data_folder_path = Global.projPath + mapDataSuffix;
     let mapDataConfig = {
       groups: [],
       resources: []
     };
     await importFolderFile(map_data_folder_path, mapDataConfig);
     let content = JSON.stringify(mapDataConfig);
-    let configPath = global.projPath + mapDataResSuffix;
+    let configPath = Global.projPath + mapDataResSuffix;
     await fsExc.writeFile(configPath, content);
 
-    global.toast('导入mapData成功');
+    Global.toast('导入mapData配置成功');
   } catch (error) {
-    global.snack('导入mapData错误', error);
+    Global.snack('导入mapData配置错误', error);
   }
 }
 
@@ -135,13 +153,14 @@ async function importFolderFile(folderPath, config, group = '', isSheet = false,
     let curPath = folderPath + '/' + file;
     if (await fsExc.isDirectory(curPath)) {
       if (!useOriginGroup) {
-        if (file == 'preload' || file == 'loading' || file == 'fairyGui') {
+        if (file == 'preload' || file == 'loading' || file == 'fairyGui' || file == 'boyAni' || file == 'girlAni') {
           group = file;
         } else if (
           group == 'preload' ||
           group == 'loading' ||
-          group == 'fairyGui'
-        ) {
+          group == 'fairyGui' ||
+          group == 'boyAni' ||
+          group == 'girlAni') {
         } else {
           group = '';
         }
@@ -151,9 +170,7 @@ async function importFolderFile(folderPath, config, group = '', isSheet = false,
         }
       }
 
-      console.log(
-        '---isRootGroupFolder:' + isRootGroupFolder + '---group:' + group
-      );
+      console.log(`--> isRootGroupFolder:${isRootGroupFolder} group:${group}`);
 
       if (file == 'sheet') {
         isSheet = true;
@@ -168,7 +185,7 @@ async function importFolderFile(folderPath, config, group = '', isSheet = false,
 }
 
 async function importSingleFile(filePath, config, group, isSheet) {
-  let relative = path.relative(global.projPath + '/resource', filePath);
+  let relative = path.relative(Global.projPath + '/resource', filePath);
   let url = relative.replace(/\\/g, '/');
   let parsedPath = path.parse(filePath);
   let extname = parsedPath.ext;

@@ -28,7 +28,7 @@
 
 <script>
 import * as mdCsv from "../js/MdCsv.js";
-import * as global from "../js/Global.js";
+import { Global } from "../js/Global.js";
 
 export default {
   data() {
@@ -42,42 +42,52 @@ export default {
   methods: {
     async updateSvn() {
       this.isUpdateSvnLoading = true;
+      Global.showRegionLoading();
       try {
         await mdCsv.updateSvn();
         this.isUpdateSvnLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isUpdateSvnLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async zipCsv() {
       this.isZipCsvLoading = true;
-
+      Global.showRegionLoading();
       try {
         await mdCsv.zipCsv();
         this.isZipCsvLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isZipCsvLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async createTs() {
       this.isCreateTsLoading = true;
+      Global.showRegionLoading();
       try {
         await mdCsv.createTs();
         this.isCreateTsLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isCreateTsLoading = false;
+        Global.hideRegionLoading();
       }
     },
 
     async oneForAll() {
-      global.showLoading();
+      Global.showLoading();
       try {
-        await mdCsv.oneForAll();
-        global.hideLoading();
-        global.toast("One·for·All Success");
-      } catch (e) {
-        global.hideLoading();
-        global.snack("One·for·All Error", e);
+        await this.updateSvn();
+        await this.zipCsv();
+        await this.createTs();
+        Global.hideLoading();
+        Global.toast("One·for·All Success");
+      } catch (error) {
+        Global.hideLoading();
+        Global.snack("One·for·All Error", error);
       }
     }
   },

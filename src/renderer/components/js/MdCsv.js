@@ -1,4 +1,4 @@
-import * as global from "./Global.js";
+import { Global } from "./Global.js";
 import * as spawnExc from "./SpawnExecute.js";
 import * as fsExc from "./FsExecute.js";
 
@@ -8,33 +8,33 @@ import { removeSpaces, replace, toStudlyCaps } from "strman";
 import * as iconv from "iconv-lite";
 
 export async function updateSvn() {
-    await spawnExc.svnUpdate(global.svnCsvPath, "更新svn成功", "更新svn错误");
+    await spawnExc.svnUpdate(Global.svnCsvPath, "更新svn文件成功", "更新svn文件错误");
 }
 
 export function zipCsv() {
-    return new Promise((resolve, reject) => {
-        let pa = fsExc.readDir(global.svnCsvPath);
+    return new Promise(async (resolve, reject) => {
+        let pa = await fsExc.readDir(Global.svnCsvPath);
         let archive = archiver("zip");
         let fileName = "csv.zip";
-        let filePath = global.projPath + "/resource/assets/csv/";
+        let filePath = Global.projPath + "/resource/assets/csv/";
         let output = fs.createWriteStream(filePath + fileName);
         archive.pipe(output);
 
         for (let i = 0; i < pa.length; i++) {
             const element = pa[i];
             if (element.indexOf(".csv") != -1) {
-                archive.append(fs.createReadStream(global.svnCsvPath + "/" + element), {
+                archive.append(fs.createReadStream(Global.svnCsvPath + "/" + element), {
                     name: element
                 });
             }
         }
 
         archive.on("error", error => {
-            global.snack('压缩zip错误', error);
+            Global.snack('压缩zip文件错误', error);
             reject();
         });
         output.on("close", () => {
-            global.toast('压缩zip成功');
+            Global.toast('压缩zip文件成功');
             resolve();
         });
         archive.finalize();
@@ -42,13 +42,12 @@ export function zipCsv() {
 }
 
 export async function createTs() {
-    let pa = await fsExc.readDir(global.svnCsvPath);
+    let pa = await fsExc.readDir(Global.svnCsvPath);
 
     for (let i = 0; i < pa.length; i++) {
         const element = pa[i];
         if (element.indexOf(".csv") != -1) {
-            // let data = await fs.readFileSync(global.svnCsvPath + "/" + element);
-            let data = await fsExc.readFile(global.svnCsvPath + "/" + element, null);
+            let data = await fsExc.readFile(Global.svnCsvPath + "/" + element, null);
 
             let buffer = new Buffer(data, "gbk");
             data = iconv.decode(buffer, "gbk");
@@ -60,29 +59,29 @@ export async function createTs() {
             let clsName = toStudlyCaps(element.split(".csv")[0]);
             let cellContent = createCell(clsName, data);
             try {
-                await fsExc.writeFile(global.projPath + "/src/csv/cell/" + clsName + "Cell.ts", cellContent);
+                await fsExc.writeFile(Global.projPath + "/src/csv/cell/" + clsName + "Cell.ts", cellContent);
             } catch (error) {
-                global.snack(`生成${clsName}cell.ts文件错误`, error);
+                Global.snack(`生成${clsName}cell.ts文件错误`, error);
                 return;
             }
 
             let tableContent = createTable(clsName);
-            let filePath = global.projPath + "/src/csv/table/" + clsName + "Table.ts";
+            let filePath = Global.projPath + "/src/csv/table/" + clsName + "Table.ts";
             if (await fs.existsSync(filePath)) {
                 //已存在，不创建
-                break;
+                continue;
             }
 
             try {
                 await fsExc.writeFile(filePath, tableContent)
             } catch (error) {
-                global.snack(`生成${clsName}Table.ts文件错误`, error)
+                Global.snack(`生成${clsName}Table.ts文件错误`, error)
                 return;
             }
         }
     }
 
-    global.toast('生成ts文件成功');
+    Global.toast('生成ts文件成功');
 }
 
 export async function oneForAll() {

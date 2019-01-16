@@ -70,14 +70,6 @@ exports.init = (mainWindow) => {
         })
     })
 
-    ipcMain.on('open_client_publish_path', (event) => {
-        dialog.showOpenDialog({
-            properties: ['openFile', 'openDirectory']
-        }, (files) => {
-            event.sender.send('selected_client_publish_path', files);
-        })
-    })
-
     ipcMain.on('open_client_android_path', (event) => {
         dialog.showOpenDialog({
             properties: ['openFile', 'openDirectory']
@@ -216,6 +208,19 @@ exports.init = (mainWindow) => {
 
     ipcMain.on('client_hide_loading', (event) => {
         mainWindow.webContents.send("client_hide_loading");
+    });
+
+    ipcMain.on('client_show_region_loading', (event) => {
+        mainWindow.webContents.send("client_show_region_loading");
+    });
+
+    ipcMain.on('client_hide_region_loading', (event) => {
+        mainWindow.webContents.send("client_hide_region_loading");
+    });
+
+    ipcMain.on('client_show_alert', (event, content, cb, resolve) => {
+        console.log(`----------- content:${content} cb:${cb} resolve:${resolve}`)
+        mainWindow.webContents.send("client_show_alert", content, cb, resolve);
     });
 
     ipcMain.on('client_select_proto_file', (event, file_name) => {

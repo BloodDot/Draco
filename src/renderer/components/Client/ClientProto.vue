@@ -5,7 +5,7 @@
         v-loading="isUpdateGitLoading"
         data-mu-loading-size="24"
         color="pink500"
-        @click="updateGit"
+        @click="gitPull"
       >更新git文件</mu-button>
       <mu-button
         v-loading="isComposeProtoLoading"
@@ -40,7 +40,7 @@
 
 <script>
 import * as mdProto from "../js/MdProto.js";
-import * as global from "../js/Global.js";
+import { Global } from "../js/Global.js";
 
 export default {
   data() {
@@ -54,60 +54,79 @@ export default {
   },
   watch: {},
   methods: {
-    async updateGit() {
+    async gitPull() {
       this.isUpdateGitLoading = true;
+      Global.showRegionLoading();
       try {
-        await mdProto.updateGit();
+        await mdProto.gitPull();
         this.isUpdateGitLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isUpdateGitLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async composeProto() {
       this.isComposeProtoLoading = true;
+      Global.showRegionLoading();
       try {
         await mdProto.composeProto();
         this.isComposeProtoLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isComposeProtoLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async createJs() {
       this.isCreateJsLoading = true;
+      Global.showRegionLoading();
       try {
         await mdProto.createJs();
         this.isCreateJsLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isCreateJsLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async createTs() {
       this.isCreateTsLoading = true;
+      Global.showRegionLoading();
       try {
         await mdProto.createTs();
         this.isCreateTsLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isCreateTsLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async modifyTs() {
       this.isModifyTsLoading = true;
+      Global.showRegionLoading();
       try {
         await mdProto.modifyTs();
         this.isModifyTsLoading = false;
+        Global.hideRegionLoading();
       } catch (error) {
         this.isModifyTsLoading = false;
+        Global.hideRegionLoading();
       }
     },
     async oneForAll() {
-      global.showLoading();
+      Global.showLoading();
       try {
-        await mdProto.oneForAll();
-        global.hideLoading();
-        global.dialog("One·for·All Success");
-      } catch (e) {
-        global.hideLoading();
-        global.snack("One·for·All Error", e);
+        await this.gitPull();
+        await this.composeProto();
+        await this.createJs();
+        await this.createTs();
+        await this.modifyTs();
+        Global.hideLoading();
+        Global.dialog("One·for·All Success");
+      } catch (error) {
+        Global.hideLoading();
+        Global.snack("One·for·All Error", error);
       }
     }
   },

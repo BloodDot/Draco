@@ -1,10 +1,11 @@
 import { spawn } from "child_process";
 import { exec } from "child_process";
 
-import * as global from './Global.js';
+import { Global } from './Global.js';
 
 export function runSpawn(command, para, cwd, successMsg, errorMsg) {
     return new Promise((resolve, reject) => {
+        console.log(`spawn --> command:${command} para:${para} cwd:${cwd}`);
         let process = spawn(command, [para], { cwd: cwd });
         process.stdout.on("data", data => {
             console.log("stdout: " + data);
@@ -15,12 +16,12 @@ export function runSpawn(command, para, cwd, successMsg, errorMsg) {
         process.on("exit", code => {
             if (code == 0) {
                 if (successMsg) {
-                    global.toast(successMsg);
+                    Global.toast(successMsg);
                 }
                 resolve();
             } else {
                 if (errorMsg) {
-                    global.snack(errorMsg);
+                    Global.snack(errorMsg, false);
                 }
                 reject();
             }
@@ -30,6 +31,7 @@ export function runSpawn(command, para, cwd, successMsg, errorMsg) {
 
 export function svnUpdate(path, successMsg, errorMsg) {
     return new Promise((resolve, reject) => {
+        console.log(`svn update --> ${path}`);
         let process = spawn("svn", ["update"], { cwd: path });
         process.stdout.on("data", data => {
             console.log("stdout: " + data);
@@ -40,10 +42,10 @@ export function svnUpdate(path, successMsg, errorMsg) {
 
         process.on("exit", code => {
             if (code == 0) {
-                global.toast(successMsg);
+                Global.toast(successMsg);
                 resolve();
             } else {
-                global.snack(errorMsg, code);
+                Global.snack(errorMsg, code, false);
                 reject();
             }
         });
@@ -52,6 +54,7 @@ export function svnUpdate(path, successMsg, errorMsg) {
 
 export function gitPull(path, successMsg, errorMsg) {
     return new Promise((resolve, reject) => {
+        console.log(`git pull --> ${path}`);
         let process = spawn("git", ["pull"], { cwd: path });
         process.stdout.on("data", data => {
             console.log("stdout: " + data);
@@ -63,10 +66,10 @@ export function gitPull(path, successMsg, errorMsg) {
 
         process.on("exit", code => {
             if (code == 0) {
-                global.toast(successMsg);
+                Global.toast(successMsg);
                 resolve();
             } else {
-                global.snack(errorMsg, code);
+                Global.snack(errorMsg, code, false);
                 reject();
             }
         });
@@ -75,12 +78,13 @@ export function gitPull(path, successMsg, errorMsg) {
 
 export function runCmd(cmd, cwd, successMsg, errorMsg) {
     return new Promise((resolve, reject) => {
+        console.log(`cmd --> cmd:${cmd} cwd:${cwd}`);
         let process = exec(cmd, { cwd: cwd }, (error) => {
             if (error) {
-                global.snack(errorMsg, error);
+                Global.snack(errorMsg, error, false);
                 reject();
             } else {
-                global.toast(successMsg);
+                Global.toast(successMsg);
                 resolve();
             }
         });

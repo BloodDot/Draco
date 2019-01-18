@@ -259,12 +259,10 @@ export default {
   mounted() {
     ipcRenderer.on("client_show_toast", (event, msg) => {
       this.showToast(msg);
-      console.log(msg);
     });
 
     ipcRenderer.on("client_show_snack", (event, msg) => {
       this.showSnackbar(msg);
-      console.error(msg);
     });
 
     ipcRenderer.on("client_show_loading", event => {

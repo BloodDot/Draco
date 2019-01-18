@@ -516,12 +516,12 @@ export function jimpPng2(cell, input_path, output_path) {
                         // hasBottomLeft = false;
                         // hasBottomRight = false;
 
-                        let newImage = new jimp(tileWidth, topDistance + tileHeight + bottomDistance + gapY + 1);
+                        let deviationX = -1;     //x轴偏差值
+                        let deviationY = 3;     //y轴偏差值
+
+                        let newImage = new jimp(tileWidth, topDistance + tileHeight + bottomDistance + gapY + deviationY);
                         let cutImgX = (rowLen - 1 - row + col) * halfTileWidth;             //完整图片中,当前图片所在的起点X
                         let cutImgY = topImageHigh + (row + col) * halfTileHeight;          //完整图片中,当前图片所在的起点Y
-
-                        let deviationX = -1;     //x轴偏差值
-                        let deviationY = 1;     //y轴偏差值
 
                         //所有图片都有的菱形区域
                         let diamondSX = halfTileWidth + deviationX;                         //菱形开始X

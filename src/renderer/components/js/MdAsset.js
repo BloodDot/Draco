@@ -11,7 +11,7 @@ const asyncResSuffix = '/resource/async.res.json';
 
 
 const indieSuffix = '/resource/indie';
-const indieResSuffix = '/resource/async.res.json';
+const indieResSuffix = '/resource/indie.res.json';
 
 const mapDataSuffix = '/resource/mapData';
 const mapDataResSuffix = '/resource/mapData.res.json'

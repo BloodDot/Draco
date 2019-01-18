@@ -264,9 +264,9 @@ export default {
           let versionContent = fs.readFileSync(versionPath, "utf-8");
           let versionObj = JSON.parse(versionContent);
           this.displayVersion = versionObj.displayVersion;
+        } else {
+          this.oldVersion = "0";
         }
-      } else {
-        this.oldVersion = "0";
       }
     },
 

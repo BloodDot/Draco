@@ -7,7 +7,7 @@ import { error } from 'util';
 // global.svnPublishPath = global.svnPath + '/client/publish';
 
 export class Global {
-    static currentVersion = "1.9.0 beta2";
+    static currentVersion = "1.9.0 beta3";
     static projPath = localStorage.getItem('client_project_path');
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');
@@ -42,17 +42,21 @@ export class Global {
     static materialCells = [];
 
     static toast(value) {
+        console.log(value);
         ipcRenderer.send('client_show_toast', value);
     }
 
     static snack(value, e, needThrow = true) {
         if (e) {
             ipcRenderer.send('client_show_snack', `${value} ${e}`);
+            console.error(`${value} ${e}`);
             if (needThrow) {
                 throw new Error(value);
+
             }
         } else {
             ipcRenderer.send('client_show_snack', value);
+            console.error(value);
             if (needThrow) {
                 throw new Error(value);
             }

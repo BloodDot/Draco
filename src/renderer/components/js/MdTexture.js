@@ -18,23 +18,18 @@ const copy_in_suffix_arr = [
     '/settings/resource/object_varia'
 ];
 
-var _checkBoxValues = [
-    "itemIcon",
-    "mapcell",
-    "material",
-    "object",
-    "objectDecorate"
-]
+const itemIconSfx = "itemIcon";
+const mapcellSfx = "mapcell";
+const materialSfx = "material";
+const objectSfx = "object";
+const objectDecorateSfx = "objectDecorate";
+const avatarIconSfx = "avatarIcon";
+
+var _checkBoxValues = [itemIconSfx, mapcellSfx, materialSfx, objectSfx, objectDecorateSfx, avatarIconSfx];
 export function getCheckBoxValues() { return _checkBoxValues; }
 export function setCheckBoxValues(value) { _checkBoxValues = value; }
 
-var _checkBoxData = [
-    "itemIcon",
-    "mapcell",
-    "material",
-    "object",
-    "objectDecorate"
-]
+var _checkBoxData = [itemIconSfx, mapcellSfx, materialSfx, objectSfx, objectDecorateSfx, avatarIconSfx];
 export function getCheckBoxData() { return _checkBoxData; }
 export function setCheckBoxData(value) { _checkBoxData = value; }
 
@@ -49,7 +44,7 @@ export async function updateSvn() {
  * 清空纹理
  */
 export async function clearTexture() {
-    if (_checkBoxData.indexOf("object") == -1) {
+    if (_checkBoxData.indexOf(objectSfx) == -1) {
         return;
     }
 
@@ -68,7 +63,7 @@ export async function clearTexture() {
  * 拷入纹理
  */
 export async function copyTextureIn() {
-    if (_checkBoxData.indexOf("object") == -1) {
+    if (_checkBoxData.indexOf(objectSfx) == -1) {
         return;
     }
 
@@ -90,7 +85,7 @@ export async function copyTextureIn() {
  * 裁剪纹理
  */
 export async function clipTexture() {
-    if (_checkBoxData.indexOf("object") == -1) {
+    if (_checkBoxData.indexOf(objectSfx) == -1) {
         return;
     }
 
@@ -144,27 +139,29 @@ export async function packerTexture() {
     try {
         for (const iterator of _checkBoxData) {
             let inputs = [];
-            let output;
+            let output = Global.svnArtPath + sheet_suffix_path + '/' + iterator;
             switch (iterator) {
-                case 'itemIcon':
+                case itemIconSfx:
                     inputs.push(Global.svnPath + '/settings/resource/item_icon');
                     break;
-                case 'mapcell':
+                case mapcellSfx:
                     inputs.push(Global.svnPath + '/settings/resource/mapcell');
                     break;
-                case 'material':
+                case materialSfx:
                     inputs.push(Global.svnPath + '/settings/resource/material');
                     break;
-                case 'object':
+                case objectSfx:
                     inputs.push(Global.svnArtPath + output_suffix_path);
                     break;
-                case 'objectDecorate':
+                case objectDecorateSfx:
                     inputs.push(Global.svnPath + '/settings/resource/objectDecorate');
+                    break;
+                case avatarIconSfx:
+                    inputs.push(Global.svnPath + '/settings/resource/other_icon/avatar_icon');
                     break;
                 default:
                     break;
             }
-            output = Global.svnArtPath + sheet_suffix_path + '/' + iterator;
 
             let cmdStr = getCmdPackerTexture(inputs, output);
             await spawnExc.runCmd(cmdStr, null, `packer ${inputs} texture success`, `packer ${inputs} texture error`);
@@ -183,9 +180,10 @@ export async function copyTextureOut() {
     let sheet_path = Global.svnArtPath + sheet_suffix_path;
     try {
         for (const iterator of _checkBoxData) {
-            let outputPath =
-                Global.projPath +
-                project_sheet_suffix_path;
+            let outputPath = Global.projPath + project_sheet_suffix_path;
+            if (iterator == avatarIconSfx) {
+                outputPath = Global.projPath + '/resource/assets/preload/regSheet';
+            }
 
             let targetPa = await fsExc.readDir(outputPath);
             for (const element of targetPa) {

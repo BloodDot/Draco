@@ -7,7 +7,7 @@ import { error } from 'util';
 // global.svnPublishPath = global.svnPath + '/client/publish';
 
 export class Global {
-    static currentVersion = "1.9.0 beta3";
+    static currentVersion = "1.9.0 beta5";
     static projPath = localStorage.getItem('client_project_path');
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');

@@ -194,7 +194,7 @@ export default {
       isExportVersionLoading: false,
       isExportApkLoading: false,
       isExportIpaLoading: false,
-      needCover: false,
+      needCover: mdPublish.getNeedCover(),
       publish_version: "",
       newVersion: "",
       new_version_path: "",

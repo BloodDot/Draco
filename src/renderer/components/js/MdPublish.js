@@ -51,7 +51,7 @@ var checkBoxData = [];
 export function getCheckBoxData() { return checkBoxData; }
 export function setCheckBoxData(value) { checkBoxData = value; }
 
-var needCover;
+var needCover = true;
 export function setNeedCover(value) { needCover = value; }
 export function getNeedCover() { return needCover; }
 
@@ -72,6 +72,10 @@ export async function publishProject() {
     if (!versionType) {
         Global.snack('请先选择版本更新类型');
         return;
+    }
+
+    if (needCover) {
+        await checkClearRelease(releaseVersion);
     }
 
     try {
@@ -346,6 +350,13 @@ export async function checkExistVersion(version) {
     let versionList = JSON.parse(versionListContent);
     let index = versionList.versionList.indexOf(version);
     return index != -1;
+}
+
+export async function checkClearRelease(version) {
+    let releasePath = `${Global.projPath}/bin-release/web/${version}`;
+    if (await fsExc.exists(releasePath)) {
+        await fsExc.delFolder(releasePath);
+    }
 }
 
 /**

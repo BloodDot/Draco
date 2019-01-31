@@ -69,36 +69,11 @@
         </mu-flex>
       </div>
       <div class="control-group">
-        <!-- <mu-row gutter> -->
-        <!-- <mu-col span="12" lg="2" sm="6">
-            <mu-text-field class="text-version" v-model="newVersion" label="新版本号" :disabled="true" />
-          </mu-col>
-          <mu-col span="12" lg="8" sm="6">
-            <mu-text-field class="text-path" v-model="new_version_path" label="新版本目录" @change="onNewVersionPathChange" label-float />
-          </mu-col>
-          <mu-col span="2" lg="2" sm="6">
-            <mu-button color="pink500" @click="onNewVersionClick">选择</mu-button>
-        </mu-col>-->
         <mu-flex class="flex-wrapper" align-items="center">
           <mu-col span="12" lg="2" sm="2">
             <mu-checkbox v-model="needCover" label="覆盖"></mu-checkbox>
           </mu-col>
-          <mu-col span="12" lg="10" sm="10">
-            <!-- <mu-select
-              label="新版本号"
-              filterable
-              v-model="newVersion"
-              @change="onNewVersionChange"
-              label-float
-              full-width
-            >
-              <mu-option
-                v-for="value,index in newVersionList"
-                :key="value"
-                :label="value"
-                :value="value"
-              ></mu-option>
-            </mu-select>-->
+          <mu-col span="12" lg="5" sm="5">
             <mu-auto-complete
               :data="newVersionList"
               label="新版本号"
@@ -109,50 +84,28 @@
               full-width
             ></mu-auto-complete>
           </mu-col>
+          <!-- </mu-flex>
+          <mu-flex class="flex-wrapper" align-items="center">-->
+          <mu-col span="12" lg="5" sm="5">
+            <mu-select
+              label="旧版本号"
+              filterable
+              v-model="oldVersion"
+              @change="onOldVersionChange"
+              label-float
+              full-width
+            >
+              <mu-option
+                v-for="value,index in oldVersionList"
+                :key="value"
+                :label="value"
+                :value="value"
+              ></mu-option>
+            </mu-select>
+          </mu-col>
         </mu-flex>
-        <!-- <mu-auto-complete :data="newVersionList" label="新版本号" v-model="newVersion" open-on-focus></mu-auto-complete> -->
-        <!-- <mu-select label="新版本号" filterable v-model="newVersion" full-width>
-            <mu-option v-for="value,index in newVersionList" :key="value" :label="value" :value="value"></mu-option>
-        </mu-select>-->
-        <!-- </mu-row> -->
-      </div>
-      <div class="control-group">
-        <!-- <mu-row gutter>
-          <mu-col span="12" lg="2" sm="6">
-            <mu-text-field class="text-version" v-model="oldVersion" label="旧版本号" :disabled="true" />
-          </mu-col>
-          <mu-col span="12" lg="8" sm="6">
-            <mu-text-field class="text-path" v-model="old_version_path" label="旧版本目录" @change="onOldVersionPathChange" label-float />
-          </mu-col>
-          <mu-col span="2" lg="2" sm="6">
-            <mu-button color="orange500" @click="onOldVersionClick">选择</mu-button>
-          </mu-col>
-        </mu-row>-->
-        <mu-flex class="flex-wrapper" align-items="center">
-          <mu-select
-            label="旧版本号"
-            filterable
-            v-model="oldVersion"
-            @change="onOldVersionChange"
-            label-float
-            full-width
-          >
-            <mu-option
-              v-for="value,index in oldVersionList"
-              :key="value"
-              :label="value"
-              :value="value"
-            ></mu-option>
-          </mu-select>
-        </mu-flex>
-        <!-- <mu-auto-complete :data="oldVersionList" label="旧版本号" @change="onOldVersionChange" v-model="oldVersion" open-on-focus></mu-auto-complete> -->
-      </div>
-      <div class="control-group">
         <mu-flex class="flex-wrapper" align-items="center">
           <mu-row gutter>
-            <!-- <mu-col span="12" lg="2" sm="4">
-              <mu-text-field class="text-version" v-model="newVersion" label="新版本号" label-float/>
-            </mu-col>-->
             <mu-col span="12" lg="12" sm="12">
               <mu-text-field class="text-path" v-model="cdnPath" label="CDN目录" label-float/>
             </mu-col>
@@ -305,10 +258,6 @@ export default {
           this.isMergeVersionLoading = false;
           Global.hideRegionLoading();
         });
-
-      // try {
-      //   await mdPublish.mergeVersion();
-      // } catch (error) {}
     },
 
     async onExportVersionClick() {
@@ -1451,8 +1400,8 @@ export default {
     },
 
     async refreshNewVersionList() {
-      if (await fsExc.exists(mdPublish.releasePath)) {
-        this.newVersionList = await fsExc.readDir(mdPublish.releasePath);
+      if (await fsExc.exists(Global.releasePath)) {
+        this.newVersionList = await fsExc.readDir(Global.releasePath);
       } else {
         this.newVersionList = [];
       }
@@ -1532,7 +1481,7 @@ export default {
 }
 
 .control-group {
-  margin: 15px 0;
+  // margin: 15px 0;
   max-width: 800px;
 }
 

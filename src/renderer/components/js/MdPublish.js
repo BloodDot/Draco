@@ -13,8 +13,6 @@ const mapDataResSuffix = 'resource/mapData.res.json';
 const asyncResSuffix = 'resource/async.res.json';
 const indieResSuffix = 'resource/indie.res.json';
 
-export var releasePath = Global.projPath + releaseSuffix;
-
 export var svnPublishPath = Global.svnPath + '/client/publish';
 
 var projNewVersionPath = Global.projPath + releaseSuffix + newVersion;

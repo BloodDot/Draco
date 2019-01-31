@@ -70,27 +70,11 @@ exports.init = (mainWindow) => {
         })
     })
 
-    ipcMain.on('open_client_android_path', (event) => {
+    ipcMain.on('open_client_client_path', (event) => {
         dialog.showOpenDialog({
             properties: ['openFile', 'openDirectory']
         }, (files) => {
-            event.sender.send('selected_client_android_path', files);
-        })
-    })
-
-    ipcMain.on('open_client_ios_path', (event) => {
-        dialog.showOpenDialog({
-            properties: ['openFile', 'openDirectory']
-        }, (files) => {
-            event.sender.send('selected_client_ios_path', files);
-        })
-    })
-
-    ipcMain.on('open_client_wechat_path', (event) => {
-        dialog.showOpenDialog({
-            properties: ['openFile', 'openDirectory']
-        }, (files) => {
-            event.sender.send('selected_client_wechat_path', files);
+            event.sender.send('selected_client_client_path', files);
         })
     })
 

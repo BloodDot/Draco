@@ -78,38 +78,6 @@ exports.init = (mainWindow) => {
         })
     })
 
-    // ipcMain.on('open_new_version_path', (event) => {
-    //     dialog.showOpenDialog({
-    //         properties: ['openFile', 'openDirectory']
-    //     }, (files) => {
-    //         event.sender.send('selected_new_version_path', files);
-    //     })
-    // })
-
-    // ipcMain.on('open_old_version_path', (event) => {
-    //     dialog.showOpenDialog({
-    //         properties: ['openFile', 'openDirectory']
-    //     }, (files) => {
-    //         event.sender.send('selected_old_version_path', files);
-    //     })
-    // })
-
-    // ipcMain.on('open_client_csv_path', (event) => {
-    //     dialog.showOpenDialog({
-    //         properties: ['openFile', 'openDirectory']
-    //     }, (files) => {
-    //         event.sender.send('selected_client_csv_path', files);
-    //     })
-    // })
-
-    // ipcMain.on('open_client_texture_path', (event) => {
-    //     dialog.showOpenDialog({
-    //         properties: ['openFile', 'openDirectory']
-    //     }, (files) => {
-    //         event.sender.send('selected_client_texture_path', files);
-    //     })
-    // })
-
     ipcMain.on('open_client_modify_edition_path', (event) => {
         dialog.showOpenDialog({
             properties: ['openFile']

@@ -55,13 +55,13 @@
             <mu-list-item-title>Asset</mu-list-item-title>
           </mu-list-item>
 
+          <mu-divider/>
           <mu-list-item button :ripple="false" value="ClientPublish">
             <mu-list-item-action>
               <mu-icon slot="left" value="timeline"/>
             </mu-list-item-action>
             <mu-list-item-title>Publish</mu-list-item-title>
           </mu-list-item>
-
           <mu-list-item button :ripple="false" value="ClientApp">
             <mu-list-item-action>
               <mu-icon slot="left" value="weekend"/>

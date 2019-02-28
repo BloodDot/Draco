@@ -25,6 +25,12 @@ const objectSfx = "object";
 const objectDecorateSfx = "objectDecorate";
 const avatarIconSfx = "avatarIcon";
 
+const sheetSfxArr = [
+    itemIconSfx,
+    avatarIconSfx,
+    mapcellSfx
+];
+
 var _checkBoxValues = [itemIconSfx, mapcellSfx, materialSfx, objectSfx, objectDecorateSfx, avatarIconSfx];
 export function getCheckBoxValues() { return _checkBoxValues; }
 export function setCheckBoxValues(value) { _checkBoxValues = value; }
@@ -32,6 +38,10 @@ export function setCheckBoxValues(value) { _checkBoxValues = value; }
 var _checkBoxData = [itemIconSfx, mapcellSfx, materialSfx, objectSfx, objectDecorateSfx, avatarIconSfx];
 export function getCheckBoxData() { return _checkBoxData; }
 export function setCheckBoxData(value) { _checkBoxData = value; }
+
+var _sheetMode = false;
+export function getSheetMode() { return _sheetMode; }
+export function setSheetMode(value) { _sheetMode = value; }
 
 /**
  * 更新svn
@@ -138,33 +148,35 @@ export async function clipTexture() {
 export async function packerTexture() {
     try {
         for (const iterator of _checkBoxData) {
-            let inputs = [];
-            let output = Global.svnArtPath + sheet_suffix_path + '/' + iterator;
-            switch (iterator) {
-                case itemIconSfx:
-                    inputs.push(Global.svnPath + '/settings/resource/item_icon');
-                    break;
-                case mapcellSfx:
-                    inputs.push(Global.svnPath + '/settings/resource/mapcell');
-                    break;
-                case materialSfx:
-                    inputs.push(Global.svnPath + '/settings/resource/material');
-                    break;
-                case objectSfx:
-                    inputs.push(Global.svnArtPath + output_suffix_path);
-                    break;
-                case objectDecorateSfx:
-                    inputs.push(Global.svnPath + '/settings/resource/objectDecorate');
-                    break;
-                case avatarIconSfx:
-                    inputs.push(Global.svnPath + '/settings/resource/other_icon/avatar_icon');
-                    break;
-                default:
-                    break;
-            }
+            if (_sheetMode || sheetSfxArr.indexOf(iterator) != -1) {
+                let inputs = [];
+                let output = Global.svnArtPath + sheet_suffix_path + '/' + iterator;
+                switch (iterator) {
+                    case itemIconSfx:
+                        inputs.push(Global.svnPath + '/settings/resource/item_icon');
+                        break;
+                    case mapcellSfx:
+                        inputs.push(Global.svnPath + '/settings/resource/mapcell');
+                        break;
+                    case materialSfx:
+                        inputs.push(Global.svnPath + '/settings/resource/material');
+                        break;
+                    case objectSfx:
+                        inputs.push(Global.svnArtPath + output_suffix_path);
+                        break;
+                    case objectDecorateSfx:
+                        inputs.push(Global.svnPath + '/settings/resource/objectDecorate');
+                        break;
+                    case avatarIconSfx:
+                        inputs.push(Global.svnPath + '/settings/resource/other_icon/avatar_icon');
+                        break;
+                    default:
+                        break;
+                }
 
-            let cmdStr = getCmdPackerTexture(inputs, output);
-            await spawnExc.runCmd(cmdStr, null, `packer ${inputs} texture success`, `packer ${inputs} texture error`);
+                let cmdStr = getCmdPackerTexture(inputs, output);
+                await spawnExc.runCmd(cmdStr, null, `packer ${inputs} texture success`, `packer ${inputs} texture error`);
+            }
         }
 
         Global.toast('打包纹理成功');
@@ -177,33 +189,63 @@ export async function packerTexture() {
  * 拷出纹理
  */
 export async function copyTextureOut() {
-    let sheet_path = Global.svnArtPath + sheet_suffix_path;
+    let inputPath;
+    let outputPath;
+
     try {
         for (const iterator of _checkBoxData) {
-            let outputPath = Global.projPath + project_sheet_suffix_path;
-            if (iterator == avatarIconSfx) {
-                outputPath = Global.projPath + '/resource/assets/preload/regSheet';
+            console.log(`iterator:${iterator}`);
+            let sheetOutputPath = Global.projPath + project_sheet_suffix_path;
+            let textureOutPath = `${Global.projPath}/resource/assets/texture/map/${iterator}`;
+            if (_sheetMode || sheetSfxArr.indexOf(iterator) != -1) {
+                //纹理集
+                inputPath = Global.svnArtPath + sheet_suffix_path;
+                if (iterator == avatarIconSfx) {
+                    //如果是头像 放到注册纹理集中
+                    outputPath = sheetOutputPath = Global.projPath + '/resource/assets/preload/regSheet';
+                } else {
+                    outputPath = sheetOutputPath;
+                }
+            } else {
+                //纹理
+                if (iterator == objectSfx) {
+                    //object 用裁剪后的单个纹理
+                    inputPath = Global.svnArtPath + output_suffix_path;
+                } else {
+                    inputPath = `${Global.svnPath}/settings/resource/${iterator}`;;
+                }
+                outputPath = textureOutPath;
             }
 
-            let targetPa = await fsExc.readDir(outputPath);
+            //删除纹理
+            let targetPa = await fsExc.readDir(sheetOutputPath);
             for (const element of targetPa) {
                 if (element.indexOf(iterator + "-") != -1
                     && (element.indexOf(".png") != -1
                         || element.indexOf(".json") != -1)
                 ) {
-                    await fsExc.delFile(outputPath + "/" + element);
+                    await fsExc.delFile(sheetOutputPath + "/" + element);
                 }
             }
 
-            let fromPa = await fsExc.readDir(sheet_path);
-            for (const element of fromPa) {
-                if (
-                    element.indexOf(iterator + "-") != -1
-                    && (element.indexOf(".png") != -1
-                        || element.indexOf(".json") != -1)
-                ) {
-                    let inputPath = sheet_path + "/" + element;
-                    await fsExc.copyFile(inputPath, outputPath);
+            if (await fsExc.exists(textureOutPath)) {
+                await fsExc.delFolder(textureOutPath);
+            }
+
+            if (_sheetMode || sheetSfxArr.indexOf(iterator) != -1) {
+                let fromPa = await fsExc.readDir(inputPath);
+                for (const element of fromPa) {
+                    if (element.indexOf(iterator + "-") != -1
+                        && (element.indexOf(".png") != -1
+                            || element.indexOf(".json") != -1)) {
+                        await fsExc.copyFile(inputPath + "/" + element, outputPath);
+                    }
+                }
+            } else {
+                let fromPa = await fsExc.readDir(inputPath);
+                for (const element of fromPa) {
+                    await fsExc.makeDir(outputPath);
+                    await fsExc.copyFile(inputPath + "/" + element, outputPath);
                 }
             }
         }

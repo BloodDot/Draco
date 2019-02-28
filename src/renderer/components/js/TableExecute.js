@@ -12,8 +12,7 @@ export async function getCsvCells(path) {
     // let buffer = new Buffer(content, 'gbk');
     // content = iconv.decode(buffer, 'gbk');
 
-    let content = readCsvContent(path);
-
+    let content = await readCsvContent(path);
     return csvToArray(content);
 }
 

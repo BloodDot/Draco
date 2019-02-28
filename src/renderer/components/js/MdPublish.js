@@ -16,7 +16,6 @@ const indieResSuffix = 'resource/indie.res.json';
 export var svnPublishPath = Global.svnPath + '/client/publish';
 
 var projNewVersionPath = Global.projPath + releaseSuffix + newVersion;
-export function getProjNewVersionPath() { return projNewVersionPath; }
 
 var releaseVersion;
 export function getReleaseVersion() { return releaseVersion; }

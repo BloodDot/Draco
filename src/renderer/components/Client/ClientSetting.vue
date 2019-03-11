@@ -60,7 +60,7 @@
             />
           </mu-list-item-content>
           <mu-list-item-action>
-            <mu-button color="blue500" @click="onClientPathClick">选择</mu-button>
+            <mu-button color="purple500" @click="onClientPathClick">选择</mu-button>
           </mu-list-item-action>
         </mu-list-item>
 

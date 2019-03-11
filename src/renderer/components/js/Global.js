@@ -1,13 +1,7 @@
 import { ipcRenderer } from 'electron';
-import { error } from 'util';
-
-// global.getSvnCsvPath() = global.svnPath + '/settings/csv';
-// global.getSvnResPath() = global.svnPath + '/settings/resource';
-// global.svnArtPath = global.svnPath + '/art';
-// global.svnPublishPath = global.svnPath + '/client/publish';
 
 export class Global {
-    static currentVersion = "1.9.0 beta7";
+    static currentVersion = "1.9.0 beta6";
     static projPath = localStorage.getItem('client_project_path');
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');
@@ -34,7 +28,6 @@ export class Global {
         return Global.svnPath + '/client/publish';
     }
 
-
     static get pbMessagePath() {
         return Global.protoPath + '/pbmessage';
     }
@@ -43,6 +36,25 @@ export class Global {
         return Global.projPath + '/bin-release/web';
     }
 
+    static get rawResourcePath() {
+        return Global.projPath + '/rawResource';
+    }
+
+    // static get compressPath() {
+    //     return Global.projPath + '/rawResource/asset/compress';
+    // }
+
+    static get originalPicPath() {
+        return Global.projPath + '/rawResource/resource/originalPic';
+    }
+
+    static get compressResourcePath() {
+        return Global.projPath + '/rawResource/resource/compress'
+    }
+
+    static get resourcePath() {
+        return Global.projPath + '/resource';
+    }
 
     static objectCells = [];
     static variaCells = [];
@@ -105,7 +117,7 @@ export class Global {
 
     static async waitTime(time) {
         return new Promise((resolve, reject) => {
-            let timeIndex = egret.setTimeout(() => {
+            let timeIndex = setTimeout(() => {
                 resolve(timeIndex);
             }, this, time);
         });
@@ -135,3 +147,4 @@ ipcRenderer.on('selected_client_client_path', (event, path) => {
         Global.clientPath = path[0];
     }
 });
+

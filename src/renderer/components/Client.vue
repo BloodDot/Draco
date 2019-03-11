@@ -56,12 +56,21 @@
           </mu-list-item>
 
           <mu-divider/>
+
           <mu-list-item button :ripple="false" value="ClientPublish">
             <mu-list-item-action>
               <mu-icon slot="left" value="timeline"/>
             </mu-list-item-action>
             <mu-list-item-title>Publish</mu-list-item-title>
           </mu-list-item>
+
+          <mu-list-item button :ripple="false" value="ClientFtp">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="file_upload"/>
+            </mu-list-item-action>
+            <mu-list-item-title>Ftp</mu-list-item-title>
+          </mu-list-item>
+
           <mu-list-item button :ripple="false" value="ClientApp">
             <mu-list-item-action>
               <mu-icon slot="left" value="weekend"/>
@@ -260,7 +269,8 @@ export default {
     ClientSetting: require("./Client/ClientSetting"),
     ClientPublish: require("./Client/ClientPublish"),
     ClientAsset: require("./Client/ClientAsset"),
-    ClientApp: require("./Client/ClientApp")
+    ClientApp: require("./Client/ClientApp"),
+    ClientFtp: require("./Client/ClientFtp")
     // ClientModule: require("./backup/ClientModule"),
     // ClientTest: require("./backup/ClientTest")
   },

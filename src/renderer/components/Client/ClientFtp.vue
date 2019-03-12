@@ -169,13 +169,16 @@ export default {
         Global.hideRegionLoading();
       }
     },
-    async onUploadVersionFile() {
+    async onUploadVersionFile(showDialog = true) {
       this.isUploadVersionLoading = true;
       Global.showRegionLoading();
       try {
         await mdFtp.uploadVersionFile();
         this.isUploadVersionLoading = false;
         Global.hideRegionLoading();
+        if (showDialog) {
+          Global.dialog("上传游戏版本成功");
+        }
       } catch (error) {
         this.isUploadVersionLoading = false;
         Global.hideRegionLoading();
@@ -251,7 +254,7 @@ export default {
       });
 
       this.gameVersionList = this.patchList;
-      this.uploadVersion = this.patchList[this.releaseList.length - 1];
+      this.uploadVersion = this.patchList[this.patchList.length - 1];
       let versionInfo = this.uploadVersion.split("-v");
       this.whiteVersion = this.normalVersion = versionInfo[
         versionInfo.length - 1

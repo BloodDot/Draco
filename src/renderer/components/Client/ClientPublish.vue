@@ -194,16 +194,20 @@ export default {
         let releaseDirPath = `${Global.svnPublishPath}/web/release_v${
           this.oldVersion
         }s`;
-        let releaseDir = await fsExc.readDir(releaseDirPath);
-        for (const iterator of releaseDir) {
-          if (iterator.indexOf(`policyFile`) != -1) {
-            let policyContent = await fsExc.readFile(
-              releaseDirPath + "/" + iterator
-            );
-            let policyObj = JSON.parse(policyContent);
-            this.displayVersion = policyObj.displayVersion;
-            return;
+        if (await fsExc.exists(releaseDirPath)) {
+          let releaseDir = await fsExc.readDir(releaseDirPath);
+          for (const iterator of releaseDir) {
+            if (iterator.indexOf(`policyFile`) != -1) {
+              let policyContent = await fsExc.readFile(
+                releaseDirPath + "/" + iterator
+              );
+              let policyObj = JSON.parse(policyContent);
+              this.displayVersion = policyObj.displayVersion;
+              return;
+            }
           }
+        } else {
+          this.displayVersion = this.releaseVersion;
         }
 
         this.oldVersion = "0";

@@ -8,6 +8,8 @@ import * as scp2 from 'scp2';
 export const serverList = [
     { name: "long", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/feature/long" },
     { name: "icecream", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/feature/icecream" },
+    { name: "release", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/web/release" },
+    { name: "develop", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/web/develop" },
 ];
 
 export const channelList = [
@@ -107,6 +109,8 @@ export async function createEntrance() {
 
     let indexPath = `${Global.svnPublishPath}/web/${uploadVersion}/index.html`;
     await fsExc.writeFile(indexPath, content);
+
+    Global.toast('生成入口文件成功');
 }
 
 export async function modifyPolicyFile() {
@@ -140,6 +144,8 @@ export async function modifyPolicyFile() {
 
     let newPolicyPath = `${releaseDir}/policyFile_v${policyNum}.json`;
     await fsExc.writeFile(newPolicyPath, content);
+
+    Global.toast('修改策略文件成功');
 }
 
 export async function uploadVersionFile() {

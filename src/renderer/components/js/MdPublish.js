@@ -203,7 +203,11 @@ export async function mergeVersion() {
 }
 
 async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
-    console.log(`--> start merge version v${oldVersion}s-v${newVersion}s`);
+    if (oldVersion) {
+        console.log(`--> start merge version v${oldVersion}s-v${newVersion}s`);
+    } else {
+        console.log(`--> start generate version v${newVersion}s`);
+    }
     let svnWebRlsPath;
     let svnCdnRlsPath;
     if (isRelease) {
@@ -358,7 +362,6 @@ async function copyFileCheckDir(fileName, targetPath, version, fromPath) {
         if (i != fileNameArr.length - 1) {
             checkPath += fileNameArr[i] + '/';
             let filePath = fromPath + '/' + checkPath;
-
             if (await fsExc.exists(filePath)) {
                 if (await fsExc.isDirectory(filePath)) {
                     await fsExc.makeDir(targetPath + '/' + checkPath);
@@ -369,6 +372,12 @@ async function copyFileCheckDir(fileName, targetPath, version, fromPath) {
             }
         }
     }
+
+    // folder = await fsExc.dirname(filePath)
+    // let isExists = await fsExc.exists(folder);
+    // if (!isExists) {
+    //     await fsExc.makeDir(folder);
+    // }
 
     await copyFile(fromPath + '/' + fileName, targetPath + '/' + fileName, version);
 }
@@ -587,7 +596,7 @@ async function resFileHandle(resFilePath, newVersion, releasePath, patchPath, ol
                     //是图集,比较图集配置文件中的图片是否相同
                     let newConfigContent = await fsExc.readFile(projNewVersionPath + '/' + newPath);
                     let newConfigObj = JSON.parse(newConfigContent);
-                    let newFilePath = 'resource/' + fsExc.dirname(newResIterator.url) + '/' + newConfigObj.file;
+                    let newFilePath = `resource/${fsExc.dirname(newResIterator.url)}/${newConfigObj.file}`;
 
                     let oldFilePath = '';
                     if (oldPath) {
@@ -595,9 +604,9 @@ async function resFileHandle(resFilePath, newVersion, releasePath, patchPath, ol
                         let oldConfigPath = oldVersionPath + '/' + oldPath;
                         let oldConfigContent = await fsExc.readFile(oldConfigPath);
                         let oldConfigObj = JSON.parse(oldConfigContent);
-                        oldFilePath = 'resource/' + fsExc.dirname(newResIterator.url) + oldConfigObj.file;
+                        oldFilePath = `resource/${fsExc.dirname(newResIterator.url)}/${oldConfigObj.file}`;
                     } else {
-                        oldFilePath = 'resource/' + fsExc.dirname(newResIterator.url) + newConfigObj.file;
+                        oldFilePath = `resource/${fsExc.dirname(newResIterator.url)}/${newConfigObj.file}`;
                     }
 
                     //判断图集是否相同
@@ -635,7 +644,7 @@ async function resFileHandle(resFilePath, newVersion, releasePath, patchPath, ol
                 let newPath = 'resource/' + iterator.url;
                 let newConfigContent = await fsExc.readFile(projNewVersionPath + '/' + newPath);
                 let newConfigObj = JSON.parse(newConfigContent);
-                let filePath = 'resource/' + fsExc.dirname(iterator.url) + newConfigObj.file;
+                let filePath = `resource/${fsExc.dirname(iterator.url)}/${newConfigObj.file}`;
                 //拷贝图集中的图片
                 if (releasePath) {
                     await copyFileCheckDir(filePath, releasePath, newVersion);

@@ -245,8 +245,17 @@ export function applyPolicyNum() {
             response.on("data", (data) => {
                 resData += data;
             });
-            response.on("end", () => {
+            response.on("end", async () => {
                 console.log(resData);
+
+                let policyListPath = Global.svnPublishPath + "/policyList.json"
+                let policyListContent = await fsExc.readFile(policyListPath);
+                let policyList = JSON.parse(policyListContent);
+                let policyStr = policyNum + "";
+                if (policyList.policy.indexOf(policyStr) == -1) {
+                    policyList.policy.push(policyNum + "")
+                }
+                await fsExc.writeFile(policyListPath, JSON.stringify(policyList));
                 resolve();
             });
         })

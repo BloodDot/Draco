@@ -221,8 +221,12 @@ export default {
     async oneForAll() {
       Global.showLoading();
       try {
+        await this.onCreateEntrance();
+        await this.onModifyPolicyFile();
+        await this.onUploadVersionFile(false);
+        await this.onApplyPolicyNum();
         Global.hideLoading();
-        Global.toast("One·for·All Success");
+        Global.dialog("One·for·All Success");
       } catch (error) {
         Global.hideLoading();
         Global.snack("One·for·All Error", error);

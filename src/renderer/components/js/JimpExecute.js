@@ -427,16 +427,43 @@ import { Global } from "./Global.js";
 //     });
 // }
 
-var needConsole = true;
-export function jimpPng2(cell, input_path, output_path) {
-    return new Promise(async (resolve, reject) => {
-        const element = cell;
+/**
+ * 
+ * @param {number} type 类型 1.object表 2.varia表 3.material表
+ * @param {*} cell 
+ * @param {*} input_path 
+ * @param {*} output_path 
+ */
+export async function jimpCell(type, cell, input_path, output_path) {
+    const element = cell;
+    for (const texture of element.texture) {
         let area = element.area;
-        let texture = element.texture;
+        if (type == 2) {
+            let rowCount = element.shape[0];
+            let colCount = element.shape[1];
+            area = [];
+            for (let i = 0; i < rowCount; i++) {
+                area[i] = [];
+                for (let j = 0; j < colCount; j++) {
+                    if (element.area[i] != undefined
+                        && element.area[i][j] != undefined) {
+                        area[i][j] = element.area[i][j];
+                    } else {
+                        area[i][j] = element.shape[2];
+                    }
+                }
+            }
+        }
+        await jimpPng2(element.id, area, texture, input_path, output_path);
+    }
+}
+
+export function jimpPng2(id, area, texture, input_path, output_path) {
+    return new Promise(async (resolve, reject) => {
         let filePath = input_path + "/" + texture + ".png";
 
         if (!(await fsExc.exists(filePath))) {
-            // console.error("文件不存在:" + filePath);
+            console.error(`配置错误:${id} 文件不存在:${filePath}`);
             resolve();
             return;
         }
@@ -693,12 +720,11 @@ export function jimpPng2(cell, input_path, output_path) {
                         }
 
                         await newImage.write(output_path + "/" + texture + "_" + row + "_" + col + ".png");
-                        needConsole = false;
                     }
                 }
                 resolve();
             }).catch(error => {
-                Global.snack(`裁剪纹理错误 id:${element.id}`, error);
+                Global.snack(`裁剪纹理错误 id:${id}`, error);
                 resolve();
             });
     });

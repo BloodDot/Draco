@@ -165,3 +165,15 @@ export async function mergeFileByMd5(oldFilePath, newFilePath) {
 
     return oldFileMd5 == newFileMd5;
 }
+
+export function getFilePath(path) {
+    let filePathArr = path.split("\\");
+    let filePath = "";
+    let fileName = filePathArr.pop();
+    for (let i = 0; i < filePathArr.length; i++) {
+        const element = filePathArr[i];
+        filePath += element + "\\";
+    }
+
+    return [fileName, filePath];
+}

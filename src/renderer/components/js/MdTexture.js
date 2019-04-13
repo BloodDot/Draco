@@ -4,8 +4,12 @@ import * as jimpExc from './JimpExecute';
 import * as spawnExc from "./SpawnExecute.js";
 import * as fsExc from "./FsExecute.js";
 
-const input_suffix_path = '/TextureInput/object';
-const output_suffix_path = '/TextureOutput/object';
+const input_suffix_path = '/TextureInput/texture';
+const ground_output_suffix_path = '/TextureOutput/ground';
+const surface_output_suffix_path = '/TextureOutput/surface';
+const floor_output_suffix_path = '/TextureOutput/floor';
+const object_output_suffix_path = '/TextureOutput/object';
+
 const sheet_suffix_path = '/TextureSheet';
 const project_sheet_suffix_path = '/resource/assets/preload/sheet';
 
@@ -14,12 +18,15 @@ const varia_csv = '/EntityVaria.csv';
 const material_csv = '/EntityMaterial.csv';
 
 const copy_in_suffix_arr = [
+    '/settings/resource/mapcell',
     '/settings/resource/object',
     '/settings/resource/object_varia'
 ];
 
 const itemIconSfx = "itemIcon";
-const mapcellSfx = "mapcell";
+const groundSfx = "ground";
+const surfaceSfx = "surface"
+const floorSfx = "floor";
 const materialSfx = "material";
 const objectSfx = "object";
 const objectDecorateSfx = "objectDecorate";
@@ -28,14 +35,37 @@ const avatarIconSfx = "avatarIcon";
 const sheetSfxArr = [
     itemIconSfx,
     avatarIconSfx,
-    mapcellSfx
+    groundSfx,
+    surfaceSfx,
+    floorSfx
 ];
 
-var _checkBoxValues = [itemIconSfx, mapcellSfx, materialSfx, objectSfx, objectDecorateSfx, avatarIconSfx];
+const objectType = {
+    ObjectTypeUnknown: 0,
+    ObjectTypeGear: 1,
+    ObjectTypePlaceholder2: 2,
+    ObjectTypeConsume: 3,
+    ObjectTypeMaterial: 4,
+    ObjectTypeConstruction: 5,
+    ObjectTypePlaceholder6: 6,
+    ObjectTypeGround: 7,
+    ObjectTypeResource: 8,
+    ObjectTypeCurrency: 9,
+    ObjectTypeFloor: 10,
+    ObjectTypeWall: 11,
+    ObjectTypeWindow: 12,
+    ObjectTypePlayerAreaFlag: 13,
+    ObjectTypeBox: 14,
+    ObjectTypeFormula: 15,
+    ObjectTypeVoid: 16,
+    ObjectTypeSurface: 17
+}
+
+var _checkBoxValues = [itemIconSfx, avatarIconSfx, groundSfx, surfaceSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
 export function getCheckBoxValues() { return _checkBoxValues; }
 export function setCheckBoxValues(value) { _checkBoxValues = value; }
 
-var _checkBoxData = [itemIconSfx, mapcellSfx, materialSfx, objectSfx, objectDecorateSfx, avatarIconSfx];
+var _checkBoxData = [itemIconSfx, avatarIconSfx, groundSfx, surfaceSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
 export function getCheckBoxData() { return _checkBoxData; }
 export function setCheckBoxData(value) { _checkBoxData = value; }
 
@@ -59,10 +89,14 @@ export async function clearTexture() {
     }
 
     let inputPath = Global.svnArtPath + input_suffix_path;
-    let outputPath = Global.svnArtPath + output_suffix_path;
+    let objPath = Global.svnArtPath + object_output_suffix_path;
+    let groundPath = Global.svnArtPath + ground_output_suffix_path;
+    let floorPath = Global.svnArtPath + floor_output_suffix_path;
     try {
         await fsExc.delFiles(inputPath);
-        await fsExc.delFiles(outputPath);
+        await fsExc.delFiles(objPath);
+        await fsExc.delFiles(groundPath);
+        await fsExc.delFiles(floorPath);
         Global.toast('清空纹理成功');
     } catch (error) {
         Global.snack('清空纹理错误', error);
@@ -82,7 +116,18 @@ export async function copyTextureIn() {
         await fsExc.makeDir(inputPath);
         for (const iterator of copy_in_suffix_arr) {
             let copyInPath = Global.svnPath + iterator;
-            await fsExc.copyFile(copyInPath, inputPath, true);
+            let copyFunc = async (fromPath, toPath) => {
+                let isDirectory = await fsExc.isDirectory(fromPath)
+                if (isDirectory) {
+                    let fromPa = await fsExc.readDir(fromPath);
+                    for (const element of fromPa) {
+                        await copyFunc(fromPath + "/" + element, toPath);
+                    }
+                } else {
+                    await fsExc.copyFile(fromPath, toPath);
+                }
+            }
+            await copyFunc(copyInPath, inputPath);
         }
 
         Global.toast('拷入纹理成功');
@@ -100,7 +145,6 @@ export async function clipTexture() {
     }
 
     let input_path = Global.svnArtPath + input_suffix_path;
-    let output_path = Global.svnArtPath + output_suffix_path;
 
     try {
         let object_csv_path = Global.svnCsvPath + object_csv;
@@ -118,21 +162,41 @@ export async function clipTexture() {
             Global.materialCells = await tableExc.getCsvCells(material_csv_path);
         }
 
+        let getOutPath = (iterator) => {
+            let outPath;
+            if (iterator.type === objectType.ObjectTypeGround) {
+                outPath = Global.svnArtPath + ground_output_suffix_path;
+
+                //FIXME:现在地表太多没用的资源了,暂时先不打成图集
+                // } else if (iterator.type === objectType.ObjectTypeSurface) {
+                //     outPath = Global.svnArtPath + surface_output_suffix_path;
+            } else if (iterator.type === objectType.ObjectTypeFloor) {
+                outPath = Global.svnArtPath + floor_output_suffix_path;
+            } else {
+                outPath = Global.svnArtPath + object_output_suffix_path;
+            }
+
+            return outPath;
+        }
+
         console.log('--> start clip object texture');
         for (const iterator of Global.objectCells) {
-            await jimpExc.jimpPng2(iterator, input_path, output_path);
+            let outPath = getOutPath(iterator)
+            await jimpExc.jimpCell(1, iterator, input_path, outPath);
         }
         console.log('--> clip object texture complete');
 
         console.log('--> start clip varia texture');
         for (const iterator of Global.variaCells) {
-            await jimpExc.jimpPng2(iterator, input_path, output_path);
+            let outPath = getOutPath(iterator)
+            await jimpExc.jimpCell(2, iterator, input_path, outPath);
         }
         console.log('--> clip varia texture complete');
 
         console.log('--> start clip material texture');
         for (const iterator of Global.materialCells) {
-            await jimpExc.jimpPng2(iterator, input_path, output_path);
+            let outPath = getOutPath(iterator)
+            await jimpExc.jimpCell(3, iterator, input_path, outPath);
         }
         console.log('--> clip material texture complete');
 
@@ -152,17 +216,23 @@ export async function packerTexture() {
                 let inputs = [];
                 let output = Global.svnArtPath + sheet_suffix_path + '/' + iterator;
                 switch (iterator) {
+                    case groundSfx:
+                        inputs.push(Global.svnArtPath + ground_output_suffix_path);
+                        break;
+                    case surfaceSfx:
+                        inputs.push(Global.svnArtPath + surface_output_suffix_path);
+                        break;
+                    case floorSfx:
+                        inputs.push(Global.svnArtPath + floor_output_suffix_path);
+                        break;
+                    case objectSfx:
+                        inputs.push(Global.svnArtPath + object_output_suffix_path);
+                        break;
                     case itemIconSfx:
                         inputs.push(Global.svnPath + '/settings/resource/item_icon');
                         break;
-                    case mapcellSfx:
-                        inputs.push(Global.svnPath + '/settings/resource/mapcell');
-                        break;
                     case materialSfx:
                         inputs.push(Global.svnPath + '/settings/resource/material');
-                        break;
-                    case objectSfx:
-                        inputs.push(Global.svnArtPath + output_suffix_path);
                         break;
                     case objectDecorateSfx:
                         inputs.push(Global.svnPath + '/settings/resource/objectDecorate');
@@ -210,7 +280,7 @@ export async function copyTextureOut() {
                 //纹理
                 if (iterator == objectSfx) {
                     //object 用裁剪后的单个纹理
-                    inputPath = Global.svnArtPath + output_suffix_path;
+                    inputPath = Global.svnArtPath + object_output_suffix_path;
                 } else {
                     inputPath = `${Global.svnPath}/settings/resource/${iterator}`;;
                 }

@@ -63,6 +63,10 @@ var needCover = true;
 export function setNeedCover(value) { needCover = value; }
 export function getNeedCover() { return needCover; }
 
+var needCompress = true;
+export function setNeedCompress(value) { needCompress = value; }
+export function getNeedCompress() { return needCompress }
+
 var policyObj;
 export async function setPolicyObj(value) {
     policyObj = value;

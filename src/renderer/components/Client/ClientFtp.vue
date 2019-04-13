@@ -5,7 +5,7 @@
         <mu-button
           v-loading="isCreateEntranceLoading"
           data-mu-loading-size="24"
-          color="orange500"
+          color="pink500"
           @click="onCreateEntrance"
         >生成入口文件</mu-button>
         <mu-button
@@ -17,13 +17,13 @@
         <mu-button
           v-loading="isUploadVersionLoading"
           data-mu-loading-size="24"
-          color="pink500"
+          color="cyan500"
           @click="onUploadVersionFile"
         >上传游戏版本</mu-button>
         <mu-button
           v-loading="isApplyPolicyNumLoading"
           data-mu-loading-size="24"
-          color="orange500"
+          color="blue500"
           @click="onApplyPolicyNum"
         >应用策略版本</mu-button>
         <!-- <mu-button
@@ -119,14 +119,6 @@ export default {
     };
   },
   watch: {
-    // needPatch: value => {
-    //   if (value) {
-    //     this.gameVersionList = this.patchList;
-    //   } else {
-    //     this.gameVersionList = this.releaseList;
-    //   }
-    //   console.log(this.gameVersionList);
-    // },
     policyNum: value => {
       mdFtp.setPolicyNum(value);
     },

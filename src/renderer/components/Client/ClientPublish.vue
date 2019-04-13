@@ -38,6 +38,9 @@
             <mu-checkbox v-model="needCover" label="覆盖"></mu-checkbox>
           </mu-col>
           <mu-col span="12" lg="2" sm="2">
+            <mu-checkbox v-model="needCompress" label="压缩"></mu-checkbox>
+          </mu-col>
+          <mu-col span="12" lg="2" sm="2">
             <mu-text-field class="text-version" v-model="releaseVersion" label="发布版本号" label-float/>
           </mu-col>
           <mu-col span="12" lg="2" sm="2">
@@ -151,13 +154,14 @@ export default {
       isCompressPicturesLoading: false,
       isCopyCompressPicLoading: false,
       needCover: mdPublish.getNeedCover(),
+      needCompress: mdPublish.getNeedCompress(),
       oldVersion: "",
       releaseVersion: "",
       displayVersion: "",
       whiteVersion: "",
 
       versionType: "",
-      versionTypes: mdPublish.versionTypes,
+      versionTypes: null,
 
       cdnUrl: "",
       whiteList: [],
@@ -185,6 +189,9 @@ export default {
     },
     needCover: val => {
       mdPublish.setNeedCover(val);
+    },
+    needCompress: val => {
+      mdPublish.setNeedCompress(val);
     }
   },
   methods: {
@@ -321,9 +328,13 @@ export default {
     async oneForAll() {
       Global.showLoading();
       try {
-        await this.onCompressPicturesClick(false);
+        if (this.needCompress) {
+          await this.onCompressPicturesClick(false);
+        }
         await this.onPublishProjectClick(false);
-        await this.onCopyPicturesClick(false);
+        if (this.needCompress) {
+          await this.onCopyPicturesClick(false);
+        }
         await this.onMergetVersionClick(false);
         Global.hideLoading();
         Global.dialog("One·for·All Success");
@@ -351,6 +362,9 @@ export default {
   mounted() {
     this.refreshOldVersionList();
     this.refreshPolicyFile();
+
+    this.versionTypes = mdPublish.versionTypes;
+    this.versionType = this.versionTypes[0];
   }
 };
 </script>

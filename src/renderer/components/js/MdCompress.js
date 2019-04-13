@@ -70,6 +70,8 @@ async function compress(unique) {
                     body = JSON.parse(body);
                 } catch (e) {
                     console.log(chalk.red('\u2718 Not a valid JSON response for `' + file + '`'));
+                    resolve();
+                    await compress(unique);
                     return;
                 }
                 if (!error && response) {
@@ -89,6 +91,7 @@ async function compress(unique) {
                     } else {
                         if (body.error === 'TooManyRequests') {
                             console.log(chalk.red('\u2718 Compression failed for `' + file + '` as your monthly limit has been exceeded'));
+                            resolve();
                             key = keyArray.shift();
                             await compress(unique);
                         } else if (body.error === 'Unauthorized') {

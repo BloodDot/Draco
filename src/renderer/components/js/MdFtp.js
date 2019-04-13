@@ -3,6 +3,8 @@ import * as http from 'http';
 import { Global } from './Global';
 import * as fsExc from './FsExecute';
 import * as scp2 from 'scp2';
+import * as archiver from "archiver";
+
 // import { Client } from 'scp2'
 
 export const serverList = [
@@ -209,6 +211,76 @@ async function scpFile(path) {
             }
         );
     });
+}
+
+function zipProject(path) {
+    let pathArr = fsExc.getFilePath(path);
+    let fileName = pathArr[0];
+    let filePath = pathArr[1];
+
+    let output = fs.createWriteStream(filePath + fileName + ".zip");
+    let archive = archiver("zip");
+
+    archive.on("error", function (err) {
+        console.log("压缩zip失败,错误" + err);
+        ipcRenderer.send("client_show_snack", "压缩zip失败");
+    });
+    output.on("close", function () {
+        console.log("压缩zip成功");
+        ipcRenderer.send("client_show_toast", "压缩zip成功");
+    });
+
+    archive.pipe(output);
+    archive.directory(this.client_remote_assets_path, fileName);
+    archive.finalize();
+}
+
+function unzipProject() {
+    let pathArr = this.getFilePath(this.client_remote_assets_path);
+    let fileName = pathArr[0];
+    let filePath = pathArr[1];
+    let conn = new Client();
+    let self = this;
+
+    conn
+        .on("ready", function () {
+            console.log("Client :: ready");
+            let cmdStr =
+                "cd " +
+                self.client_remote_server_operate_path +
+                "\n" +
+                "unzip -o " +
+                fileName +
+                ".zip";
+
+            console.log("cmd---" + cmdStr);
+
+            conn.exec(
+                cmdStr,
+                { cwd: self.client_remote_server_operate_path },
+                function (err, stream) {
+                    if (err) throw err;
+                    stream
+                        .on("close", function (code, signal) {
+                            conn.end();
+                            console.log("解压zip成功");
+                            ipcRenderer.send("client_show_toast", "解压zip成功");
+                        })
+                        .on("data", function (data) {
+                            console.log("STDOUT: " + data);
+                        })
+                        .stderr.on("data", function (data) {
+                            console.log("STDERR: " + data);
+                        });
+                }
+            );
+        })
+        .connect({
+            host: this.client_remote_server_ip,
+            port: 22,
+            username: this.client_remote_server_user,
+            password: this.client_remote_server_password
+        });
 }
 
 export function applyPolicyNum() {

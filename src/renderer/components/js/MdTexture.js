@@ -61,11 +61,11 @@ const objectType = {
     ObjectTypeSurface: 17
 }
 
-var _checkBoxValues = [itemIconSfx, avatarIconSfx, groundSfx, surfaceSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
+var _checkBoxValues = [itemIconSfx, avatarIconSfx, groundSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
 export function getCheckBoxValues() { return _checkBoxValues; }
 export function setCheckBoxValues(value) { _checkBoxValues = value; }
 
-var _checkBoxData = [itemIconSfx, avatarIconSfx, groundSfx, surfaceSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
+var _checkBoxData = [itemIconSfx, avatarIconSfx, groundSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
 export function getCheckBoxData() { return _checkBoxData; }
 export function setCheckBoxData(value) { _checkBoxData = value; }
 

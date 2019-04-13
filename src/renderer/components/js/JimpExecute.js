@@ -454,11 +454,25 @@ export async function jimpCell(type, cell, input_path, output_path) {
                 }
             }
         }
-        await jimpPng2(element.id, area, texture, input_path, output_path);
+
+        let notJimp = element.isMultiPicture || (area.length == 1 && area[0].length == 1);
+        if (notJimp) {
+            let texturePath = input_path + "/" + texture + ".png";
+            if (!(await fsExc.exists(texturePath))) {
+                console.error(`配置错误:${element.id} 文件不存在:${texturePath}`);
+                continue;
+            } else {
+
+
+                await fsExc.copyFile(texturePath, output_path);
+            }
+        } else {
+            await jimpPng2(element.id, area, texture, notJimp, input_path, output_path);
+        }
     }
 }
 
-export function jimpPng2(id, area, texture, input_path, output_path) {
+export function jimpPng2(id, area, texture, notJimp, input_path, output_path) {
     return new Promise(async (resolve, reject) => {
         let filePath = input_path + "/" + texture + ".png";
 
@@ -478,18 +492,18 @@ export function jimpPng2(id, area, texture, input_path, output_path) {
                 let halfTileWidth = tileWidth / 2;
                 let halfTileHeight = tileHeight / 2;
 
-                if (area.length == 1 && area[0].length == 1) {
-                    originImage.write(output_path + "/" + texture + ".png", (error, img) => {
-                        if (!error) {
-                            resolve();
-                        } else {
-                            console.error(error);
-                            reject();
-                        }
-                    });
+                // if (notJimp) {
+                //     originImage.write(output_path + "/" + texture + ".png", (error, img) => {
+                //         if (!error) {
+                //             resolve();
+                //         } else {
+                //             console.error(error);
+                //             reject();
+                //         }
+                //     });
 
-                    return;
-                }
+                //     return;
+                // }
 
                 let gapY = 0;
 

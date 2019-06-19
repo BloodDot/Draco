@@ -9,6 +9,7 @@ const ground_output_suffix_path = '/TextureOutput/ground';
 const surface_output_suffix_path = '/TextureOutput/surface';
 const floor_output_suffix_path = '/TextureOutput/floor';
 const object_output_suffix_path = '/TextureOutput/object';
+const multi_output_suffix_path = '/TextureOutput/multi';
 
 const sheet_suffix_path = '/TextureSheet';
 const project_sheet_suffix_path = '/resource/assets/preload/sheet';
@@ -16,6 +17,7 @@ const project_sheet_suffix_path = '/resource/assets/preload/sheet';
 const object_csv = '/EntityBuildObject.csv';
 const varia_csv = '/EntityVaria.csv';
 const material_csv = '/EntityMaterial.csv';
+const object_state_csv = '/ObjectState.csv';
 
 const copy_in_suffix_arr = [
     '/settings/resource/mapcell',
@@ -30,6 +32,7 @@ const floorSfx = "floor";
 const materialSfx = "material";
 const objectSfx = "object";
 const objectDecorateSfx = "objectDecorate";
+const multiPictureSfx = "multiPicture";
 const avatarIconSfx = "avatarIcon";
 
 const sheetSfxArr = [
@@ -61,11 +64,11 @@ const objectType = {
     ObjectTypeSurface: 17
 }
 
-var _checkBoxValues = [itemIconSfx, avatarIconSfx, groundSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
+var _checkBoxValues = [itemIconSfx, avatarIconSfx, groundSfx, floorSfx, objectSfx, objectDecorateSfx, multiPictureSfx, materialSfx];
 export function getCheckBoxValues() { return _checkBoxValues; }
 export function setCheckBoxValues(value) { _checkBoxValues = value; }
 
-var _checkBoxData = [itemIconSfx, avatarIconSfx, groundSfx, floorSfx, objectSfx, objectDecorateSfx, materialSfx];
+var _checkBoxData = [itemIconSfx, avatarIconSfx, groundSfx, floorSfx, objectSfx, objectDecorateSfx, multiPictureSfx, materialSfx];
 export function getCheckBoxData() { return _checkBoxData; }
 export function setCheckBoxData(value) { _checkBoxData = value; }
 
@@ -162,12 +165,19 @@ export async function clipTexture() {
             Global.materialCells = await tableExc.getCsvCells(material_csv_path);
         }
 
+        let objectStateCsvPath = Global.svnCsvPath + object_state_csv;
+        if (Global.objectStateCells.length == 0) {
+            Global.objectStateCells = await tableExc.getCsvCells(objectStateCsvPath);
+        }
+
         let getOutPath = (iterator) => {
             let outPath;
-            if (iterator.type === objectType.ObjectTypeGround) {
-                outPath = Global.svnArtPath + ground_output_suffix_path;
 
-                //FIXME:现在地表太多没用的资源了,暂时先不打成图集
+            if (iterator.isMultiPicture) {
+                outPath = Global.svnArtPath + multi_output_suffix_path;
+            } else if (iterator.type === objectType.ObjectTypeGround) {
+                outPath = Global.svnArtPath + ground_output_suffix_path;
+                // FIXME: 现在地表太多没用的资源了, 暂时先不打成图集
                 // } else if (iterator.type === objectType.ObjectTypeSurface) {
                 //     outPath = Global.svnArtPath + surface_output_suffix_path;
             } else if (iterator.type === objectType.ObjectTypeFloor) {
@@ -182,23 +192,48 @@ export async function clipTexture() {
         console.log('--> start clip object texture');
         for (const iterator of Global.objectCells) {
             let outPath = getOutPath(iterator)
-            await jimpExc.jimpCell(1, iterator, input_path, outPath);
+            await jimpExc.jimpCell(1, iterator, iterator.texture, input_path, outPath);
         }
         console.log('--> clip object texture complete');
 
         console.log('--> start clip varia texture');
         for (const iterator of Global.variaCells) {
             let outPath = getOutPath(iterator)
-            await jimpExc.jimpCell(2, iterator, input_path, outPath);
+            await jimpExc.jimpCell(2, iterator, iterator.texture, input_path, outPath);
         }
         console.log('--> clip varia texture complete');
 
         console.log('--> start clip material texture');
         for (const iterator of Global.materialCells) {
             let outPath = getOutPath(iterator)
-            await jimpExc.jimpCell(3, iterator, input_path, outPath);
+            await jimpExc.jimpCell(3, iterator, iterator.texture, input_path, outPath);
         }
         console.log('--> clip material texture complete');
+
+        console.log('--> start clip objectState texture');
+        for (const iterator of Global.objectStateCells) {
+            if (iterator.texture == "") {
+                //没有动画资源,跳过
+                continue;
+            }
+
+            let cell = Global.objectCells.find(value => value.id === iterator.objectId);
+            if (!cell) {
+                cell = Global.variaCells.find(value => value.id === iterator.objectId);
+            }
+            if (!cell) {
+                cell = Global.materialCells.find(value => value.id === iterator.objectId);
+            }
+            if (!cell) {
+                // console.error(`找不到配置${iterator.objectId}`);
+                //TODO:以后要添加生物的判断
+                continue;
+            }
+
+            let outPath = getOutPath(cell)
+            await jimpExc.jimpCell(3, cell, [iterator.texture], input_path, outPath);
+        }
+        console.log('--> clip material objectState complete');
 
         Global.toast('裁剪纹理成功');
     } catch (error) {
@@ -219,15 +254,18 @@ export async function packerTexture() {
                     case groundSfx:
                         inputs.push(Global.svnArtPath + ground_output_suffix_path);
                         break;
-                    case surfaceSfx:
-                        inputs.push(Global.svnArtPath + surface_output_suffix_path);
-                        break;
+                    // case surfaceSfx:
+                    //     inputs.push(Global.svnArtPath + surface_output_suffix_path);
+                    //     break;
                     case floorSfx:
                         inputs.push(Global.svnArtPath + floor_output_suffix_path);
                         break;
                     case objectSfx:
                         inputs.push(Global.svnArtPath + object_output_suffix_path);
                         break;
+                    // case multiPictureSfx:
+                    // inputs.push(Global.svnPath + multi_output_suffix_path);
+                    // break;
                     case itemIconSfx:
                         inputs.push(Global.svnPath + '/settings/resource/item_icon');
                         break;
@@ -267,7 +305,8 @@ export async function copyTextureOut() {
             console.log(`iterator:${iterator}`);
             let sheetOutputPath = Global.projPath + project_sheet_suffix_path;
             let textureOutPath = `${Global.projPath}/resource/assets/texture/map/${iterator}`;
-            if (_sheetMode || sheetSfxArr.indexOf(iterator) != -1) {
+            if ((_sheetMode || sheetSfxArr.indexOf(iterator) != -1)
+                && iterator != multiPictureSfx) {
                 //纹理集
                 inputPath = Global.svnArtPath + sheet_suffix_path;
                 if (iterator == avatarIconSfx) {
@@ -281,6 +320,9 @@ export async function copyTextureOut() {
                 if (iterator == objectSfx) {
                     //object 用裁剪后的单个纹理
                     inputPath = Global.svnArtPath + object_output_suffix_path;
+                } else if (iterator == multiPictureSfx) {
+                    //multi 超多格物品裁剪后的纹理
+                    inputPath = Global.svnArtPath + multi_output_suffix_path;
                 } else {
                     inputPath = `${Global.svnPath}/settings/resource/${iterator}`;;
                 }

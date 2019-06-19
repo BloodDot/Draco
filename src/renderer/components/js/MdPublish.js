@@ -36,14 +36,6 @@ var releaseVersion;
 export function getReleaseVersion() { return releaseVersion; }
 export function setReleaseVersion(value) { releaseVersion = value; }
 
-var displayVersion;
-export function getDisplayVersion() { return displayVersion; }
-export function setDisplayVersion(value) { displayVersion = value; }
-
-var versionType;
-export function getVersionType() { return versionType; }
-export function setVersionType(value) { versionType = value; }
-
 var newVersion;
 export function getNewVersion() { return newVersion; }
 export function setNewVersion(value) {
@@ -88,23 +80,21 @@ export async function getPolicyObj() {
 }
 
 
-export const versionTypes = ['强制更新', '选择更新', '静态更新'];
-
 export async function publishProject() {
     if (!releaseVersion) {
         Global.snack('请先设置发布版本号');
         return;
     }
 
-    if (!displayVersion) {
-        Global.snack('请先设置显示版本号');
-        return;
-    }
+    // if (!displayVersion) {
+    //     Global.snack('请先设置显示版本号');
+    //     return;
+    // }
 
-    if (!versionType) {
-        Global.snack('请先选择版本更新类型');
-        return;
-    }
+    // if (!versionType) {
+    //     Global.snack('请先选择版本更新类型');
+    //     return;
+    // }
 
     if (needCover) {
         await checkClearRelease(releaseVersion);
@@ -121,25 +111,26 @@ export async function publishProject() {
     let content = await fsExc.readFile(rawPolicyPath);
     let policyObj = JSON.parse(content);
     policyObj["whiteGameVersion"] = releaseVersion;
-    policyObj["displayVersion"] = displayVersion;
-    policyObj["versionType"] = versionTypes.indexOf(versionType);
+    // policyObj["versionType"] = versionTypes.indexOf(versionType);
     // let content = JSON.stringify({
     //     gameVersion: releaseVersion,
     //     displayVersion: displayVersion,
     //     versionType: versionTypes.indexOf(versionType),
     //     cdnPath: cdnPath
     // });
-    content = JSON.stringify(policyObj);
+    // content = JSON.stringify(policyObj);
 
-    await fsExc.makeDir(Global.projPath + releaseSuffix);
+    // let policyFilePath = `${Global.projPath}/rawResource/policyFile.json`;
 
-    let policyFilePath = Global.projPath + releaseSuffix + releaseVersion + '/policyFile.json';
+    // await fsExc.makeDir(Global.projPath + releaseSuffix);
+    // let releasePolicyPath = Global.projPath + releaseSuffix + releaseVersion + '/policyFile.json';
     try {
-        await fsExc.writeFile(policyFilePath, content);
+        // await fsExc.writeFile(policyFilePath, content);
+        // await fsExc.writeFile(releasePolicyPath, content);
         Global.toast('发布当前项目成功');
         newVersion = releaseVersion;
     } catch (error) {
-        Global.snack('写入版本文件错误', error);
+        Global.snack('发布当前项目错误', error);
     }
 }
 
@@ -271,9 +262,9 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
         // let versionContent = await fsExc.readFile(projNewVersionPath + '/policyFile.json');
         if (svnWebRlsPath) {
             // await fsExc.writeFile(`${svnWebRlsPath}/policyFile.json`, versionContent);
-            await fsExc.copyFile(projNewVersionPath + '/policyFile.json', `${svnWebRlsPath}`)
+            // await fsExc.copyFile(projNewVersionPath + '/policyFile.json', `${svnWebRlsPath}`)
         }
-        await fsExc.copyFile(projNewVersionPath + '/policyFile.json', `${svnWebPatchPath}`)
+        // await fsExc.copyFile(projNewVersionPath + '/policyFile.json', `${svnWebPatchPath}`)
         // await fsExc.writeFile(`${svnWebPatchPath}/policyFile.json`, versionContent);
 
 
@@ -311,6 +302,7 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
 
             //indie.res.json
             await resFileHandle(indieResSuffix, newVersion, svnCdnRlsPath, svnCdnPatchPath);
+            console.log(`--> merge success version v0s-v${newVersion}s`);
         } else {
             // //default.thm.json
             // let oldThmPath = 'resource/default.thm' + '_v' + oldVersion + '.json';
@@ -327,8 +319,8 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
 
             //indie.res.json
             await resFileHandle(indieResSuffix, newVersion, svnCdnRlsPath, svnCdnPatchPath, oldVersion, oldSvnCdnRlsPath);
+            console.log(`--> merge success version v${oldVersion}s-v${newVersion}s`);
         }
-        console.log(`--> merge success version v${oldVersion}s-v${newVersion}s`);
     } catch (error) {
         Global.snack(`比较版本 v${oldVersion}s-v${newVersion}s 错误`, error);
     }

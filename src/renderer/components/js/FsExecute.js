@@ -177,3 +177,18 @@ export function getFilePath(path) {
 
     return [fileName, filePath];
 }
+
+export function formatFilePath(path) {
+    let filePathArr = path.split("\\");
+    let filePath = "";
+    for (let i = 0; i < filePathArr.length; i++) {
+        const element = filePathArr[i];
+        if (i === filePathArr.length - 1) {
+            filePath += element;
+        } else {
+            filePath += element + "/";
+        }
+    }
+
+    return filePath;
+}

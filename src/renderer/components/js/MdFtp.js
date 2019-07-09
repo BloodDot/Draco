@@ -6,6 +6,7 @@ import * as scp2 from 'scp2';
 import * as archiver from "archiver";
 import * as fs from 'fs';
 import { Client } from "ssh2";
+import * as url from 'url';
 
 export const serverList = [
     { name: "long", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/feature/long" },
@@ -120,63 +121,13 @@ export async function createPolicyFile() {
     let indexContent = await fsExc.readFile(indexPath);
     indexContent = indexContent.replace(`let versionName = "release";`, `let versionName = "${serverInfo.name}";`);
     indexContent = indexContent.replace(`let channel = "bian_game";`, `let channel = "${channel}";`);
-    //     let indexContent = `
-    // <script>
-    //     function getVersion(callback) {
-    //         let request = new XMLHttpRequest();
-    //         let versionName = "${serverInfo.name}";
-    //         let channel = "${channel}";
-    //         let time = Math.floor(new Date().getTime() / 1000);
-    //         let secret = "LznauW6GzBsq3wP6";
-    //         let due = 1800;
-    //         let token = "*";
-
-    //         let url = "http://47.107.73.43:10001/getVersion?versionName=" + versionName + "&&channel=" + channel + "&&time=" + time + "&&due=" + due + "&&token=" + token;
-    //         request.open("GET", url);
-    //         request.onreadystatechange = function () {
-    //             if (request.readyState !== 4) return;
-    //             if (request.status === 200) {
-    //                 callback(request.responseText);
-    //             } else {
-    //                 alert("获取版本号错误!");
-    //             }
-    //         }
-    //         request.send(null);
-    //     }
-
-    //     getVersion((value) => {
-    //             let data = JSON.parse(value);
-    //             let policyNum = data.Data.Version;
-    //             let versionXhr = new XMLHttpRequest();
-    //             versionXhr.open('GET', './policyFile_v' + policyNum + '.json', true);
-    //             versionXhr.addEventListener("load", function () {
-    //                 let gameVersion = "";
-    //                 if (versionXhr.status != 404) {
-    //                     let policyObj = JSON.parse(versionXhr.response);
-    //                     let account = localStorage.getItem("Account");
-    //                     if (policyObj.whiteList.indexOf(account) != -1) {
-    //                         gameVersion = "_v" + policyObj.whiteVersion;
-    //                     } else {
-    //                         gameVersion = "_v" + policyObj.normalVersion;
-    //                     }
-    //                     let hrefArr = location.href.split(".html");
-    //                     location.href = hrefArr[0] + gameVersion + ".html"
-    //                         + "?gameVersion=" + gameVersion
-    //                         + "&&displayVersion=" + policyObj.displayVersion
-    //                         + "&&cdnUrl=" + policyObj.cdnUrl
-    //                         + "&&versionType=" + policyObj.versionType
-    //                         + "&&gameChannel=" + policyObj.channel
-    //                 } else {
-    //                     alert("游戏策略文件加载失败!");
-    //                 }
-    //             });
-
-    //             versionXhr.send();
-    //         });
-    // </script>`
 
     let rawPolicyPath = `${Global.projPath}/rawResource/policyFile.json`;
     let policyContent = await fsExc.readFile(rawPolicyPath);
+    let policyObj = JSON.parse(policyContent);
+    // policyObj.cdnUrl += `/${channel}/`;
+    // policyObj.cdnUrl += `/`;
+    policyContent = JSON.stringify(policyObj);
 
     let indexFilePath = `${Global.svnPublishPath}/web/${uploadVersion}/index.html`;
     let policyFilePath = `${Global.svnPublishPath}/web/${uploadVersion}/policyFile.json`;
@@ -409,17 +360,19 @@ export function applyPolicyNum() {
         })
 
         if (channel === 'bian_lesson') {
-            let getData = `?policy_version=${policyNum}description=aaa`
-            let options = {
-                host: 'http://api.bellplanet.bellcode.com', // 请求地址 域名，google.com等..
-                // port: 10001,
-                path: 'bell-planet.change-policy-version' + getData, // 具体路径eg:/upload
+            let lessonUrl = "http://api.bellplanet.bellcode.com";
+            let parseUrl = url.parse(lessonUrl);
+            let getLessonData = `?policy_version=${policyNum}&description="aaa"`
+            let lessonOptions = {
+                host: parseUrl.hostname, // 请求地址 域名，google.com等..
+                // port: 80,
+                path: '/bell-planet.change-policy-version' + getLessonData, // 具体路径eg:/upload
                 method: 'GET', // 请求方式
                 headers: { // 必选信息,  可以抓包工看一下
                     'Authorization': 'Basic YmVsbGNvZGU6ZDNuSDh5ZERESw=='
                 }
             };
-            http.get(options, (response) => {
+            http.get(lessonOptions, (response) => {
                 let resData = "";
                 response.on("data", (data) => {
                     resData += data;

@@ -55,7 +55,7 @@ var needCover = true;
 export function setNeedCover(value) { needCover = value; }
 export function getNeedCover() { return needCover; }
 
-var needCompress = true;
+var needCompress = false;
 export function setNeedCompress(value) { needCompress = value; }
 export function getNeedCompress() { return needCompress }
 

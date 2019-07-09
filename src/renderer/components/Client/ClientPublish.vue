@@ -41,7 +41,7 @@
             <mu-checkbox v-model="needCompress" label="压缩"></mu-checkbox>
           </mu-col>
           <mu-col span="12" lg="2" sm="2">
-            <mu-text-field class="text-version" v-model="releaseVersion" label="发布版本号" label-float/>
+            <mu-text-field class="text-version" v-model="releaseVersion" label="发布版本号" label-float />
           </mu-col>
           <!-- <mu-col span="12" lg="2" sm="2">
             <mu-text-field class="text-version" v-model="displayVersion" label="显示版本号" label-float/>
@@ -71,7 +71,7 @@
         </mu-flex>
       </div>
     </mu-container>
-    <mu-divider/>
+    <mu-divider />
     <mu-container>
       <mu-flex class="flex-wrapper" align-items="center">
         <mu-button @click="onOpenWhiteDialog">
@@ -105,8 +105,8 @@
               </mu-button>
             </mu-list-item-action>
           </mu-list-item>
-          <mu-divider/>
-          <br>
+          <mu-divider />
+          <br />
           <mu-list-item>
             <mu-list-item-action>
               <mu-text-field
@@ -193,7 +193,6 @@ export default {
   },
   methods: {
     async onOldVersionChange() {
-      this.releaseVersion = parseInt(this.oldVersion) + 1 + "";
       if (this.oldVersion != "0") {
         // let releaseDirPath = `${Global.svnPublishPath}/web/release_v${
         //   this.oldVersion
@@ -212,10 +211,15 @@ export default {
         //   }
         // } else {
         //   // this.displayVersion = this.releaseVersion;
+
+        this.releaseVersion = (parseInt(this.oldVersion) + 1).toString();
         return;
       }
 
       this.oldVersion = "0";
+      this.releaseVersion = (
+        parseInt(this.oldVersionList[this.oldVersionList.length - 1]) + 1
+      ).toString();
     },
     onAddWhite() {
       if (this.addWhite == "") {
@@ -347,7 +351,16 @@ export default {
       let versionList = JSON.parse(versionListContent);
       this.oldVersionList = versionList.versionList;
 
-      this.oldVersion = this.oldVersionList[this.oldVersionList.length - 1];
+      let tempVersion = this.oldVersionList[this.oldVersionList.length - 1];
+      let exists = await fsExc.exists(
+        `${Global.svnPublishPath}/web/release_v${tempVersion}s`
+      );
+      if (!exists) {
+        this.oldVersion = "0";
+      } else {
+        this.oldVersion = tempVersion;
+      }
+
       this.onOldVersionChange();
     },
     async refreshPolicyFile() {

@@ -572,6 +572,7 @@ export function jimpPng2(id, area, texture, input_path, output_path) {
                         //      |/\/\|
                         //      |\/\/|
                         //      ||\/||
+                        //      ￣￣￣
 
 
                         if (row == 0) {
@@ -611,6 +612,12 @@ export function jimpPng2(id, area, texture, input_path, output_path) {
                         let cutImgY = topImageHigh + (row + col) * halfTileHeight;          //完整图片中,当前图片所在的起点Y
 
                         //所有图片都有的菱形区域
+                        // _______
+                        // | / \ |
+                        // |/   \|
+                        // |\   /|
+                        // | \ / |
+                        // ￣￣￣￣
                         let diamondSX = halfTileWidth + deviationX;                         //菱形开始X
                         let diamondEX = halfTileWidth;                                      //菱形结束X    
                         let diamondSY = (row + col) * halfTileHeight - gapY;                //菱形开始Y
@@ -643,6 +650,7 @@ export function jimpPng2(id, area, texture, input_path, output_path) {
                             // |__|  |
                             // | / \ |
                             // |/   \|
+                            // ￣￣￣￣
 
                             //左上三角
                             startX = diamondSX - halfTileWidth;
@@ -679,6 +687,7 @@ export function jimpPng2(id, area, texture, input_path, output_path) {
                             // |  |__|
                             // | / \ |
                             // |/   \|
+                            // ￣￣￣￣
 
                             //右上三角
                             startX = diamondSX;

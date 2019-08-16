@@ -43,23 +43,8 @@
           <mu-col span="12" lg="2" sm="2">
             <mu-text-field class="text-version" v-model="releaseVersion" label="发布版本号" label-float />
           </mu-col>
-          <!-- <mu-col span="12" lg="2" sm="2">
-            <mu-text-field class="text-version" v-model="displayVersion" label="显示版本号" label-float/>
-          </mu-col>
           <mu-col span="12" lg="2" sm="2">
-            <mu-select label="选择类型" filterable v-model="versionType" label-float full-width>
-              <mu-option v-for="type,index in versionTypes" :key="type" :label="type" :value="type"></mu-option>
-            </mu-select>
-          </mu-col>-->
-          <mu-col span="12" lg="2" sm="2">
-            <mu-select
-              label="旧版本号"
-              filterable
-              v-model="oldVersion"
-              @change="onOldVersionChange"
-              label-float
-              full-width
-            >
+            <mu-select label="旧版本号" filterable v-model="oldVersion" label-float full-width>
               <mu-option
                 v-for="value,index in oldVersionList"
                 :key="value"
@@ -141,6 +126,7 @@
 </template>
 
 <script>
+import { ModelMgr } from "../js/model/ModelMgr.js";
 import * as mdPublish from "../js/MdPublish.js";
 import * as mdCompress from "../js/MdCompress.js";
 import * as fsExc from "../js/FsExecute.js";
@@ -157,18 +143,11 @@ export default {
       needCompress: mdPublish.getNeedCompress(),
       oldVersion: "",
       releaseVersion: "",
-      // displayVersion: "",
-      // whiteVersion: "",
-
-      // versionType: "",
-      // versionTypes: null,
-
       cdnUrl: "",
       whiteList: [],
       whiteVisible: false,
       cdnVisible: false,
       addWhite: "",
-      policyObj: { whiteList: [], cdnUrl: "" },
 
       oldVersionList: []
     };
@@ -192,35 +171,6 @@ export default {
     }
   },
   methods: {
-    async onOldVersionChange() {
-      if (this.oldVersion != "0") {
-        // let releaseDirPath = `${Global.svnPublishPath}/web/release_v${
-        //   this.oldVersion
-        // }s`;
-        // if (await fsExc.exists(releaseDirPath)) {
-        //   let releaseDir = await fsExc.readDir(releaseDirPath);
-        //   for (const iterator of releaseDir) {
-        //     if (iterator.indexOf(`policyFile`) != -1) {
-        //       let policyContent = await fsExc.readFile(
-        //         releaseDirPath + "/" + iterator
-        //       );
-        //       let policyObj = JSON.parse(policyContent);
-        //       // this.displayVersion = policyObj.displayVersion;
-        //       return;
-        //     }
-        //   }
-        // } else {
-        //   // this.displayVersion = this.releaseVersion;
-
-        this.releaseVersion = (parseInt(this.oldVersion) + 1).toString();
-        return;
-      }
-
-      this.oldVersion = "0";
-      this.releaseVersion = (
-        parseInt(this.oldVersionList[this.oldVersionList.length - 1]) + 1
-      ).toString();
-    },
     onAddWhite() {
       if (this.addWhite == "") {
         return;
@@ -236,13 +186,12 @@ export default {
     },
     onConfirmWhiteDialog() {
       this.whiteVisible = false;
-      this.policyObj.whiteList = this.whiteList.concat();
-      mdPublish.setPolicyObj(this.policyObj);
+      ModelMgr.publishModel.setWhiteList(this.whiteList.concat());
       this.addWhite = "";
     },
     onCancelWhiteDialog() {
       this.whiteVisible = false;
-      this.whiteList = this.policyObj.whiteList.concat();
+      this.whiteList = ModelMgr.publishModel.whiteList.concat();
       this.addWhite = "";
     },
     onOpenCdnDialog() {
@@ -250,12 +199,11 @@ export default {
     },
     onConfirmCdnDialog() {
       this.cdnVisible = false;
-      this.policyObj.cdnUrl = this.cdnUrl;
-      mdPublish.setPolicyObj(this.policyObj);
+      ModelMgr.publishModel.setCdnUrl(this.cdnUrl);
     },
     onCancelCdnDialog() {
       this.cdnVisible = false;
-      this.cdnUrl = this.policyObj.cdnUrl;
+      this.cdnUrl = ModelMgr.publishModel.cdnUrl;
     },
     async onCompressPicturesClick(showDialog = true) {
       this.isCompressPicturesLoading = true;
@@ -344,37 +292,23 @@ export default {
         Global.snack("One·for·All Error:", error);
       }
     },
-    async refreshOldVersionList() {
-      let versionListContent = await fsExc.readFile(
-        Global.svnPublishPath + "/versionList.json"
-      );
-      let versionList = JSON.parse(versionListContent);
-      this.oldVersionList = versionList.versionList;
-
-      let tempVersion = this.oldVersionList[this.oldVersionList.length - 1];
-      let exists = await fsExc.exists(
-        `${Global.svnPublishPath}/web/release_v${tempVersion}s`
-      );
-      if (!exists) {
-        this.oldVersion = "0";
+    refreshOldVersionList() {
+      this.oldVersionList = ModelMgr.publishModel.oldVersionList;
+      if (this.oldVersionList.length > 0) {
+        this.oldVersion = this.oldVersionList[this.oldVersionList.length - 1];
       } else {
-        this.oldVersion = tempVersion;
+        this.oldVersion = "0";
       }
-
-      this.onOldVersionChange();
     },
-    async refreshPolicyFile() {
-      this.policyObj = await mdPublish.getPolicyObj();
-      this.cdnUrl = this.policyObj.cdnUrl;
-      this.whiteList = this.policyObj.whiteList.concat();
+    async initPolicyFile() {
+      this.cdnUrl = ModelMgr.publishModel.cdnUrl;
+      this.whiteList = ModelMgr.publishModel.whiteList.concat();
     }
   },
-  mounted() {
+  async mounted() {
+    await ModelMgr.publishModel.init();
     this.refreshOldVersionList();
-    this.refreshPolicyFile();
-
-    // this.versionTypes = mdPublish.versionTypes;
-    // this.versionType = this.versionTypes[0];
+    this.initPolicyFile();
   }
 };
 </script>

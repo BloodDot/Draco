@@ -7,6 +7,7 @@ import * as archiver from "archiver";
 import * as fs from 'fs';
 import { Client } from "ssh2";
 import * as url from 'url';
+import { ModelMgr } from "./model/ModelMgr";
 
 export const serverList = [
     { name: "long", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/feature/long" },
@@ -73,8 +74,6 @@ export async function zipVersion() {
         }
     }
 
-    console.log(`${webFilePath}`);
-
     try {
         await zipProject(webFilePath, zipPath, webZipName);
         await zipProject(cdnFilePath, zipPath, cdnZipName);
@@ -125,8 +124,9 @@ export async function createPolicyFile() {
     let rawPolicyPath = `${Global.projPath}/rawResource/policyFile.json`;
     let policyContent = await fsExc.readFile(rawPolicyPath);
     let policyObj = JSON.parse(policyContent);
-    // policyObj.cdnUrl += `/${channel}/`;
-    // policyObj.cdnUrl += `/`;
+    if (!ModelMgr.ftpModel.useCdn) {
+        policyObj.cdnUrl = ``;
+    }
     policyContent = JSON.stringify(policyObj);
 
     let indexFilePath = `${Global.svnPublishPath}/web/${uploadVersion}/index.html`;
@@ -170,9 +170,6 @@ export async function modifyPolicyFile() {
 
 export async function uploadPolicyFile() {
     let webFilePath = `${Global.svnPublishPath}/web/${uploadVersion}`;
-    // let cdnPath = `${Global.svnPublishPath}/cdn/${uploadVersion}`;
-    // let filePath = Global.svnPublishPath + "/versionList.json";
-
 
     let files = await fsExc.readDir(webFilePath);
     for (const iterator of files) {

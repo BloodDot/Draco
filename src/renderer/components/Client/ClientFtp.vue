@@ -14,6 +14,7 @@
           color="orange500"
           @click="onUploadVersionFile"
         >上传游戏版本</mu-button>
+        <mu-divider></mu-divider>
         <mu-button
           v-loading="isCreatePolicyFileLoading"
           data-mu-loading-size="24"
@@ -38,12 +39,6 @@
           color="green500"
           @click="onApplyPolicyNum"
         >应用策略版本</mu-button>
-        <!-- <mu-button
-          v-loading="isExportIpaLoading"
-          data-mu-loading-size="24"
-          color="cyan500"
-          @click="onExportIpa"
-        >打包ipa</mu-button>-->
       </div>
       <div class="button-wrapper">
         <mu-button full-width color="red" @click="oneForAll">One·for·All</mu-button>
@@ -53,16 +48,16 @@
       <div>
         <mu-flex class="flex-wrapper" align-items="center">
           <mu-col span="12" lg="2" sm="2">
-            <mu-text-field class="text-game" v-model="policyNum" label="策略版本号" label-float/>
+            <mu-text-field class="text-game" v-model="policyNum" label="策略版本号" label-float />
           </mu-col>
           <mu-col span="12" lg="2" sm="2">
-            <mu-text-field class="text-game" v-model="whiteVersion" label="白名单游戏版本" label-float/>
+            <mu-text-field class="text-game" v-model="whiteVersion" label="白名单游戏版本" label-float />
           </mu-col>
           <mu-col span="12" lg="2" sm="2">
-            <mu-text-field class="text-game" v-model="normalVersion" label="常规游戏版本" label-float/>
+            <mu-text-field class="text-game" v-model="normalVersion" label="常规游戏版本" label-float />
           </mu-col>
           <mu-col span="12" lg="2" sm="2">
-            <mu-text-field class="text-game" v-model="displayVersion" label="显示版本号" label-float/>
+            <mu-text-field class="text-game" v-model="displayVersion" label="显示版本号" label-float />
           </mu-col>
           <mu-col span="12" lg="2" sm="2">
             <mu-select label="选择类型" filterable v-model="versionType" label-float full-width>
@@ -82,7 +77,10 @@
         </mu-flex>
         <mu-flex class="flex-wrapper" align-items="center">
           <mu-col span="12" lg="2" sm="2">
-            <mu-checkbox v-model="needPatch" @change="needPatchChange" label="选择patch包"></mu-checkbox>
+            <mu-checkbox v-model="needPatch" @change="needPatchChange" label="patch包"></mu-checkbox>
+          </mu-col>
+          <mu-col span="12" lg="2" sm="2">
+            <mu-checkbox v-model="useCdn" label="使用cdn"></mu-checkbox>
           </mu-col>
           <mu-col span="12" lg="3" sm="3">
             <mu-select label="上传游戏版本" filterable v-model="uploadVersion" label-float full-width>
@@ -124,6 +122,7 @@
 import { Global } from "../js/Global.js";
 import * as fsExc from "../js/FsExecute.js";
 import * as mdFtp from "../js/MdFtp.js";
+import { ModelMgr } from "../js/model/ModelMgr";
 export default {
   data() {
     return {
@@ -144,6 +143,7 @@ export default {
       releaseList: [],
       patchList: [],
       needPatch: true,
+      useCdn: false,
       channelList: [],
       channel: null,
       versionTypes: null,
@@ -174,6 +174,9 @@ export default {
     },
     versionType: val => {
       mdFtp.setVersionType(val);
+    },
+    useCdn: value => {
+      ModelMgr.ftpModel.useCdn = value;
     }
   },
   methods: {

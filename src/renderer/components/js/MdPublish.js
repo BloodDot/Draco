@@ -59,27 +59,6 @@ var needCompress = false;
 export function setNeedCompress(value) { needCompress = value; }
 export function getNeedCompress() { return needCompress }
 
-var policyObj;
-export async function setPolicyObj(value) {
-    policyObj = value;
-    await fsExc.writeFile(
-        Global.rawResourcePath + "/policyFile.json",
-        JSON.stringify(policyObj)
-    );
-}
-
-export async function getPolicyObj() {
-    if (!policyObj) {
-        let content = await fsExc.readFile(
-            Global.rawResourcePath + "/policyFile.json"
-        );
-        policyObj = JSON.parse(content);
-    }
-
-    return policyObj;
-}
-
-
 export async function publishProject() {
     if (!releaseVersion) {
         Global.snack('请先设置发布版本号');
@@ -672,6 +651,7 @@ async function resFileHandle(resFilePath, newVersion, releasePath, patchPath, ol
     await fsExc.writeFile(patchPath + '/' + resUrl, newResContent);
 }
 
+/** 处理图集配置 */
 async function sheetConfigHandle(resFileEqual, releasePath, patchPath, oldPath, newPath, oldVersion, newVersion, sheetUrl, oldVersionPath) {
     if (resFileEqual) {
         //相等

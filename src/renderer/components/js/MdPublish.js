@@ -145,30 +145,16 @@ export async function mergeVersion() {
     }
 
     try {
-        let versionListContent = await fsExc.readFile(svnPublishPath + '/versionList.json');
-        let versionList = JSON.parse(versionListContent);
-        if (versionList.versionList.indexOf(newVersion) == -1) {
-            versionList.versionList.push(newVersion);
-            versionListContent = JSON.stringify(versionList);
-        }
-
         if (oldVersion && oldVersion != '0') {
-            versionList.versionList = versionList.versionList.sort((a, b) => {
-                return a <= b ? -1 : 1;
-            });
-            for (const iterator of versionList.versionList) {
-                if (parseInt(oldVersion) < parseInt(iterator)
-                    && parseInt(iterator) < parseInt(newVersion)) {
-                    await mergeSingleVersion(newVersion, iterator, false);
+            for (let i = parseInt(oldVersion) + 1; i < parseInt(newVersion); i++) {
+                if (await checkExistVersion(i)) {
+                    await mergeSingleVersion(newVersion, i + "", false);
                 }
             }
-
             await mergeSingleVersion(newVersion, oldVersion, true);
         } else {
             await mergeSingleVersion(newVersion, null, true);
         }
-
-        await fsExc.writeFile(svnPublishPath + '/versionList.json', versionListContent);
 
         Global.toast('比较新旧成功');
     } catch (error) {
@@ -213,10 +199,10 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
         svnCdnPatchPath = `${svnPublishPath}/cdn/patch_v${newVersion}s`;
     }
 
-    newVersion = newVersion.replace(new RegExp('[.]', 'g'), '-');
-    if (oldVersion) {
-        oldVersion = oldVersion.replace(new RegExp('[.]', 'g'), '-');
-    }
+    // newVersion = newVersion.replace(new RegExp('[.]', 'g'), '-');
+    // if (oldVersion) {
+    //     oldVersion = oldVersion.replace(new RegExp('[.]', 'g'), '-');
+    // }
     try {
         if (svnWebRlsPath) {
             await fsExc.makeDir(svnWebRlsPath);
@@ -362,10 +348,9 @@ async function copyFileCheckDir(fileName, targetPath, version, fromPath) {
  * @param {*} version 
  */
 export async function checkExistVersion(version) {
-    let versionListContent = await fsExc.readFile(svnPublishPath + '/versionList.json');
-    let versionList = JSON.parse(versionListContent);
-    let index = versionList.versionList.indexOf(version);
-    return index != -1;
+    let releasePath = `${Global.svnPublishPath}/cdn/release_v${version}s`;
+    let exist = await fsExc.exists(releasePath);
+    return exist;
 }
 
 export async function checkClearRelease(version) {
@@ -380,35 +365,29 @@ export async function checkClearRelease(version) {
  * @param {*} version 
  */
 export async function checkClearVersion(version) {
-    let versionListContent = await fsExc.readFile(svnPublishPath + '/versionList.json');
-    let versionList = JSON.parse(versionListContent);
-    let index = versionList.versionList.indexOf(version);
-    if (index != -1) {
-        console.log(`--> old version ${version} exist, start clear.`);
-        try {
-            versionList.versionList.splice(index, 1);
-            versionListContent = JSON.stringify(versionList);
-            await fsExc.writeFile(svnPublishPath + '/versionList.json', versionListContent);
+    let exist = await checkExistVersion(version);
+    if (!exist) return;
 
-            let cdnPa = await fsExc.readDir(Global.svnPublishPath + '/cdn');
-            for (let i = 0; i < cdnPa.length; i++) {
-                const element = cdnPa[i];
-                if (element.indexOf(`v${version}s`) != -1) {
-                    await fsExc.delFolder(Global.svnPublishPath + '/cdn/' + element);
-                }
+    console.log(`--> old version ${version} exist, start clear.`);
+    try {
+        let cdnPa = await fsExc.readDir(Global.svnPublishPath + '/cdn');
+        for (let i = 0; i < cdnPa.length; i++) {
+            const element = cdnPa[i];
+            if (element.indexOf(`v${version}s`) != -1) {
+                await fsExc.delFolder(Global.svnPublishPath + '/cdn/' + element);
             }
-
-            let webPa = await fsExc.readDir(Global.svnPublishPath + '/web');
-            for (let i = 0; i < webPa.length; i++) {
-                const element = webPa[i];
-                if (element.indexOf(`v${version}s`) != -1) {
-                    await fsExc.delFolder(Global.svnPublishPath + '/web/' + element);
-                }
-            }
-            console.log(`--> clear version ${version} success`);
-        } catch (error) {
-            Global.snack(`清除旧版本 ${version} 错误`, error);
         }
+
+        let webPa = await fsExc.readDir(Global.svnPublishPath + '/web');
+        for (let i = 0; i < webPa.length; i++) {
+            const element = webPa[i];
+            if (element.indexOf(`v${version}s`) != -1) {
+                await fsExc.delFolder(Global.svnPublishPath + '/web/' + element);
+            }
+        }
+        console.log(`--> clear version ${version} success`);
+    } catch (error) {
+        Global.snack(`清除旧版本 ${version} 错误`, error);
     }
 }
 

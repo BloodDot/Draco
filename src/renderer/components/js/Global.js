@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 export class Global {
-    static currentVersion = "1.9.2 beta8";
+    static currentVersion = "1.9.3 beta1";
     static projPath = localStorage.getItem('client_project_path');
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');

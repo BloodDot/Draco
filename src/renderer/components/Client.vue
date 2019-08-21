@@ -22,58 +22,58 @@
           </mu-list-item>-->
           <mu-list-item button :ripple="false" value="ClientProto">
             <mu-list-item-action>
-              <mu-icon slot="left" value="swap_vert"/>
+              <mu-icon slot="left" value="swap_vert" />
             </mu-list-item-action>
             <mu-list-item-title>Proto</mu-list-item-title>
           </mu-list-item>
 
           <mu-list-item button :ripple="false" value="ClientCsv">
             <mu-list-item-action>
-              <mu-icon slot="left" value="extension"/>
+              <mu-icon slot="left" value="extension" />
             </mu-list-item-action>
             <mu-list-item-title>Csv</mu-list-item-title>
           </mu-list-item>
 
           <mu-list-item button :ripple="false" value="ClientTexture">
             <mu-list-item-action>
-              <mu-icon slot="left" value="crop_original"/>
+              <mu-icon slot="left" value="crop_original" />
             </mu-list-item-action>
             <mu-list-item-title>Texture</mu-list-item-title>
           </mu-list-item>
 
           <mu-list-item button :ripple="false" value="ClientMapData">
             <mu-list-item-action>
-              <mu-icon slot="left" value="map"/>
+              <mu-icon slot="left" value="map" />
             </mu-list-item-action>
             <mu-list-item-title>MapData</mu-list-item-title>
           </mu-list-item>
 
           <mu-list-item button :ripple="false" value="ClientAsset">
             <mu-list-item-action>
-              <mu-icon slot="left" value="apps"/>
+              <mu-icon slot="left" value="apps" />
             </mu-list-item-action>
             <mu-list-item-title>Asset</mu-list-item-title>
           </mu-list-item>
 
-          <mu-divider/>
+          <mu-divider />
 
           <mu-list-item button :ripple="false" value="ClientPublish">
             <mu-list-item-action>
-              <mu-icon slot="left" value="timeline"/>
+              <mu-icon slot="left" value="timeline" />
             </mu-list-item-action>
             <mu-list-item-title>Publish</mu-list-item-title>
           </mu-list-item>
 
           <mu-list-item button :ripple="false" value="ClientFtp">
             <mu-list-item-action>
-              <mu-icon slot="left" value="file_upload"/>
+              <mu-icon slot="left" value="file_upload" />
             </mu-list-item-action>
             <mu-list-item-title>Ftp</mu-list-item-title>
           </mu-list-item>
 
           <mu-list-item button :ripple="false" value="ClientApp">
             <mu-list-item-action>
-              <mu-icon slot="left" value="weekend"/>
+              <mu-icon slot="left" value="weekend" />
             </mu-list-item-action>
             <mu-list-item-title>App</mu-list-item-title>
           </mu-list-item>
@@ -84,10 +84,10 @@
                   </mu-list-item-action>
                   <mu-list-item-title>Test</mu-list-item-title>
           </mu-list-item>-->
-          <mu-divider/>
+          <mu-divider />
           <mu-list-item button :ripple="false" value="ClientSetting">
             <mu-list-item-action>
-              <mu-icon slot="left" value="build"/>
+              <mu-icon slot="left" value="build" />
             </mu-list-item-action>
             <mu-list-item-title>Setting</mu-list-item-title>
           </mu-list-item>
@@ -152,6 +152,7 @@ const ipcRenderer = require("electron").ipcRenderer;
 const remote = require("electron").remote;
 import { Global } from "./js/Global";
 import { rejects } from "assert";
+import { ModelMgr } from "./js/model/ModelMgr";
 
 export default {
   data() {
@@ -274,7 +275,9 @@ export default {
     // ClientModule: require("./backup/ClientModule"),
     // ClientTest: require("./backup/ClientTest")
   },
-  mounted() {
+  async mounted() {
+    await ModelMgr.init();
+
     ipcRenderer.on("client_show_toast", (event, msg) => {
       this.showToast(msg);
     });

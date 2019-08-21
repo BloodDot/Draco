@@ -1,5 +1,7 @@
 import { Global } from "../Global";
 import * as fsExc from "../FsExecute";
+import * as ExternalUtil from "../ExternalUtil";
+import * as http from 'http';
 
 export class PublishModel {
     oldVersionList;
@@ -7,10 +9,12 @@ export class PublishModel {
     whiteList;
     policyObj;
     cdnUrl;
+    releaseVersion;
 
     async init() {
         await this.initOldVersionList();
         await this.initPolicyObj();
+        await this.initReleaseVersion();
     }
 
     async initOldVersionList() {
@@ -40,6 +44,36 @@ export class PublishModel {
         this.policyObj = JSON.parse(content);
         this.cdnUrl = this.policyObj.cdnUrl;
         this.whiteList = this.policyObj.whiteList;
+    }
+
+    async initReleaseVersion() {
+        return new Promise(async (resolve, reject) => {
+            let value = await ExternalUtil.getPolicyInfo("release", "bian_game");
+            let data = JSON.parse(value);
+            if (data.Code != 0) return;
+            let policyNum = +data.Data.Version;
+            let options = {
+                host: '47.107.73.43', // 请求地址 域名，google.com等..
+                // port: 10001,
+                path: `/web/release/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
+                method: 'GET', // 请求方式, 这里以post为例
+                headers: { // 必选信息,  可以抓包工看一下
+                    'Content-Type': 'application/json'
+                }
+            };
+            http.get(options, (response) => {
+                let resData = "";
+                response.on("data", (data) => {
+                    resData += data;
+                });
+                response.on("end", () => {
+                    // console.log(resData);
+                    let obj = JSON.parse(resData);
+                    this.releaseVersion = parseInt(obj.normalVersion) + 1;
+                    resolve();
+                });
+            })
+        });
     }
 
     async setCdnUrl(value) {

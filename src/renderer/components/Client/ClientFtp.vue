@@ -211,6 +211,9 @@ export default {
       Global.showRegionLoading();
       try {
         await mdFtp.uploadVersionFile();
+        if (this.useCdn) {
+          await mdFtp.uploadCdnVersionFile();
+        }
         this.isUploadVersionLoading = false;
         Global.hideRegionLoading();
         if (showDialog) {

@@ -292,7 +292,7 @@ export default {
         Global.snack("One·for·All Error:", error);
       }
     },
-    refreshOldVersionList() {
+    initOldVersionList() {
       this.oldVersionList = ModelMgr.publishModel.oldVersionList;
       if (this.oldVersionList.length > 0) {
         this.oldVersion = this.oldVersionList[this.oldVersionList.length - 1];
@@ -303,12 +303,16 @@ export default {
     async initPolicyFile() {
       this.cdnUrl = ModelMgr.publishModel.cdnUrl;
       this.whiteList = ModelMgr.publishModel.whiteList.concat();
+    },
+    async initReleaseVersion() {
+      await ModelMgr.publishModel.initReleaseVersion();
+      this.releaseVersion = ModelMgr.publishModel.releaseVersion;
     }
   },
   async mounted() {
-    await ModelMgr.publishModel.init();
-    this.refreshOldVersionList();
+    this.initOldVersionList();
     this.initPolicyFile();
+    this.initReleaseVersion();
   }
 };
 </script>

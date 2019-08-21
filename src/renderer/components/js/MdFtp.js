@@ -8,6 +8,8 @@ import * as fs from 'fs';
 import { Client } from "ssh2";
 import * as url from 'url';
 import { ModelMgr } from "./model/ModelMgr";
+import * as qiniu from "qiniu";
+import * as ExternalUtil from "./ExternalUtil";
 
 export const serverList = [
     { name: "long", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/feature/long" },
@@ -307,118 +309,135 @@ function unzipProject(filePath, fileName) {
     })
 }
 
-export function applyPolicyNum() {
-    return new Promise((resolve, reject) => {
-        if (!policyNum) {
-            Global.snack(`请先设置策略版本`);
-            resolve();
-            return;
-        }
+export async function applyPolicyNum() {
+    if (!policyNum) {
+        Global.snack(`请先设置策略版本`);
+        return;
+    }
 
-        let versionName = serverInfo.name;
-        let time = Math.floor(new Date().getTime() / 1000);
-        let secret = "LznauW6GzBsq3wP6";
-        let due = 1800;
-        let tokenStr = versionName + channel + time + secret + due;
-        let token = crypto
-            .createHash('md5')
-            .update(tokenStr)
-            .digest('hex');
+    try {
+        await ExternalUtil.applyPolicyNum(policyNum, serverInfo.name, channel);
+        Global.toast('应用策略版本成功');
+    } catch (error) {
+        Global.snack('应用策略版本错误', error);
+    }
 
-        let getData = `?versionName=${versionName}&&channel=${channel}&&time=${time}&&due=${due}&&token=${token}&&version=${policyNum}`
-
-        let options = {
-            host: '47.107.73.43', // 请求地址 域名，google.com等..
-            port: 10001,
-            path: "/setVersion" + getData, // 具体路径eg:/upload
-            method: 'GET', // 请求方式, 这里以post为例
+    if (channel === 'bian_lesson') {
+        let lessonUrl = "http://api.bellplanet.bellcode.com";
+        let parseUrl = url.parse(lessonUrl);
+        let getLessonData = `?policy_version=${policyNum}&description="aaa"`
+        let lessonOptions = {
+            host: parseUrl.hostname, // 请求地址 域名，google.com等..
+            // port: 80,
+            path: '/bell-planet.change-policy-version' + getLessonData, // 具体路径eg:/upload
+            method: 'GET', // 请求方式
             headers: { // 必选信息,  可以抓包工看一下
-                'Content-Type': 'application/json'
+                'Authorization': 'Basic YmVsbGNvZGU6ZDNuSDh5ZERESw=='
             }
         };
-        http.get(options, (response) => {
+        http.get(lessonOptions, (response) => {
             let resData = "";
             response.on("data", (data) => {
                 resData += data;
             });
             response.on("end", async () => {
                 console.log(resData);
-
-                // let policyListPath = Global.svnPublishPath + "/policyList.json"
-                // let policyListContent = await fsExc.readFile(policyListPath);
-                // let policyList = JSON.parse(policyListContent);
-                // let policyStr = policyNum + "";
-                // if (policyList.policy.indexOf(policyStr) == -1) {
-                //     policyList.policy.push(policyNum + "")
-                // }
-                // await fsExc.writeFile(policyListPath, JSON.stringify(policyList));
                 resolve();
             });
-        })
-
-        if (channel === 'bian_lesson') {
-            let lessonUrl = "http://api.bellplanet.bellcode.com";
-            let parseUrl = url.parse(lessonUrl);
-            let getLessonData = `?policy_version=${policyNum}&description="aaa"`
-            let lessonOptions = {
-                host: parseUrl.hostname, // 请求地址 域名，google.com等..
-                // port: 80,
-                path: '/bell-planet.change-policy-version' + getLessonData, // 具体路径eg:/upload
-                method: 'GET', // 请求方式
-                headers: { // 必选信息,  可以抓包工看一下
-                    'Authorization': 'Basic YmVsbGNvZGU6ZDNuSDh5ZERESw=='
-                }
-            };
-            http.get(lessonOptions, (response) => {
-                let resData = "";
-                response.on("data", (data) => {
-                    resData += data;
-                });
-                response.on("end", async () => {
-                    console.log(resData);
-                    resolve();
-                });
-                response.on("error", async (err) => {
-                    Global.snack(`应用平台版本号错误`, err);
-                    reject();
-                });
+            response.on("error", async (err) => {
+                Global.snack(`应用平台版本号错误`, err);
+                reject();
             });
-        }
-    });
+        });
+    }
 }
 
 export function checkPolicyNum() {
-    return new Promise((resolve, reject) => {
-        let versionName = serverInfo.name;
-        // let channel = "bian_game";
-        let time = Math.floor(new Date().getTime() / 1000);
-        let due = 1800;
-        let token = "*";
-        // let token = crypto
-        //     .createHash('md5')
-        //     .update(tokenStr)
-        //     .digest('hex');
+    return ExternalUtil.getPolicyInfo(serverInfo.name, channel);
+}
 
-        let getData = `?versionName=${versionName}&&channel=${channel}&&time=${time}&&due=${due}&&token=${token}`
+let maxUploadCount = 10;
+export function uploadCdnVersionFile() {
+    return new Promise(async (resolve, reject) => {
+        let webUploadCount = 0;
+        let cdnWebPath = `${Global.svnPublishPath}/web/${uploadVersion}/`;
+        let webFilePathArr = [];
+        await batchUploaderFiles(cdnWebPath, webFilePathArr);
+        await checkUploaderFile(cdnWebPath, webFilePathArr, webUploadCount);
 
-        let options = {
-            host: '47.107.73.43', // 请求地址 域名，google.com等..
-            port: 10001,
-            path: "/getVersion" + getData, // 具体路径eg:/upload
-            method: 'GET', // 请求方式, 这里以post为例
-            headers: { // 必选信息,  可以抓包工看一下
-                'Content-Type': 'application/json'
+        let releaseUploadCount = 0;
+        let cdnReleasePath = `${Global.svnPublishPath}/cdn/${uploadVersion}/`;
+        let releaseFilePathArr = [];
+        await batchUploaderFiles(cdnReleasePath, releaseFilePathArr);
+        await checkUploaderFile(cdnReleasePath, releaseFilePathArr, releaseUploadCount, resolve, reject);
+    });
+}
+
+export function uploadCdnPolicyFile() {
+    return new Promise(async (resolve, reject) => {
+        uploadCount = 0;
+        let webFilePath = `${Global.svnPublishPath}/web/${uploadVersion}`;
+        let policyFilePathArr = [];
+        let files = await fsExc.readDir(webFilePath);
+        for (const iterator of files) {
+            if (iterator === "index.html"
+                || iterator.indexOf("policyFile") != -1) {
+                let fullPath = `${webFilePath}/${iterator}`;
+                policyFilePathArr.push(fullPath);
             }
-        };
-        http.get(options, (response) => {
-            let resData = "";
-            response.on("data", (data) => {
-                resData += data;
-            });
-            response.on("end", () => {
-                console.log(resData);
-                resolve(resData);
-            });
-        })
+        }
+
+        await checkUploaderFile(webFilePath, policyFilePathArr, resolve, reject);
+    });
+}
+
+async function batchUploaderFiles(rootPath, filePathArr) {
+    let files = await fsExc.readDir(rootPath);
+    for (const iterator of files) {
+        let fullPath = `${rootPath}/${iterator}`;
+        let isFolder = await fsExc.isDirectory(fullPath);
+        if (isFolder) {
+            await batchUploaderFiles(fullPath, filePathArr);
+        } else {
+            filePathArr.push(fullPath);
+        }
+    }
+}
+
+async function checkUploaderFile(rootPath, filePathArr, uploadCount, resolve, reject) {
+    if (uploadCount > maxUploadCount) return;
+    if (filePathArr.length == 0) return;
+
+    let filePath = filePathArr.shift();
+    let formUploader = new qiniu.form_up.FormUploader(ModelMgr.ftpModel.qiniuConfig);
+    let fileKey = filePath.split(`${rootPath}/`)[1];
+    let readerStream = fs.createReadStream(filePath);
+    let putExtra = new qiniu.form_up.PutExtra();
+
+    uploadCount++;
+    formUploader.putStream(ModelMgr.ftpModel.uploadToken, fileKey, readerStream, putExtra, (rspErr, rspBody, rspInfo) => {
+        uploadCount--;
+
+        if (rspErr) {
+            //单个文件失败
+            console.error(rspErr);
+        } else {
+            if (rspInfo.statusCode == 200) {
+                console.log(`cdn --> upload ${fileKey} success`);
+                // console.log(rspBody);
+            } else {
+                console.log(rspInfo.statusCode);
+                console.log(rspBody);
+            }
+        }
+
+        if (filePathArr.length != 0) {
+            checkUploaderFile(rootPath, filePathArr, uploadCount, resolve, reject);
+        } else {
+            if (resolve) {
+                resolve();
+                console.log(`上传cdn完成`);
+            }
+        }
     });
 }

@@ -253,6 +253,9 @@ export default {
       Global.showRegionLoading();
       try {
         await mdFtp.uploadPolicyFile();
+        if (this.useCdn) {
+          await mdFtp.uploadCdnPolicyFile();
+        }
         this.isUploadPolicyLoading = false;
         Global.hideRegionLoading();
         if (showDialog) {
@@ -351,6 +354,7 @@ export default {
     }
   },
   async mounted() {
+    await ModelMgr.ftpModel.init();
     await this.refreshVersionList();
     this.refreshServerList();
     this.refreshChannelList();

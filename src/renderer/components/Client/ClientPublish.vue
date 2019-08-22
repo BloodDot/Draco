@@ -291,28 +291,25 @@ export default {
         Global.hideLoading();
         Global.snack("One·for·All Error:", error);
       }
-    },
-    initOldVersionList() {
-      this.oldVersionList = ModelMgr.publishModel.oldVersionList;
-      if (this.oldVersionList.length > 0) {
-        this.oldVersion = this.oldVersionList[this.oldVersionList.length - 1];
-      } else {
-        this.oldVersion = "0";
-      }
-    },
-    async initPolicyFile() {
-      this.cdnUrl = ModelMgr.publishModel.cdnUrl;
-      this.whiteList = ModelMgr.publishModel.whiteList.concat();
-    },
-    async initReleaseVersion() {
-      await ModelMgr.publishModel.initReleaseVersion();
-      this.releaseVersion = ModelMgr.publishModel.releaseVersion;
     }
   },
   async mounted() {
-    this.initOldVersionList();
-    this.initPolicyFile();
-    this.initReleaseVersion();
+    await ModelMgr.publishModel.initReleaseVersion();
+    this.releaseVersion = ModelMgr.publishModel.releaseVersion;
+
+    this.cdnUrl = ModelMgr.publishModel.cdnUrl;
+    this.whiteList = ModelMgr.publishModel.whiteList.concat();
+    this.oldVersionList = ModelMgr.publishModel.oldVersionList;
+
+    let oldVersion = this.releaseVersion - 1 + "";
+    if (this.oldVersionList.indexOf(oldVersion) == -1) {
+      if (this.oldVersionList.length > 0) {
+        oldVersion = this.oldVersionList[this.oldVersionList.length - 1];
+      } else {
+        oldVersion = "0";
+      }
+    }
+    this.oldVersion = oldVersion;
   }
 };
 </script>

@@ -375,7 +375,7 @@ export function uploadCdnVersionFile() {
 
 export function uploadCdnPolicyFile() {
     return new Promise(async (resolve, reject) => {
-        uploadCount = 0;
+        let uploadCount = 0;
         let webFilePath = `${Global.svnPublishPath}/web/${uploadVersion}`;
         let policyFilePathArr = [];
         let files = await fsExc.readDir(webFilePath);
@@ -387,7 +387,7 @@ export function uploadCdnPolicyFile() {
             }
         }
 
-        await checkUploaderFile(webFilePath, policyFilePathArr, resolve, reject);
+        await checkUploaderFile(webFilePath, policyFilePathArr, uploadCount, resolve, reject);
     });
 }
 

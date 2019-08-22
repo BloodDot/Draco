@@ -8,7 +8,7 @@ export class FtpModel {
     uploaderCount = 10;
 
     async init() {
-        this.initQiniuOption();
+        await this.initQiniuOption();
     }
 
     async initQiniuOption() {
@@ -19,6 +19,7 @@ export class FtpModel {
         let putPolicy = new qiniu.rs.PutPolicy(options);
         let mac = new qiniu.auth.digest.Mac(this.accessKey, this.secretKey);
         this.uploadToken = putPolicy.uploadToken(mac);
+        console.log(`--> qiniu uploadToken ${this.uploadToken}`);
 
         this.qiniuConfig = new qiniu.conf.Config();
         // 空间对应的机房

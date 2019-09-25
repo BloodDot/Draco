@@ -342,11 +342,9 @@ export async function applyPolicyNum() {
             });
             response.on("end", async () => {
                 console.log(resData);
-                resolve();
             });
             response.on("error", async (err) => {
                 Global.snack(`应用平台版本号错误`, err);
-                reject();
             });
         });
     }

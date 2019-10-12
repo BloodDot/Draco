@@ -152,28 +152,36 @@ export default {
   },
   watch: {
     displayVersion: val => {
-      mdFtp.setDisplayVersion(val);
+      // mdFtp.setDisplayVersion(val);
+      ModelMgr.versionModel.setDisplayVersion(val);
     },
     policyNum: value => {
-      mdFtp.setPolicyNum(value);
+      // mdFtp.setPolicyNum(value);
+      ModelMgr.versionModel.setPolicyNum(value);
     },
     uploadVersion: value => {
-      mdFtp.setUploadVersion(value);
+      // mdFtp.setUploadVersion(value);
+      ModelMgr.versionModel.setUploadVersion(value);
     },
     whiteVersion: value => {
-      mdFtp.setWhiteVersion(value);
+      // mdFtp.setWhiteVersion(value);
+      ModelMgr.versionModel.setWhiteList(value);
     },
     normalVersion: value => {
-      mdFtp.setNormalVersion(value);
+      // mdFtp.setNormalVersion(value);
+      ModelMgr.versionModel.setNormalVersion(value);
     },
     channel: value => {
-      mdFtp.setChannel(value);
+      // mdFtp.setChannel(value);
+      ModelMgr.versionModel.setChannel(value);
     },
     needPatch: value => {
-      mdFtp.setNeedPatch(value);
+      // mdFtp.setNeedPatch(value);
+      ModelMgr.versionModel.setNeedPatch(value);
     },
     versionType: val => {
-      mdFtp.setVersionType(val);
+      // mdFtp.setVersionType(val);
+      ModelMgr.versionModel.setVersionType(val);
     },
     useCdn: value => {
       ModelMgr.ftpModel.useCdn = value;
@@ -181,7 +189,7 @@ export default {
   },
   methods: {
     serverInfoChange() {
-      mdFtp.setServerInfo(this.serverInfo);
+      // mdFtp.setServerInfo(this.serverInfo);
       this.refreshPolicyNum();
     },
     needPatchChange() {
@@ -211,9 +219,6 @@ export default {
       Global.showRegionLoading();
       try {
         await mdFtp.uploadVersionFile();
-        if (this.useCdn) {
-          await mdFtp.uploadCdnVersionFile();
-        }
         this.isUploadVersionLoading = false;
         Global.hideRegionLoading();
         if (showDialog) {
@@ -308,7 +313,9 @@ export default {
     async refreshVersionList() {
       this.releaseList = [];
       this.patchList = [];
-      let webDir = await fsExc.readDir(Global.svnPublishPath + "/web/");
+      let webDir = await fsExc.readDir(
+        Global.svnPublishPath + ModelMgr.versionModel.curEnviron.localPath
+      );
       let reg = /[A-Za-z]_*/g;
       for (const iterator of webDir) {
         if (iterator.indexOf("release") != -1) {
@@ -329,18 +336,19 @@ export default {
         return parseInt(a.replace(reg, "")) - parseInt(b.replace(reg, ""));
       });
 
-      this.gameVersionList = this.patchList;
-      this.uploadVersion = this.patchList[this.patchList.length - 1];
-      let versionInfo = this.uploadVersion.split("-v");
+      this.needPatchChange();
+
+      let releaseVersion = this.releaseList[this.releaseList.length - 1];
+      let versionInfo = releaseVersion.split("_v");
       this.whiteVersion = this.normalVersion = this.displayVersion = versionInfo[
         versionInfo.length - 1
       ].replace(reg, "");
     },
-    refreshServerList() {
-      this.serverList = mdFtp.serverList;
-      this.serverInfo = this.serverList[this.serverList.length - 1];
-      mdFtp.setServerInfo(this.serverInfo);
-    },
+    // refreshServerList() {
+    //   this.serverList = mdFtp.serverList;
+    //   this.serverInfo = this.serverList[this.serverList.length - 1];
+    //   mdFtp.setServerInfo(this.serverInfo);
+    // },
     async refreshPolicyNum() {
       let value = await mdFtp.checkPolicyNum();
       let data = JSON.parse(value);
@@ -349,18 +357,18 @@ export default {
       }
     },
     async refreshChannelList() {
-      this.channelList = mdFtp.channelList;
+      this.channelList = ModelMgr.versionModel.channelList;
       this.channel = this.channelList[this.channelList.length - 1];
     }
   },
   async mounted() {
     await ModelMgr.ftpModel.init();
     await this.refreshVersionList();
-    this.refreshServerList();
+    // this.refreshServerList();
     this.refreshChannelList();
-    mdFtp.setNeedPatch(this.needPatch);
-    this.versionTypes = mdFtp.versionTypes;
-    this.versionType = this.versionTypes[0];
+    // mdFtp.setNeedPatch(this.needPatch);
+    this.versionTypes = ModelMgr.versionModel.versionTypes;
+    this.versionType = ModelMgr.versionModel.versionType;
     await this.refreshPolicyNum();
   }
 };

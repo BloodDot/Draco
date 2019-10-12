@@ -57,19 +57,19 @@
 
           <mu-divider />
 
-          <mu-list-item button :ripple="false" value="ClientPublish">
+          <mu-list-item button :ripple="false" value="ClientVersion">
             <mu-list-item-action>
               <mu-icon slot="left" value="timeline" />
             </mu-list-item-action>
-            <mu-list-item-title>Publish</mu-list-item-title>
+            <mu-list-item-title>Version</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientFtp">
+          <!-- <mu-list-item button :ripple="false" value="ClientFtp">
             <mu-list-item-action>
               <mu-icon slot="left" value="file_upload" />
             </mu-list-item-action>
             <mu-list-item-title>Ftp</mu-list-item-title>
-          </mu-list-item>
+          </mu-list-item>-->
 
           <mu-list-item button :ripple="false" value="ClientApp">
             <mu-list-item-action>
@@ -268,16 +268,14 @@ export default {
     ClientTexture: require("./Client/ClientTexture"),
     ClientMapData: require("./Client/ClientMapData"),
     ClientSetting: require("./Client/ClientSetting"),
-    ClientPublish: require("./Client/ClientPublish"),
     ClientAsset: require("./Client/ClientAsset"),
-    ClientApp: require("./Client/ClientApp"),
-    ClientFtp: require("./Client/ClientFtp")
+    ClientVersion: require("./Client/ClientVersion"),
+    ClientApp: require("./Client/ClientApp")
+    // ClientFtp: require("./Client/ClientFtp")
     // ClientModule: require("./backup/ClientModule"),
     // ClientTest: require("./backup/ClientTest")
   },
   async mounted() {
-    await ModelMgr.init();
-
     ipcRenderer.on("client_show_toast", (event, msg) => {
       this.showToast(msg);
     });
@@ -317,6 +315,8 @@ export default {
     ipcRenderer.send("client_init");
 
     Global.initAlertFunc(this.showAlert);
+
+    await ModelMgr.init();
   }
 };
 </script>

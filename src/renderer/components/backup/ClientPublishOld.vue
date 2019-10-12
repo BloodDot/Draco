@@ -46,7 +46,7 @@
           <mu-col span="12" lg="2" sm="2">
             <mu-select label="旧版本号" filterable v-model="oldVersion" label-float full-width>
               <mu-option
-                v-for="value,index in oldVersionList"
+                v-for="value,index in releaseList"
                 :key="value"
                 :label="value"
                 :value="value"
@@ -149,7 +149,7 @@ export default {
       cdnVisible: false,
       addWhite: "",
 
-      oldVersionList: []
+      releaseList: []
     };
   },
   watch: {
@@ -186,12 +186,12 @@ export default {
     },
     onConfirmWhiteDialog() {
       this.whiteVisible = false;
-      ModelMgr.publishModel.setWhiteList(this.whiteList.concat());
+      ModelMgr.versionModel.setWhiteList(this.whiteList.concat());
       this.addWhite = "";
     },
     onCancelWhiteDialog() {
       this.whiteVisible = false;
-      this.whiteList = ModelMgr.publishModel.whiteList.concat();
+      this.whiteList = ModelMgr.versionModel.whiteList.concat();
       this.addWhite = "";
     },
     onOpenCdnDialog() {
@@ -199,11 +199,11 @@ export default {
     },
     onConfirmCdnDialog() {
       this.cdnVisible = false;
-      ModelMgr.publishModel.setCdnUrl(this.cdnUrl);
+      ModelMgr.versionModel.setCdnUrl(this.cdnUrl);
     },
     onCancelCdnDialog() {
       this.cdnVisible = false;
-      this.cdnUrl = ModelMgr.publishModel.cdnUrl;
+      this.cdnUrl = ModelMgr.versionModel.cdnUrl;
     },
     async onCompressPicturesClick(showDialog = true) {
       this.isCompressPicturesLoading = true;
@@ -294,17 +294,17 @@ export default {
     }
   },
   async mounted() {
-    await ModelMgr.publishModel.initReleaseVersion();
-    this.releaseVersion = ModelMgr.publishModel.releaseVersion;
+    await ModelMgr.versionModel.initReleaseVersion();
+    this.releaseVersion = ModelMgr.versionModel.releaseVersion;
 
-    this.cdnUrl = ModelMgr.publishModel.cdnUrl;
-    this.whiteList = ModelMgr.publishModel.whiteList.concat();
-    this.oldVersionList = ModelMgr.publishModel.oldVersionList;
+    this.cdnUrl = ModelMgr.versionModel.cdnUrl;
+    this.whiteList = ModelMgr.versionModel.whiteList.concat();
+    this.releaseList = ModelMgr.versionModel.releaseList;
 
     let oldVersion = this.releaseVersion - 1 + "";
-    if (this.oldVersionList.indexOf(oldVersion) == -1) {
-      if (this.oldVersionList.length > 0) {
-        oldVersion = this.oldVersionList[this.oldVersionList.length - 1];
+    if (this.releaseList.indexOf(oldVersion) == -1) {
+      if (this.releaseList.length > 0) {
+        oldVersion = this.releaseList[this.releaseList.length - 1];
       } else {
         oldVersion = "0";
       }

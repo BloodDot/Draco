@@ -313,9 +313,7 @@ export default {
     async refreshVersionList() {
       this.releaseList = [];
       this.patchList = [];
-      let webDir = await fsExc.readDir(
-        Global.svnPublishPath + ModelMgr.versionModel.curEnviron.localPath
-      );
+      let webDir = await fsExc.readDir(localPath);
       let reg = /[A-Za-z]_*/g;
       for (const iterator of webDir) {
         if (iterator.indexOf("release") != -1) {

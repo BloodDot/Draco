@@ -58,6 +58,7 @@ export const serverList = [
 export async function zipVersion() {
     let environ = ModelMgr.versionModel.curEnviron;
     let zipPath = `${Global.svnPublishPath}${environ.zipPath}/`;
+    await fsExc.makeDir(zipPath);
     let filePath;
     let zipName;
     if (environ.name === ModelMgr.versionModel.eEnviron.alpha) {
@@ -206,6 +207,7 @@ export async function createPolicyFile() {
     policyContent = JSON.stringify(policyObj);
 
     let policyPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPolicyPath}/`;
+    await fsExc.makeDir(policyPath);
     let indexFilePath = `${policyPath}/index.html`;
     let policyFilePath = `${policyPath}/policyFile.json`;
 
@@ -399,35 +401,35 @@ export async function applyPolicyNum() {
     } catch (error) {
         Global.snack('应用策略版本错误', error);
     }
+}
 
-    if (channel === 'bian_lesson') {
-        let lessonUrl = "http://api.bellplanet.bellcode.com";
-        let parseUrl = url.parse(lessonUrl);
-        let getLessonData = `?policy_version=${ModelMgr.versionModel.policyNum}&description="aaa"`
-        let lessonOptions = {
-            host: parseUrl.hostname, // 请求地址 域名，google.com等..
-            // port: 80,
-            path: '/bell-planet.change-policy-version' + getLessonData, // 具体路径eg:/upload
-            method: 'GET', // 请求方式
-            headers: { // 必选信息,  可以抓包工看一下
-                'Authorization': 'Basic YmVsbGNvZGU6ZDNuSDh5ZERESw=='
-            }
-        };
-        http.get(lessonOptions, (response) => {
-            let resData = "";
-            response.on("data", (data) => {
-                resData += data;
-            });
-            response.on("end", async () => {
-                console.log(resData);
-            });
-            response.on("error", async (err) => {
-                Global.snack(`应用平台版本号错误`, err);
-            });
+export async function applyLessonPolicyNum(isTest) {
+    let lessonUrl = "http://api.bellplanet.bellcode.com";
+    let parseUrl = url.parse(lessonUrl);
+    let getLessonData = `?policy_version=${ModelMgr.versionModel.policyNum}&isTest=${isTest}&description="aaa"`
+    let lessonOptions = {
+        host: parseUrl.hostname, // 请求地址 域名，google.com等..
+        // port: 80,
+        path: '/bell-planet.change-policy-version' + getLessonData, // 具体路径eg:/upload
+        method: 'GET', // 请求方式
+        headers: { // 必选信息,  可以抓包工看一下
+            'Authorization': 'Basic YmVsbGNvZGU6ZDNuSDh5ZERESw=='
+        }
+    };
+    http.get(lessonOptions, (response) => {
+        let resData = "";
+        response.on("data", (data) => {
+            resData += data;
         });
-    }
+        response.on("end", async () => {
+            console.log(resData);
+        });
+        response.on("error", async (err) => {
+            Global.snack(`应用平台版本号错误`, err);
+        });
+    });
 }
 
 export function checkPolicyNum() {
-    return ExternalUtil.getPolicyInfo(ModelMgr.versionModel.curEnviron.name, ModelMgr.versionModel.channel);
+    return ExternalUtil.getPolicyInfo(ModelMgr.versionModel.curEnviron.name);
 }

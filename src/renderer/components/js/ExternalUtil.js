@@ -1,11 +1,12 @@
 import * as http from 'http';
 import * as crypto from 'crypto';
 
-export function getPolicyInfo(versionName, channel) {
+export function getPolicyInfo(versionName) {
     return new Promise((resolve, reject) => {
         let time = Math.floor(new Date().getTime() / 1000);
         let due = 1800;
         let token = "*";
+        let channel = "bian_game"
         // let token = crypto
         //     .createHash('md5')
         //     .update(tokenStr)

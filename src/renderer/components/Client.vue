@@ -71,6 +71,13 @@
             <mu-list-item-title>Ftp</mu-list-item-title>
           </mu-list-item>-->
 
+          <mu-list-item button :ripple="false" value="ClientLesson">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="file_upload" />
+            </mu-list-item-action>
+            <mu-list-item-title>Lesson</mu-list-item-title>
+          </mu-list-item>
+
           <mu-list-item button :ripple="false" value="ClientApp">
             <mu-list-item-action>
               <mu-icon slot="left" value="weekend" />
@@ -270,6 +277,7 @@ export default {
     ClientSetting: require("./Client/ClientSetting"),
     ClientAsset: require("./Client/ClientAsset"),
     ClientVersion: require("./Client/ClientVersion"),
+    ClientLesson: require("./Client/ClientLesson"),
     ClientApp: require("./Client/ClientApp")
     // ClientFtp: require("./Client/ClientFtp")
     // ClientModule: require("./backup/ClientModule"),
@@ -419,5 +427,8 @@ export default {
 .mu-scale-transition-leave-active {
   transform: scale(0);
   opacity: 0;
+}
+.text-game {
+  width: 120px;
 }
 </style>

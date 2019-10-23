@@ -15,21 +15,25 @@ export class VersionModel {
         {
             name: this.eEnviron.alpha, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
             zipPath: "/alpha/zip", scpRootPath: "/web", scpPath: "/web/alpha", localPath: "/alpha/web", localPolicyPath: "/alpha/policy",
-            publishEnable: true, mergeVersionEnable: false, compressPicEnable: false, zipFileEnable: true, policyEnable: false, cdnEnable: false
+            updateGitEnable: false, gitBranch: "",
+            publishEnable: true, mergeVersionEnable: false, compressPicEnable: false, zipFileEnable: true, policyEnable: false, cdnEnable: false,
         },
         {
             name: this.eEnviron.beta, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
             zipPath: "/beta/zip", scpRootPath: "/web", scpPath: "/web/beta", localPath: "/beta/web", localPolicyPath: "/beta/policy",
+            updateGitEnable: true, gitBranch: "trunk/beta",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false
         },
         {
             name: this.eEnviron.ready, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
             zipPath: "/ready/zip", scpRootPath: "/web", scpPath: "/web/ready", localPath: "/ready/web", localPolicyPath: "/ready/policy",
+            updateGitEnable: true, gitBranch: "trunk/release",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false
         },
         {
-            name: this.eEnviron.release, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            zipPath: "/ready/zip", scpRootPath: "/web", scpPath: "/web/ready", localPath: "/ready/web", localPolicyPath: "/release/policy",
+            name: this.eEnviron.release, host: "bg-stage.wkcoding.com", user: "ftpadmin", password: "unclemiao",
+            zipPath: "/ready/zip", scpRootPath: "", scpPath: "", localPath: "/ready/web", localPolicyPath: "/release/policy",
+            updateGitEnable: false, gitBranch: "",
             publishEnable: false, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: false, policyEnable: true, cdnEnable: true
         },
     ];
@@ -37,7 +41,7 @@ export class VersionModel {
 
     channelList = [
         'shangwu',
-        'bian_lesson',
+        // 'bian_lesson',
         'bian_game'
     ];
 
@@ -151,7 +155,11 @@ export class VersionModel {
         this.oldVersionList = [];
         this.releaseList = [];
         this.patchList = [];
-        let cdnDir = await fsExc.readDir(`${Global.svnPublishPath}${this.curEnviron.localPath}`);
+
+        let localPath = Global.svnPublishPath + this.curEnviron.localPath;
+        await fsExc.makeDir(localPath);
+
+        let cdnDir = await fsExc.readDir(localPath);
         let reg = /[A-Za-z]_*/g;
         for (const iterator of cdnDir) {
             if (iterator.indexOf("release") != -1) {
@@ -211,40 +219,86 @@ export class VersionModel {
                 return;
             }
             let policyNum = +data.Data.Version;
-            let options = {
-                host: '47.107.73.43', // 请求地址 域名，google.com等..
-                // port: 10001,
-                path: `${this.curEnviron.scpPath}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
-                method: 'GET', // 请求方式, 这里以post为例
-                headers: { // 必选信息,  可以抓包工看一下
-                    'Content-Type': 'application/json'
-                }
-            };
-            http.get(options, (response) => {
-                if (response.statusCode != 200) {
-                    resolve();
-                    return;
-                }
+            this.getGameVersion(policyNum,
+                async (gameVersion) => {
+                    this.releaseVersion = parseInt(gameVersion) + 1;
 
-                let resData = "";
-                response.on("data", (data) => {
-                    resData += data;
-                });
-                response.on("end", async () => {
-                    // console.log(resData);
-
-                    let obj = JSON.parse(resData);
-                    this.releaseVersion = parseInt(obj.normalVersion) + 1;
-
-                    let oldVersionPath = `${Global.svnPublishPath}${this.curEnviron.localPath}/release_v${obj.normalVersion}s`;
+                    let oldVersionPath = `${Global.svnPublishPath}${this.curEnviron.localPath}/release_v${gameVersion}s`;
                     let exist = await fsExc.exists(oldVersionPath);
                     if (exist) {
-                        this.oldVersion = obj.normalVersion;
+                        this.oldVersion = gameVersion;
                     }
                     resolve();
-                });
-            })
+                },
+                () => {
+                    resolve();
+                })
+
+            // let options = {
+            //     host: '47.107.73.43', // 请求地址 域名，google.com等..
+            //     // port: 10001,
+            //     path: `${this.curEnviron.scpPath}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
+            //     method: 'GET', // 请求方式, 这里以post为例
+            //     headers: { // 必选信息,  可以抓包工看一下
+            //         'Content-Type': 'application/json'
+            //     }
+            // };
+            // http.get(options, (response) => {
+            //     if (response.statusCode != 200) {
+            //         resolve();
+            //         return;
+            //     }
+
+            //     let resData = "";
+            //     response.on("data", (data) => {
+            //         resData += data;
+            //     });
+            //     response.on("end", async () => {
+            //         // console.log(resData);
+
+            //         let obj = JSON.parse(resData);
+            //         this.releaseVersion = parseInt(obj.normalVersion) + 1;
+
+            //         let oldVersionPath = `${Global.svnPublishPath}${this.curEnviron.localPath}/release_v${obj.normalVersion}s`;
+            //         let exist = await fsExc.exists(oldVersionPath);
+            //         if (exist) {
+            //             this.oldVersion = obj.normalVersion;
+            //         }
+            //         resolve();
+            //     });
+            // })
         });
+    }
+
+    getGameVersion(policyNum, successFunc, errorFunc) {
+        let options = {
+            host: this.curEnviron.host, // 请求地址 域名，google.com等.. 
+            // port: 10001,
+            path: `${this.curEnviron.scpPath}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
+            method: 'GET', // 请求方式, 这里以post为例
+            headers: { // 必选信息,  可以抓包工看一下
+                'Content-Type': 'application/json'
+            }
+        };
+        http.get(options, (response) => {
+            if (response.statusCode != 200) {
+                if (errorFunc) {
+                    errorFunc();
+                }
+                return;
+            }
+
+            let resData = "";
+            response.on("data", (data) => {
+                resData += data;
+            });
+            response.on("end", async () => {
+                // console.log(resData);
+                let obj = JSON.parse(resData);
+
+                successFunc(obj.normalVersion);
+            });
+        })
     }
 
     async initPolicyNum() {
@@ -283,6 +337,6 @@ export class VersionModel {
     }
 
     async getCurPolicyInfo() {
-        return await ExternalUtil.getPolicyInfo(this.curEnviron.name, this.channel);
+        return await ExternalUtil.getPolicyInfo(this.curEnviron.name);
     }
 }

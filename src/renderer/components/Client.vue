@@ -1,7 +1,7 @@
 <template>
   <div class="layout">
     <div class="header">
-      <mu-appbar color="primary" title="Client"></mu-appbar>
+      <mu-appbar color="primary" :title="appTitle"></mu-appbar>
     </div>
     <div class="content">
       <div class="alert-demo-wrapper">
@@ -20,44 +20,51 @@
           <!-- <mu-list-item title="Module" value="ClientModule">
                     <mu-icon slot="left" value="assignment" />
           </mu-list-item>-->
-          <mu-list-item button :ripple="false" value="ClientProto">
+          <mu-list-item button :ripple="false" value="ClientProto" v-show="protoEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="swap_vert" />
             </mu-list-item-action>
             <mu-list-item-title>Proto</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientCsv">
+          <mu-list-item button :ripple="false" value="ClientCsv" v-show="csvEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="extension" />
             </mu-list-item-action>
             <mu-list-item-title>Csv</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientTexture">
+          <mu-list-item button :ripple="false" value="ClientTexture" v-show="textureEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="crop_original" />
             </mu-list-item-action>
             <mu-list-item-title>Texture</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientMapData">
+          <mu-list-item button :ripple="false" value="ClientMapData" v-show="mapDataEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="map" />
             </mu-list-item-action>
             <mu-list-item-title>MapData</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientAsset">
+          <mu-list-item button :ripple="false" value="ClientAsset" v-show="assetEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="apps" />
             </mu-list-item-action>
             <mu-list-item-title>Asset</mu-list-item-title>
           </mu-list-item>
 
+          <mu-list-item button :ripple="false" value="ClientEgret" v-show="egretEnable">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="apps" />
+            </mu-list-item-action>
+            <mu-list-item-title>Egret</mu-list-item-title>
+          </mu-list-item>
+
           <mu-divider />
 
-          <mu-list-item button :ripple="false" value="ClientVersion">
+          <mu-list-item button :ripple="false" value="ClientVersion" v-show="versionEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="timeline" />
             </mu-list-item-action>
@@ -71,14 +78,14 @@
             <mu-list-item-title>Ftp</mu-list-item-title>
           </mu-list-item>-->
 
-          <mu-list-item button :ripple="false" value="ClientLesson">
+          <mu-list-item button :ripple="false" value="ClientLesson" v-show="lessonEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="file_upload" />
             </mu-list-item-action>
             <mu-list-item-title>Lesson</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientApp">
+          <mu-list-item button :ripple="false" value="ClientApp" v-show="appEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="weekend" />
             </mu-list-item-action>
@@ -152,6 +159,44 @@
       version {{currentVersion}}
       <mu-button slot="actions" flat color="primary" @click="onCloseVersionDialog">Confirm</mu-button>
     </mu-dialog>
+
+    <mu-bottom-sheet :open.sync="bottomSheetVisible">
+      <mu-list @item-click="closeBottomSheet" @change="switchMode">
+        <mu-sub-header>选择模式</mu-sub-header>
+        <mu-list-item
+          v-for="value,index in modeList"
+          :key="value.name"
+          :label="value.title"
+          :value="value"
+          button
+          :ripple="false"
+        >
+          <mu-list-item-action>
+            <mu-icon :value="value.icon"></mu-icon>
+          </mu-list-item-action>
+          <mu-list-item-title>{{value.title}}</mu-list-item-title>
+        </mu-list-item>
+
+        <!-- <mu-list-item button>
+          <mu-list-item-action>
+            <mu-icon value="grade" color="orange"></mu-icon>
+          </mu-list-item-action>
+          <mu-list-item-title>开发</mu-list-item-title>
+        </mu-list-item>
+        <mu-list-item button>
+          <mu-list-item-action>
+            <mu-icon value="inbox" color="blue"></mu-icon>
+          </mu-list-item-action>
+          <mu-list-item-title>策划</mu-list-item-title>
+        </mu-list-item>
+        <mu-list-item button>
+          <mu-list-item-action>
+            <mu-icon value="chat" color="green"></mu-icon>
+          </mu-list-item-action>
+          <mu-list-item-title>打包</mu-list-item-title>
+        </mu-list-item>-->
+      </mu-list>
+    </mu-bottom-sheet>
   </div>
 </template>
 <script>
@@ -179,9 +224,24 @@ export default {
       alertVisible: false,
       alertResolve: null,
       loading: null,
-      currentVersion: Global.currentVersion
+      currentVersion: Global.currentVersion,
+      bottomSheetVisible: false,
+      modeList: Global.modeList,
+
+      protoEnable: false,
+      csvEnable: false,
+      textureEnable: false,
+      mapDataEnable: false,
+      assetEnable: false,
+      egretEnable: false,
+      versionEnable: false,
+      lessonEnable: false,
+      appEnable: false,
+
+      appTitle: ""
     };
   },
+  watch: {},
   methods: {
     handleListChange(val) {
       this.activeList = val;
@@ -267,6 +327,30 @@ export default {
 
     onCloseVersionDialog() {
       this.versionDialogVisible = false;
+    },
+
+    switchMode(val) {
+      Global.setMode(val);
+      this.refreshMode();
+    },
+    openBotttomSheet() {
+      this.bottomSheetVisible = true;
+    },
+    closeBottomSheet() {
+      this.bottomSheetVisible = false;
+    },
+    refreshMode() {
+      let mode = Global.mode;
+      this.protoEnable = mode.protoEnable;
+      this.csvEnable = mode.csvEnable;
+      this.textureEnable = mode.textureEnable;
+      this.mapDataEnable = mode.mapDataEnable;
+      this.assetEnable = mode.assetEnable;
+      this.egretEnable = mode.egretEnable;
+      this.versionEnable = mode.versionEnable;
+      this.lessonEnable = mode.lessonEnable;
+      this.appEnable = mode.appEnable;
+      this.appTitle = mode.title;
     }
   },
   components: {
@@ -276,6 +360,7 @@ export default {
     ClientMapData: require("./Client/ClientMapData"),
     ClientSetting: require("./Client/ClientSetting"),
     ClientAsset: require("./Client/ClientAsset"),
+    ClientEgret: require("./Client/ClientEgret"),
     ClientVersion: require("./Client/ClientVersion"),
     ClientLesson: require("./Client/ClientLesson"),
     ClientApp: require("./Client/ClientApp")
@@ -316,6 +401,10 @@ export default {
       this.versionDialogVisible = true;
     });
 
+    ipcRenderer.on("client_switch_mode", event => {
+      this.bottomSheetVisible = true;
+    });
+
     ipcRenderer.on("client_add_log", (event, msg) => {
       console.log(msg);
     });
@@ -323,7 +412,7 @@ export default {
     ipcRenderer.send("client_init");
 
     Global.initAlertFunc(this.showAlert);
-
+    this.refreshMode();
     await ModelMgr.init();
   }
 };

@@ -26,8 +26,19 @@
       <mu-button small v-show="isAdvanceMode" @click="changeAdvanceMode">
         <mu-icon value="remove"></mu-icon>垃圾模式
       </mu-button>
+      <mu-text-field
+        class="text-publisher"
+        @change="updatePublishText"
+        v-model="publisher"
+        :error-text="publishErrorText"
+      />
+      <mu-text-field
+        @change="updateVersionDescText"
+        v-model="versionDesc"
+        :error-text="versionDescErrorText"
+        v-show="curEnviron&&curEnviron.publishDescEnable"
+      />
       <mu-container v-show="!isAdvanceMode">
-        <!-- <mu-button large fab color="red" @click="oneForAll"> -->
         <mu-button large round color="red" @click="oneForAll">
           <mu-icon value="touch_app"></mu-icon>
           {{oneClickContent}}
@@ -326,7 +337,7 @@ export default {
       patchList: [],
       releaseList: [],
       curEnviron: ModelMgr.versionModel.curEnviron,
-      environList: ModelMgr.versionModel.environList,
+      environList: [],
 
       needPatch: true,
       gameVersionList: [],
@@ -339,7 +350,12 @@ export default {
       versionTypes: null,
       versionType: "",
       channelList: [],
-      channel: null
+      channel: null,
+      publisher: null,
+      versionDesc: null,
+
+      publishErrorText: null,
+      versionDescErrorText: null
     };
   },
   watch: {
@@ -382,6 +398,14 @@ export default {
     }
   },
   methods: {
+    updatePublishText() {
+      this.publishErrorText = this.publisher ? null : "请输入发布者";
+      ModelMgr.versionModel.publisher = this.publisher;
+    },
+    updateVersionDescText() {
+      this.versionDescErrorText = this.versionDesc ? null : "请输入版本描述";
+      ModelMgr.versionModel.versionDesc = this.versionDesc;
+    },
     changeAdvanceMode() {
       this.isAdvanceMode = !this.isAdvanceMode;
     },
@@ -404,6 +428,9 @@ export default {
       this.policyNum = ModelMgr.versionModel.policyNum;
       let oldVersion = ModelMgr.versionModel.oldVersion;
       this.oldVersion = oldVersion ? oldVersion : "0";
+      this.publisher = null;
+      this.updatePublishText();
+      this.updateVersionDescText();
     },
     needPatchChange() {
       if (this.needPatch) {
@@ -634,6 +661,19 @@ export default {
       }
     },
     async oneForAll() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
+      if (
+        !!ModelMgr.versionModel.versionDesc &&
+        this.curEnviron &&
+        this.curEnviron.publishDescEnable
+      ) {
+        Global.snack("请输入版本描述", null, false);
+        return;
+      }
       Global.showLoading();
       try {
         if (this.curEnviron.publishEnable) {
@@ -691,6 +731,10 @@ export default {
     }
   },
   async mounted() {
+    ModelMgr.versionModel.initEnviron();
+    this.environList = ModelMgr.versionModel.environList.filter(
+      value => Global.mode.environNames.indexOf(value.name) != -1
+    );
     this.curEnviron = ModelMgr.versionModel.curEnviron;
     this.environChange();
 
@@ -719,5 +763,8 @@ export default {
 }
 .text-game {
   width: 120px;
+}
+.text-publisher {
+  width: 80px;
 }
 </style>

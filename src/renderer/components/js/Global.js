@@ -1,12 +1,60 @@
 import { ipcRenderer } from 'electron';
+import { ModelMgr } from "./model/ModelMgr";
 
 export class Global {
-    static currentVersion = "1.9.5 beta3";
+    static currentVersion = "1.9.5 beta4";
     static projPath = localStorage.getItem('client_project_path');
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');
     static svnPath = localStorage.getItem('client_svn_path');
     static clientPath = localStorage.getItem('client_client_path');
+    static author = localStorage.getItem("client_author");
+
+    static _mode;
+    static setMode(value) {
+        this._mode = value;
+        localStorage.setItem("mode", this._mode.name);
+    }
+
+    static get mode() {
+        if (!this._mode) {
+            let modeName = localStorage.getItem("mode");
+            if (modeName) {
+                this._mode = this.modeList.find(value => value.name === modeName);
+            }
+        }
+
+        if (!this._mode) {
+            this._mode = this.modeList.find(value => value.name === "develop")
+        }
+        return this._mode;
+    }
+
+    //工具模式
+    static modeList = [
+        {
+            name: "develop", title: "开发模式", icon: "airplanemode_active",
+            protoEnable: true, csvEnable: true, textureEnable: true, mapDataEnable: false, assetEnable: true,
+            egretEnable: false, versionEnable: true, lessonEnable: false, appEnable: false,
+            textureGitEnable: false,
+            environNames: [ModelMgr.versionModel.eEnviron.alpha]
+        },
+        {
+            name: "product", title: "产品模式", icon: "drive_eta",
+            protoEnable: false, csvEnable: true, textureEnable: true, mapDataEnable: false, assetEnable: false,
+            egretEnable: true, versionEnable: false, lessonEnable: false, appEnable: false,
+            textureGitEnable: true,
+            environNames: [ModelMgr.versionModel.eEnviron.alpha]
+
+        },
+        {
+            name: "publish", title: "发布模式", icon: "accessible",
+            protoEnable: false, csvEnable: false, textureEnable: false, mapDataEnable: false, assetEnable: false,
+            egretEnable: false, versionEnable: true, lessonEnable: true, appEnable: false,
+            textureGitEnable: false,
+            environNames: [ModelMgr.versionModel.eEnviron.beta, ModelMgr.versionModel.eEnviron.ready, ModelMgr.versionModel.eEnviron.release]
+        }
+    ]
 
     static get androidPath() {
         return Global.clientPath + '/platform/android';

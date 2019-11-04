@@ -2,13 +2,19 @@ import { ipcRenderer } from 'electron';
 import { ModelMgr } from "./model/ModelMgr";
 
 export class Global {
-    static currentVersion = "1.9.5 beta4";
+    static currentVersion = "1.9.5 beta5";
     static projPath = localStorage.getItem('client_project_path');
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');
     static svnPath = localStorage.getItem('client_svn_path');
     static clientPath = localStorage.getItem('client_client_path');
     static author = localStorage.getItem("client_author");
+
+    static eMode = {
+        develop: "develop",
+        product: "product",
+        publish: "publish"
+    }
 
     static _mode;
     static setMode(value) {

@@ -17,28 +17,28 @@ export class VersionModel {
             zipPath: "/alpha/zip", scpRootPath: "/web", scpPath: "/web/alpha", localPath: "/alpha/web", localPolicyPath: "/alpha/policy",
             updateGitEnable: false, gitBranch: "",
             publishEnable: true, mergeVersionEnable: false, compressPicEnable: false, zipFileEnable: true, policyEnable: false, cdnEnable: false,
-            publishDescEnable: true
+            publishDescEnable: true, codeVersionEnable: false,
         },
         {
             name: this.eEnviron.beta, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
             zipPath: "/beta/zip", scpRootPath: "/web", scpPath: "/web/beta", localPath: "/beta/web", localPolicyPath: "/beta/policy",
             updateGitEnable: true, gitBranch: "trunk/beta",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
-            publishDescEnable: false
+            publishDescEnable: false, codeVersionEnable: true,
         },
         {
             name: this.eEnviron.ready, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
             zipPath: "/ready/zip", scpRootPath: "/web", scpPath: "/web/ready", localPath: "/ready/web", localPolicyPath: "/ready/policy",
             updateGitEnable: true, gitBranch: "trunk/release",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
-            publishDescEnable: false
+            publishDescEnable: false, codeVersionEnable: true,
         },
         {
             name: this.eEnviron.release, host: "bg-stage.wkcoding.com", user: "ftpadmin", password: "unclemiao",
             zipPath: "/ready/zip", scpRootPath: "", scpPath: "", localPath: "/ready/web", localPolicyPath: "/release/policy",
             updateGitEnable: false, gitBranch: "",
             publishEnable: false, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: false, policyEnable: true, cdnEnable: true,
-            publishDescEnable: false
+            publishDescEnable: false, codeVersionEnable: false,
         },
     ];
 

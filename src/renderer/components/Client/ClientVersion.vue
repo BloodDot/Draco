@@ -31,6 +31,7 @@
         @change="updatePublishText"
         v-model="publisher"
         :error-text="publishErrorText"
+        v-show="curEnviron&&(curEnviron.publishDescEnable||curEnviron.codeVersionEnable)"
       />
       <mu-text-field
         @change="updateVersionDescText"
@@ -224,6 +225,16 @@
               <mu-button @click="onCheckGameVerison">当前游戏版本</mu-button>
             </div>
           </mu-container>
+          <mu-divider />
+          <mu-container>
+            <mu-button
+              v-loading="isPullGitLoading"
+              data-mu-loading-size="24"
+              color="red500"
+              @click="pushGit"
+              v-show="curEnviron&&curEnviron.codeVersionEnable"
+            >Git推送文件</mu-button>
+          </mu-container>
         </div>
       </mu-container>
       <mu-divider />
@@ -320,6 +331,8 @@ export default {
       isModifyPolicyNumLoading: false,
       isUploadPolicyLoading: false,
       isApplyPolicyNumLoading: false,
+
+      isPullGitLoading: false,
 
       needCover: ModelMgr.versionModel.needCover,
       needCompress: ModelMgr.versionModel.needCompress,
@@ -660,6 +673,18 @@ export default {
         Global.snack(`获取游戏版本失败`, null, false);
       }
     },
+    async pushGit() {
+      this.isPullGitLoading = true;
+      Global.showRegionLoading();
+      try {
+        await mdFtp.pushGit();
+        this.isPullGitLoading = false;
+        Global.hideRegionLoading();
+      } catch (error) {
+        this.isPullGitLoading = false;
+        Global.hideRegionLoading();
+      }
+    },
     async oneForAll() {
       if (!ModelMgr.versionModel.publisher) {
         Global.snack("请输入发布者", null, false);
@@ -702,6 +727,10 @@ export default {
           await this.onModifyPolicyFile();
           await this.onUploadPolicyFile();
           await this.onApplyPolicyNum();
+        }
+
+        if (this.curEnviron.codeVersionEnable) {
+          await this.pushGit();
         }
 
         await this.environChange();

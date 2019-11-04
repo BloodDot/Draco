@@ -13,6 +13,12 @@
         color="orange500"
         @click="stopRun"
       >停止游戏</mu-button>
+      <mu-button
+        v-loading="isPullGitLoading"
+        data-mu-loading-size="24"
+        color="red500"
+        @click="pushGit"
+      >Git推送文件</mu-button>
     </div>
   </mu-container>
 </template>
@@ -24,7 +30,9 @@ export default {
   data() {
     return {
       isEgretRunLoading: false,
-      isEgretStopLoading: false
+      isEgretStopLoading: false,
+
+      isPullGitLoading: false
     };
   },
   watch: {},
@@ -51,6 +59,18 @@ export default {
         Global.hideRegionLoading();
       } catch (error) {
         this.isEgretStopLoading = false;
+        Global.hideRegionLoading();
+      }
+    },
+    async pushGit() {
+      this.isPullGitLoading = true;
+      Global.showRegionLoading();
+      try {
+        await mdEgret.pushGit();
+        this.isPullGitLoading = false;
+        Global.hideRegionLoading();
+      } catch (error) {
+        this.isPullGitLoading = false;
         Global.hideRegionLoading();
       }
     }

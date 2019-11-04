@@ -351,6 +351,23 @@ export default {
       this.lessonEnable = mode.lessonEnable;
       this.appEnable = mode.appEnable;
       this.appTitle = mode.title;
+
+      let viewName = "";
+      switch (mode.name) {
+        case Global.eMode.develop:
+          viewName = "ClientProto";
+          break;
+        case Global.eMode.product:
+          viewName = "ClientTexture";
+          break;
+        case Global.eMode.publish:
+          viewName = "ClientVersion";
+          break;
+        default:
+          break;
+      }
+      this.activeList = viewName;
+      this.currentView = viewName;
     }
   },
   components: {

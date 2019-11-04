@@ -35,6 +35,21 @@ export async function updateGit() {
         let pullCmdStr = `git pull`;
         await spawnExc.runCmd(pullCmdStr, Global.projPath, null, '推送分支错误');
 
+
+        if (ModelMgr.versionModel.curEnviron.codeVersionEnable) {
+            let configPath = `${Global.projPath}/src/GameConfig.ts`;
+            let configContent = await fsExc.readFile(configPath);
+            configContent = configContent.replace(`public static codeVersion = "";`, `public static codeVersion = "${ModelMgr.versionModel.releaseVersion}";`);
+            await fsExc.writeFile(configPath, configContent);
+        }
+
+        if (ModelMgr.versionModel.versionDesc) {
+            let indexPath = `${Global.projPath}/bin-release/web/${releaseVersion}/index.html`;
+            let indexContent = await fsExc.readFile(indexPath);
+            indexContent = indexContent.replace("//window.location.href", `window.location.hash='publisher="${ModelMgr.versionModel.publisher}"&versionDesc="${ModelMgr.versionModel.versionDesc}"'`);
+            await fsExc.writeFile(indexPath, indexContent);
+        }
+
         Global.toast('更新git成功');
     } catch (error) {
         Global.snack('更新git错误', error);

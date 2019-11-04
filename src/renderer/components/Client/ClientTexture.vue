@@ -51,13 +51,6 @@
           color="red500"
           @click="importDefault"
         >导入default配置</mu-button>
-        <mu-button
-          v-loading="isPullGitLoading"
-          data-mu-loading-size="24"
-          color="red500"
-          @click="pushGit"
-          v-show="gitEnable"
-        >推送Git文件</mu-button>
       </div>
       <div class="button-wrapper">
         <mu-button full-width color="red500" @click="oneForAll">One·for·All</mu-button>
@@ -125,7 +118,6 @@ export default {
       isPackerTextureLoading: false,
       isCopyTextureOutLoading: false,
       isImportDefaultLoading: false,
-      isPullGitLoading: false,
 
       sheetMode: mdTexture.getSheetMode(),
       checkBoxValues: mdTexture.getCheckBoxValues(),
@@ -247,18 +239,6 @@ export default {
         Global.hideRegionLoading();
       }
     },
-    async pushGit() {
-      this.isPullGitLoading = true;
-      Global.showRegionLoading();
-      try {
-        await mdTexture.pushGit();
-        this.isPullGitLoading = false;
-        Global.hideRegionLoading();
-      } catch (error) {
-        this.isPullGitLoading = false;
-        Global.hideRegionLoading();
-      }
-    },
     async oneForAll() {
       Global.showLoading();
       let promiseList = [];
@@ -272,9 +252,6 @@ export default {
       promiseList.push(this.packerTexture);
       promiseList.push(this.copyTextureOut);
       promiseList.push(this.importDefault);
-      if (this.gitEnable) {
-        promiseList.push(this.pushGit);
-      }
 
       for (const iterator of promiseList) {
         let success = true;

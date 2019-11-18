@@ -10,6 +10,7 @@ import * as url from 'url';
 import { ModelMgr } from "./model/ModelMgr";
 import * as qiniu from "qiniu";
 import * as ExternalUtil from "./ExternalUtil";
+import * as spawnExc from "./SpawnExecute.js";
 
 export const serverList = [
     { name: "long", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/feature/long" },
@@ -439,9 +440,6 @@ export function checkPolicyNum() {
 
 export async function pushGit() {
     try {
-        let addCmdStr = `git add ."`;
-        await spawnExc.runCmd(addCmdStr, Global.projPath, null, '添加文件错误');
-
         let commitCmdStr = `git commit -a -m "${ModelMgr.versionModel.publisher} 发布版本 ${ModelMgr.versionModel.releaseVersion}"`;
         await spawnExc.runCmd(commitCmdStr, Global.projPath, null, '提交文件错误');
 
@@ -450,6 +448,22 @@ export async function pushGit() {
 
         let pushCmdStr = `git push`;
         await spawnExc.runCmd(pushCmdStr, Global.projPath, null, '推送分支错误');
+
+        Global.toast('推送git成功');
+    } catch (error) {
+        Global.snack('推送git错误', error);
+    }
+}
+
+export async function gitTag() {
+    try {
+        //         git tag <tagName> //创建本地tag
+        // git push origin <tagName> //推送到远程仓库
+        let commitCmdStr = `git tag version/release_v${ModelMgr.versionModel.releaseVersion}`;
+        await spawnExc.runCmd(commitCmdStr, Global.projPath, null, 'git打tag错误');
+
+        let pullCmdStr = `git push origin version/release_v${ModelMgr.versionModel.releaseVersion}`;
+        await spawnExc.runCmd(pullCmdStr, Global.projPath, null, 'git推送tag错误');
 
         Global.toast('推送git成功');
     } catch (error) {

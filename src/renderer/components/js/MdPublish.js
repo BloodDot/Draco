@@ -67,14 +67,19 @@ export async function publishProject() {
             if (ModelMgr.versionModel.curEnviron.trunkName === ModelMgr.versionModel.eEnviron.beta) {
                 regCodeVersion = /public static betaCodeVersion = ".*?";/;
                 codeVersionName = "betaCodeVersion";
-            } else {
+            } else if (ModelMgr.versionModel.curEnviron.trunkName === ModelMgr.versionModel.eEnviron.ready) {
                 regCodeVersion = /public static releaseCodeVersion = ".*?";/;
                 codeVersionName = "releaseCodeVersion";
+            } else {
+                //reserve
             }
-            configContent = configContent.replace(regCodeVersion, `public static ${codeVersionName} = "${ModelMgr.versionModel.releaseVersion}";`);
+            if (regCodeVersion) {
+                configContent = configContent.replace(regCodeVersion, `public static ${codeVersionName} = "${ModelMgr.versionModel.releaseVersion}";`);
+            }
 
             let regTrunkName = /public static trunkName: eTrunkName = .*?;/;
             configContent = configContent.replace(regTrunkName, `public static trunkName: eTrunkName = eTrunkName.${ModelMgr.versionModel.curEnviron.trunkName};`);
+
             await fsExc.writeFile(configPath, configContent);
         }
 

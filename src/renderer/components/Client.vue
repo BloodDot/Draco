@@ -4,7 +4,7 @@
       <mu-appbar color="primary" :title="appTitle"></mu-appbar>
       <mu-alert color="warning" v-show="egretEnable">
         <mu-icon left value="warning"></mu-icon>
-        <h1 class="warn-text">更新配置和资源前,请先拉取GIT文件</h1>
+        <h3 class="warn-text">更新配置和资源前,请先更新GIT文件</h3>
         <component is="ClientEgret"></component>
       </mu-alert>
     </div>

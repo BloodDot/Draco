@@ -44,7 +44,15 @@ export default {
   },
   watch: {},
   methods: {
-    async updateGit() {},
+    async updateGit() {
+      this.isUpdateGitLoading = true;
+      try {
+        await mdEgret.updateGit();
+        this.isUpdateGitLoading = false;
+      } catch (error) {
+        this.isUpdateGitLoading = false;
+      }
+    },
     async egretRun() {
       this.isEgretRunLoading = true;
       try {

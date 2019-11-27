@@ -2,18 +2,27 @@
   <div>
     <mu-container>
       <div>
-        <mu-select
-          label="发布环境"
-          @change="environChange"
-          filterable
-          v-model="curEnviron"
-          label-float
-          full-width
-        >
+        <mu-select label="发布环境" @change="environChange" filterable v-model="curEnviron" label-float>
           <mu-option
             v-for="value,index in environList"
             :key="value.name"
             :label="value.name"
+            :value="value"
+          ></mu-option>
+        </mu-select>
+
+        <mu-select
+          label="语言环境"
+          @change="languageChange"
+          filterable
+          v-model="curLanguage"
+          label-float
+          v-show="curEnviron&&curEnviron.languageEnable"
+        >
+          <mu-option
+            v-for="value,index in languageList"
+            :key="value.displayName"
+            :label="value.displayName"
             :value="value"
           ></mu-option>
         </mu-select>
@@ -368,6 +377,8 @@ export default {
       releaseList: [],
       curEnviron: ModelMgr.versionModel.curEnviron,
       environList: [],
+      curLanguage: null,
+      languageList: [],
 
       needPatch: true,
       gameVersionList: [],
@@ -461,6 +472,10 @@ export default {
       this.publisher = null;
       this.updatePublishText();
       this.updateVersionDescText();
+    },
+    async languageChange() {
+      ModelMgr.languageModel.curLanguage = this.curLanguage;
+      await this.environChange();
     },
     needPatchChange() {
       if (this.needPatch) {
@@ -822,7 +837,9 @@ export default {
     this.environList = ModelMgr.versionModel.environList.filter(
       value => Global.mode.environNames.indexOf(value.name) != -1
     );
+    this.languageList = ModelMgr.languageModel.languageList.concat();
     this.curEnviron = ModelMgr.versionModel.curEnviron;
+    this.curLanguage = this.languageList[0];
     this.environChange();
 
     ipcRenderer.on("client_one_click", (event, msg) => {

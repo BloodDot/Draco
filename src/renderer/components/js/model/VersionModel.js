@@ -14,31 +14,35 @@ export class VersionModel {
     environList = [
         {
             name: this.eEnviron.alpha, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            zipPath: "/alpha/zip", scpRootPath: "/web", scpPath: "/web/alpha", localPath: "/alpha/web", localPolicyPath: "/alpha/policy",
-            updateGitEnable: false, gitBranch: "", trunkName: "alpha",
+            trunkPath: "/alpha", zipPath: "/zip", scpRootPath: "/web", scpPath: "/web/alpha", webPath: "/web", policyPath: "/policy",
+            updateGitEnable: false, trunkName: "alpha",
             publishEnable: true, mergeVersionEnable: false, compressPicEnable: false, zipFileEnable: true, policyEnable: false, cdnEnable: false,
             pushGitEnable: false, publishDescEnable: true, codeVersionEnable: true, gitTagEnable: false, zipUploadGameEnable: false,
+            languageEnable: false
         },
         {
             name: this.eEnviron.beta, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            zipPath: "/beta/zip", scpRootPath: "/web", scpPath: "/web/beta", localPath: "/beta/web", localPolicyPath: "/beta/policy",
-            updateGitEnable: true, gitBranch: "trunk/beta", trunkName: "beta",
+            trunkPath: "/beta", zipPath: "/zip", scpRootPath: "/web", scpPath: "/test/beta", webPath: "/web", policyPath: "/policy",
+            updateGitEnable: true, trunkName: "beta",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
             pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: false, zipUploadGameEnable: false,
+            languageEnable: true
         },
         {
             name: this.eEnviron.ready, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            zipPath: "/ready/zip", scpRootPath: "/web", scpPath: "/web/ready", localPath: "/ready/web", localPolicyPath: "/ready/policy",
-            updateGitEnable: true, gitBranch: "trunk/release", trunkName: "release",
+            trunkPath: "/ready", zipPath: "/zip", scpRootPath: "/web", scpPath: "/test/ready", webPath: "/web", policyPath: "/policy",
+            updateGitEnable: true, trunkName: "release",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
             pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: true, zipUploadGameEnable: false,
+            languageEnable: true
         },
         {
             name: this.eEnviron.release, host: "bg-stage.wkcoding.com", user: "ftpadmin", password: "unclemiao",
-            zipPath: "/ready/zip", scpRootPath: "", scpPath: "", localPath: "/ready/web", localPolicyPath: "/release/policy",
-            updateGitEnable: false, gitBranch: "", trunkName: "",
+            trunkPath: "/ready", zipPath: "/zip", scpRootPath: "", scpPath: "", webPath: "/web", policyPath: "/policy",
+            updateGitEnable: false, trunkName: "",
             publishEnable: false, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: false, policyEnable: true, cdnEnable: true,
             pushGitEnable: false, publishDescEnable: false, codeVersionEnable: false, gitTagEnable: false, zipUploadGameEnable: false,
+            languageEnable: true
         },
     ];
 
@@ -169,16 +173,16 @@ export class VersionModel {
     }
 
     async initVersionList() {
-        let localPath = Global.svnPublishPath + this.curEnviron.localPath;
-        await fsExc.makeDir(localPath);
+        let webPath = Global.svnPublishWebPath;
+        await fsExc.makeDir(webPath);
 
-        let cdnDir = await fsExc.readDir(localPath);
+        let webDir = await fsExc.readDir(webPath);
 
         this.oldVersionList = [];
         this.releaseList = [];
         this.patchList = [];
         let reg = /[A-Za-z]_*/g;
-        for (const iterator of cdnDir) {
+        for (const iterator of webDir) {
             if (iterator.indexOf("release") != -1) {
                 this.oldVersionList.push(iterator.replace(reg, ""));
             }
@@ -229,9 +233,11 @@ export class VersionModel {
                 resolve();
                 return;
             }
-            let value = await ExternalUtil.getPolicyInfo(this.curEnviron.name, "bian_game");
+            let value = await ExternalUtil.getPolicyInfo(Global.getPolicyVersionName());
             let data = JSON.parse(value);
             if (data.Code != 0) {
+                this.releaseVersion = 1;
+                this.oldVersion = 0;
                 resolve();
                 return;
             }
@@ -240,50 +246,20 @@ export class VersionModel {
                 async (gameVersion) => {
                     this.releaseVersion = parseInt(gameVersion) + 1;
 
-                    let oldVersionPath = `${Global.svnPublishPath}${this.curEnviron.localPath}/release_v${gameVersion}s`;
+                    let oldVersionPath = `${Global.svnPublishWebPath}/release_v${gameVersion}s`;
                     let exist = await fsExc.exists(oldVersionPath);
                     if (exist) {
                         this.oldVersion = gameVersion;
+                    } else {
+                        this.oldVersion = 0;
                     }
                     resolve();
                 },
                 () => {
+                    this.releaseVersion = 1;
+                    this.oldVersion = 0;
                     resolve();
                 })
-
-            // let options = {
-            //     host: '47.107.73.43', // 请求地址 域名，google.com等..
-            //     // port: 10001,
-            //     path: `${this.curEnviron.scpPath}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
-            //     method: 'GET', // 请求方式, 这里以post为例
-            //     headers: { // 必选信息,  可以抓包工看一下
-            //         'Content-Type': 'application/json'
-            //     }
-            // };
-            // http.get(options, (response) => {
-            //     if (response.statusCode != 200) {
-            //         resolve();
-            //         return;
-            //     }
-
-            //     let resData = "";
-            //     response.on("data", (data) => {
-            //         resData += data;
-            //     });
-            //     response.on("end", async () => {
-            //         // console.log(resData);
-
-            //         let obj = JSON.parse(resData);
-            //         this.releaseVersion = parseInt(obj.normalVersion) + 1;
-
-            //         let oldVersionPath = `${Global.svnPublishPath}${this.curEnviron.localPath}/release_v${obj.normalVersion}s`;
-            //         let exist = await fsExc.exists(oldVersionPath);
-            //         if (exist) {
-            //             this.oldVersion = obj.normalVersion;
-            //         }
-            //         resolve();
-            //     });
-            // })
         });
     }
 
@@ -291,7 +267,7 @@ export class VersionModel {
         let options = {
             host: environ.host, // 请求地址 域名，google.com等.. 
             // port: 10001,
-            path: `${environ.scpPath}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
+            path: `${Global.getScpPath(environ, false)}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
             method: 'GET', // 请求方式, 这里以post为例
             headers: { // 必选信息,  可以抓包工看一下
                 'Content-Type': 'application/json'
@@ -354,12 +330,12 @@ export class VersionModel {
     }
 
     async getCurPolicyInfo() {
-        return await ExternalUtil.getPolicyInfo(this.curEnviron.name);
+        return await ExternalUtil.getPolicyInfo(Global.getPolicyVersionName());
     }
 
     async getEnvironGameVersion(environName = this.curEnviron.name) {
         return new Promise(async (resolve, reject) => {
-            let value = await ExternalUtil.getPolicyInfo(environName);
+            let value = await ExternalUtil.getPolicyInfo(Global.getPolicyVersionName(environName));
             let environ = this.environList.find(value => value.name === environName);
             let data = JSON.parse(value);
             if (data.Code == 0) {

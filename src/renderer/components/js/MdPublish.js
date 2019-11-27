@@ -6,7 +6,7 @@ import { ModelMgr } from './model/ModelMgr';
 import * as spawnExc from './SpawnExecute.js';
 
 const releaseSuffix = '/bin-release/web/';
-const thmFileSuffix = 'resource/default.thm.json';
+// const thmFileSuffix = 'resource/default.thm.json';
 const defaultResSuffix = 'resource/default.res.json';
 const mapDataResSuffix = 'resource/mapData.res.json';
 const asyncResSuffix = 'resource/async.res.json';
@@ -27,7 +27,7 @@ const indie_suffix_path = '/resource/indie';
 const assetSfxValues = [assetsSfx, asyncSfx, indieSfx, externalSfx];
 
 export async function updateGit() {
-    let gitBranch = ModelMgr.versionModel.curEnviron.gitBranch;
+    let gitBranch = `${ModelMgr.languageModel.curLanguage.trunkFold}/${ModelMgr.versionModel.curEnviron.trunkName}${ModelMgr.languageModel.curLanguage.trunkSuffix}`;
     try {
         let storeCmdStr = `git checkout -- .`;
         await spawnExc.runCmd(storeCmdStr, Global.projPath, null, '还原分支错误');
@@ -80,6 +80,9 @@ export async function publishProject() {
             let regTrunkName = /public static trunkName: eTrunkName = .*?;/;
             configContent = configContent.replace(regTrunkName, `public static trunkName: eTrunkName = eTrunkName.${ModelMgr.versionModel.curEnviron.trunkName};`);
 
+            let regLanguageName = /public static language: eLanguage = .*?;/;
+            configContent = configContent.replace(regLanguageName, `public static language: eLanguage = eLanguage.${ModelMgr.languageModel.curLanguage.name};`);
+
             await fsExc.writeFile(configPath, configContent);
         }
 
@@ -87,9 +90,15 @@ export async function publishProject() {
         await spawnExc.runCmd(cmdStr, Global.projPath, null, '发布当前项目错误');
         ModelMgr.versionModel.setNewVersion(releaseVersion);
 
+        let indexPath = `${Global.projPath}/bin-release/web/${releaseVersion}/index.html`;
+        let indexContent = await fsExc.readFile(indexPath);
+        if (ModelMgr.versionModel.curEnviron.codeVersionEnable) {
+            indexContent = indexContent.replace("//window.trunkName", `window.trunkName="${ModelMgr.versionModel.curEnviron.trunkName}"`);
+            indexContent = indexContent.replace("//window.languageName", `window.languageName="${ModelMgr.languageModel.curLanguage.name}"`);
+            await fsExc.writeFile(indexPath, indexContent);
+        }
+
         if (ModelMgr.versionModel.versionDesc) {
-            let indexPath = `${Global.projPath}/bin-release/web/${releaseVersion}/index.html`;
-            let indexContent = await fsExc.readFile(indexPath);
             indexContent = indexContent.replace("//window.location.href", `window.location.hash='publisher="${ModelMgr.versionModel.publisher}"&versionDesc="${ModelMgr.versionModel.versionDesc}"'`);
             await fsExc.writeFile(indexPath, indexContent);
         }
@@ -100,6 +109,10 @@ export async function publishProject() {
             let configContent = await fsExc.readFile(configPath);
             let regTrunkName = /public static trunkName: eTrunkName = .*?;/;
             configContent = configContent.replace(regTrunkName, `public static trunkName: eTrunkName = eTrunkName.${ModelMgr.versionModel.eEnviron.alpha};`);
+
+            let regLanguageName = /public static language: eLanguage = .*?;/;
+            configContent = configContent.replace(regLanguageName, `public static language: eLanguage = eLanguage.zh;`);
+
             await fsExc.writeFile(configPath, configContent);
         }
         Global.toast('发布当前项目成功');
@@ -179,21 +192,21 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
     }
     let svnRlsPath;
     if (isRelease) {
-        svnRlsPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/release_v${newVersion}s`;
+        svnRlsPath = `${Global.svnPublishWebPath}/release_v${newVersion}s`;
     }
 
     let svnPatchPath;
     let oldSvnRlsPath;
     if (oldVersion) {
-        svnPatchPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/patch_v${oldVersion}s-v${newVersion}s`;
-        oldSvnRlsPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/release_v${oldVersion}s`;
+        svnPatchPath = `${Global.svnPublishWebPath}/patch_v${oldVersion}s-v${newVersion}s`;
+        oldSvnRlsPath = `${Global.svnPublishWebPath}/release_v${oldVersion}s`;
         let rlsExists = await fsExc.exists(oldSvnRlsPath);
         if (!rlsExists) {
             console.error(`--> version ${oldSvnRlsPath} dose not exist`);
             return;
         }
     } else {
-        svnPatchPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/patch_v${newVersion}s`;
+        svnPatchPath = `${Global.svnPublishWebPath}/patch_v${newVersion}s`;
     }
 
     // newVersion = newVersion.replace(new RegExp('[.]', 'g'), '-');
@@ -395,7 +408,7 @@ async function copyFileCheckDir(fileName, targetPath, newVersion) {
  * @param {*} version 
  */
 export async function checkExistVersion(version) {
-    let releasePath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/release_v${version}s`;
+    let releasePath = `${Global.svnPublishWebPath}/release_v${version}s`;
     let exist = await fsExc.exists(releasePath);
     return exist;
 }
@@ -421,11 +434,11 @@ export async function checkClearVersion(version) {
 
     console.log(`--> old version ${version} exist, start clear.`);
     try {
-        let svnPa = await fsExc.readDir(`${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}`);
+        let svnPa = await fsExc.readDir(`${Global.svnPublishWebPath}`);
         for (let i = 0; i < svnPa.length; i++) {
             const element = svnPa[i];
             if (element.indexOf(`v${version}s`) != -1) {
-                await fsExc.delFolder(`${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/${element}`);
+                await fsExc.delFolder(`${Global.svnPublishWebPath}/${element}`);
             }
         }
 

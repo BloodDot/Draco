@@ -12,8 +12,8 @@
       >
         <mu-option
           v-for="value,index in languageList"
-          :key="value.name"
-          :label="value.name"
+          :key="value.displayName"
+          :label="value.displayName"
           :value="value"
         ></mu-option>
       </mu-select>

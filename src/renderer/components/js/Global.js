@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron';
 import { ModelMgr } from "./model/ModelMgr";
 
 export class Global {
-    static currentVersion = "1.9.5 beta11";
+    static currentVersion = "1.9.5 beta12";
     static projPath = localStorage.getItem('client_project_path');
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');
@@ -112,6 +112,35 @@ export class Global {
 
     static get resourcePath() {
         return Global.projPath + '/resource';
+    }
+
+    static get svnPublishWebPath() {
+        return `${this.svnPublishPath}${ModelMgr.versionModel.curEnviron.trunkPath}${ModelMgr.languageModel.curLanguage.languagePath}${ModelMgr.versionModel.curEnviron.webPath}`;
+    }
+
+    static get svnPublishPolicyPath() {
+        return `${this.svnPublishPath}${ModelMgr.versionModel.curEnviron.trunkPath}${ModelMgr.languageModel.curLanguage.languagePath}${ModelMgr.versionModel.curEnviron.policyPath}`;
+    }
+
+    static get svnPublishZipPath() {
+        return `${this.svnPublishPath}${ModelMgr.versionModel.curEnviron.trunkPath}${ModelMgr.languageModel.curLanguage.languagePath}${ModelMgr.versionModel.curEnviron.zipPath}`;
+    }
+
+    static getScpPath(environ = ModelMgr.versionModel.curEnviron, containRoot = true) {
+        let scpPath = environ.scpPath;
+        if (containRoot) {
+            scpPath = environ.scpRootPath + scpPath;
+        }
+        if (ModelMgr.versionModel.curEnviron.languageEnable) {
+            return `${scpPath}${ModelMgr.languageModel.curLanguage.languagePath}`;
+        }
+
+        return scpPath;
+    }
+
+    static getPolicyVersionName(environName = ModelMgr.versionModel.curEnviron.name) {
+        return `${environName}_${ModelMgr.languageModel.curLanguage.name}`;
+
     }
 
     static entityCells = [];

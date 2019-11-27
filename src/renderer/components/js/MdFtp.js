@@ -58,7 +58,7 @@ export const serverList = [
 
 export async function zipVersion() {
     let environ = ModelMgr.versionModel.curEnviron;
-    let zipPath = `${Global.svnPublishPath}${environ.zipPath}/`;
+    let zipPath = `${Global.svnPublishZipPath}/`;
     await fsExc.makeDir(zipPath);
     let filePath;
     let zipName;
@@ -66,7 +66,7 @@ export async function zipVersion() {
         filePath = `${Global.releasePath}/${ModelMgr.versionModel.releaseVersion}/`;
         zipName = "release.zip";
     } else {
-        filePath = `${Global.svnPublishPath}${environ.localPath}/${ModelMgr.versionModel.uploadVersion}/`;
+        filePath = `${Global.svnPublishWebPath}/${ModelMgr.versionModel.uploadVersion}/`;
         zipName = ModelMgr.versionModel.needPatch ? "patch.zip" : "release.zip";
     }
 
@@ -95,12 +95,12 @@ export function uploadCdnVersionFile() {
             return;
         }
 
-        let readyEnviron = ModelMgr.versionModel.environList.find(value => value.name === ModelMgr.versionModel.eEnviron.ready);
-        let readyPath = `${Global.svnPublishPath}${readyEnviron.localPath}`;
+        // let readyEnviron = ModelMgr.versionModel.environList.find(value => value.name === ModelMgr.versionModel.eEnviron.ready);
+        let svnPublishWebPath = `${Global.svnPublishWebPath}`;
         let curGameVersion = releaseGameVersion;
         for (let i = +releaseGameVersion + 1; i <= readyGameVersion; i++) {
             let patchVersion = `patch_v${curGameVersion}s-v${i}s`;
-            let patchPath = `${readyPath}/${patchVersion}/`;
+            let patchPath = `${svnPublishWebPath}/${patchVersion}/`;
             let patchExist = await fsExc.exists(patchPath);
             if (!patchExist) {
                 continue;
@@ -155,6 +155,9 @@ function checkUploaderFiles(rootPath, filePathArr, uploadCount, resolve, reject)
 }
 
 function checkUploaderFile(rootPath, filePath, uploadCount, successFunc) {
+    console.log(`rootPath:${rootPath} filePath:${filePath}`)
+
+    return;
     uploadCount++;
     uploaderFile(rootPath, filePath,
         () => {
@@ -197,7 +200,7 @@ function uploaderFile(rootPath, filePath, successFunc, failFunc) {
 
 async function uploadScpVersionFile() {
     let environ = ModelMgr.versionModel.curEnviron;
-    let zipPath = `${Global.svnPublishPath}${environ.zipPath}/`;
+    let zipPath = `${Global.svnPublishZipPath}/`;
     let zipName;
     if (environ.name === ModelMgr.versionModel.eEnviron.alpha) {
         zipName = "release.zip";
@@ -212,8 +215,8 @@ async function uploadScpVersionFile() {
         Global.snack(`不存在文件${webZipPath}`);
         return;
     }
-    await scpFile(webZipPath);
-    await unzipProject(environ.scpRootPath + environ.scpPath, zipName);
+    await scpFile(webZipPath, zipName);
+    await unzipProject(Global.getScpPath(), zipName);
 }
 
 export async function createPolicyFile() {
@@ -224,7 +227,7 @@ export async function createPolicyFile() {
 
     let indexPath = `${Global.projPath}/rawResource/index.html`;
     let indexContent = await fsExc.readFile(indexPath);
-    indexContent = indexContent.replace(`let versionName = "release";`, `let versionName = "${ModelMgr.versionModel.curEnviron.name}";`);
+    indexContent = indexContent.replace(`let versionName = "release";`, `let versionName = "${Global.getPolicyVersionName()}";`);
     indexContent = indexContent.replace(`let channel = "bian_game";`, `let channel = "${ModelMgr.versionModel.channel}";`);
 
     let rawPolicyPath = `${Global.projPath}/rawResource/policyFile.json`;
@@ -235,7 +238,7 @@ export async function createPolicyFile() {
     }
     policyContent = JSON.stringify(policyObj);
 
-    let policyPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPolicyPath}/`;
+    let policyPath = `${Global.svnPublishPolicyPath}/`;
     await fsExc.makeDir(policyPath);
     let indexFilePath = `${policyPath}/index.html`;
     let policyFilePath = `${policyPath}/policyFile.json`;
@@ -256,7 +259,7 @@ export async function modifyPolicyFile() {
         return;
     }
 
-    let policyPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPolicyPath}/policyFile.json`;
+    let policyPath = `${Global.svnPublishPolicyPath}/policyFile.json`;
     let content = await fsExc.readFile(policyPath);
     await fsExc.delFile(policyPath);
 
@@ -268,7 +271,7 @@ export async function modifyPolicyFile() {
     policyObj["versionType"] = ModelMgr.versionModel.versionTypes.indexOf(ModelMgr.versionModel.versionType);
     content = JSON.stringify(policyObj);
 
-    let newPolicyPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPolicyPath}/policyFile_v${ModelMgr.versionModel.policyNum}.json`;
+    let newPolicyPath = `${Global.svnPublishPolicyPath}/policyFile_v${ModelMgr.versionModel.policyNum}.json`;
     await fsExc.writeFile(newPolicyPath, content);
 
     Global.toast('修改策略文件成功');
@@ -285,7 +288,7 @@ export async function uploadPolicyFile() {
 export function uploadCdnPolicyFile() {
     return new Promise(async (resolve, reject) => {
         let uploadCount = 0;
-        let policyPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPolicyPath}/`;
+        let policyPath = `${Global.svnPublishPolicyPath}/`;
         let policyFilePathArr = [];
         let files = await fsExc.readDir(policyPath);
         for (const iterator of files) {
@@ -301,20 +304,19 @@ export function uploadCdnPolicyFile() {
 }
 
 async function uploadScpPolicyFile() {
-    let policyPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPolicyPath}/`;
+    let policyPath = `${Global.svnPublishPolicyPath}/`;
 
     let files = await fsExc.readDir(policyPath);
     for (const iterator of files) {
-        if (iterator === "index.html"
-            || iterator.indexOf("policyFile") != -1) {
-            await scpFile(`${policyPath}/${iterator}`);
+        if (iterator === "index.html" || iterator.indexOf("policyFile") != -1) {
+            await scpFile(`${policyPath}/${iterator}`, iterator);
         }
     }
 
     Global.toast('上传策略文件成功');
 }
 
-async function scpFile(path) {
+async function scpFile(path, fileName) {
     return new Promise((resolve, reject) => {
         let client = new scp2.Client();
         client.on("transfer", (buffer, uploaded, total) => {
@@ -329,7 +331,7 @@ async function scpFile(path) {
                 host: environ.host,
                 user: environ.user,
                 password: environ.password,
-                path: environ.scpRootPath + environ.scpPath
+                path: `${Global.getScpPath()}/${fileName}`
             },
             client,
             (err) => {
@@ -413,7 +415,7 @@ function unzipProject(filePath, fileName) {
                 host: environ.host,
                 user: environ.user,
                 password: environ.password,
-                path: environ.scpRootPath + environ.scpPath
+                path: `${Global.getScpPath()}/${fileName}`
             });
     })
 }
@@ -425,7 +427,7 @@ export async function applyPolicyNum() {
     }
 
     try {
-        await ExternalUtil.applyPolicyNum(ModelMgr.versionModel.policyNum, ModelMgr.versionModel.curEnviron.name, ModelMgr.versionModel.channel);
+        await ExternalUtil.applyPolicyNum(ModelMgr.versionModel.policyNum, Global.getPolicyVersionName(), ModelMgr.versionModel.channel);
         Global.toast('应用策略版本成功');
     } catch (error) {
         Global.snack('应用策略版本错误', error);
@@ -462,12 +464,12 @@ export async function applyLessonPolicyNum(isTest) {
 }
 
 export function checkPolicyNum() {
-    return ExternalUtil.getPolicyInfo(ModelMgr.versionModel.curEnviron.name);
+    return ExternalUtil.getPolicyInfo(Global.getPolicyVersionName());
 }
 
 export async function pushGit() {
     try {
-        let commitCmdStr = `git commit -a -m "${ModelMgr.versionModel.publisher} 发布${ModelMgr.versionModel.curEnviron.name}版本 ${ModelMgr.versionModel.releaseVersion}"`;
+        let commitCmdStr = `git commit -a -m "${ModelMgr.versionModel.publisher} 发布${ModelMgr.versionModel.curEnviron.name}${ModelMgr.languageModel.curLanguage.trunkSuffix}分支 ${ModelMgr.versionModel.releaseVersion}版本"`;
         await spawnExc.runCmd(commitCmdStr, Global.projPath, null, '提交文件错误');
 
         let pullCmdStr = `git pull`;

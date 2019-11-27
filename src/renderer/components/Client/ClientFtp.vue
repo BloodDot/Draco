@@ -310,38 +310,38 @@ export default {
       }
     },
 
-    async refreshVersionList() {
-      this.releaseList = [];
-      this.patchList = [];
-      let webDir = await fsExc.readDir(localPath);
-      let reg = /[A-Za-z]_*/g;
-      for (const iterator of webDir) {
-        if (iterator.indexOf("release") != -1) {
-          iterator;
-          this.releaseList.push(iterator);
-        }
+    // async refreshVersionList() {
+    //   this.releaseList = [];
+    //   this.patchList = [];
+    //   let webDir = await fsExc.readDir(localPath);
+    //   console.log(`webDir: ${webDir}`);
+    //   let reg = /[A-Za-z]_*/g;
+    //   for (const iterator of webDir) {
+    //     if (iterator.indexOf("release") != -1) {
+    //       this.releaseList.push(iterator);
+    //     }
 
-        if (iterator.indexOf("patch") != -1) {
-          this.patchList.push(iterator);
-        }
-      }
+    //     if (iterator.indexOf("patch") != -1) {
+    //       this.patchList.push(iterator);
+    //     }
+    //   }
 
-      this.releaseList = this.releaseList.sort((a, b) => {
-        return parseInt(a.replace(reg, "")) - parseInt(b.replace(reg, ""));
-      });
+    //   this.releaseList = this.releaseList.sort((a, b) => {
+    //     return parseInt(a.replace(reg, "")) - parseInt(b.replace(reg, ""));
+    //   });
 
-      this.patchList = this.patchList.sort((a, b) => {
-        return parseInt(a.replace(reg, "")) - parseInt(b.replace(reg, ""));
-      });
+    //   this.patchList = this.patchList.sort((a, b) => {
+    //     return parseInt(a.replace(reg, "")) - parseInt(b.replace(reg, ""));
+    //   });
 
-      this.needPatchChange();
+    //   this.needPatchChange();
 
-      let releaseVersion = this.releaseList[this.releaseList.length - 1];
-      let versionInfo = releaseVersion.split("_v");
-      this.whiteVersion = this.normalVersion = this.displayVersion = versionInfo[
-        versionInfo.length - 1
-      ].replace(reg, "");
-    },
+    //   let releaseVersion = this.releaseList[this.releaseList.length - 1];
+    //   let versionInfo = releaseVersion.split("_v");
+    //   this.whiteVersion = this.normalVersion = this.displayVersion = versionInfo[
+    //     versionInfo.length - 1
+    //   ].replace(reg, "");
+    // },
     // refreshServerList() {
     //   this.serverList = mdFtp.serverList;
     //   this.serverInfo = this.serverList[this.serverList.length - 1];
@@ -361,7 +361,7 @@ export default {
   },
   async mounted() {
     await ModelMgr.ftpModel.init();
-    await this.refreshVersionList();
+    // await this.refreshVersionList();
     // this.refreshServerList();
     this.refreshChannelList();
     // mdFtp.setNeedPatch(this.needPatch);

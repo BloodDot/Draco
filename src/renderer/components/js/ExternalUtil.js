@@ -13,6 +13,7 @@ export function getPolicyInfo(versionName) {
         //     .digest('hex');
 
         let getData = `?versionName=${versionName}&&channel=${channel}&&time=${time}&&due=${due}&&token=${token}`
+        console.log(`--> get policy num versionName:${versionName}`);
 
         let options = {
             host: '47.107.73.43', // 请求地址 域名，google.com等..

@@ -40,6 +40,7 @@
         data-mu-loading-size="24"
         color="blue500"
         @click="copyUIText"
+        v-show="curLanguage&&curLanguage.UITextEnable"
       >拷贝UIText文件</mu-button>
     </div>
     <div class="button-wrapper">
@@ -128,7 +129,9 @@ export default {
         await this.updateSvn();
         await this.zipCsv();
         await this.createTs();
-        await this.copyUIText();
+        if (curLanguage && curLanguage.UITextEnable) {
+          await this.copyUIText();
+        }
         Global.hideLoading();
         Global.toast("One·for·All Success");
       } catch (error) {

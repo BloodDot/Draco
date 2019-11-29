@@ -80,9 +80,6 @@ export async function publishProject() {
             let regTrunkName = /public static trunkName: eTrunkName = .*?;/;
             configContent = configContent.replace(regTrunkName, `public static trunkName: eTrunkName = eTrunkName.${ModelMgr.versionModel.curEnviron.trunkName};`);
 
-            let regLanguageName = /public static language: eLanguage = .*?;/;
-            configContent = configContent.replace(regLanguageName, `public static language: eLanguage = eLanguage.${ModelMgr.languageModel.curLanguage.name};`);
-
             await fsExc.writeFile(configPath, configContent);
         }
 
@@ -94,7 +91,6 @@ export async function publishProject() {
         let indexContent = await fsExc.readFile(indexPath);
         if (ModelMgr.versionModel.curEnviron.codeVersionEnable) {
             indexContent = indexContent.replace("//window.trunkName", `window.trunkName="${ModelMgr.versionModel.curEnviron.trunkName}"`);
-            indexContent = indexContent.replace("//window.languageName", `window.languageName="${ModelMgr.languageModel.curLanguage.name}"`);
             await fsExc.writeFile(indexPath, indexContent);
         }
 
@@ -109,9 +105,6 @@ export async function publishProject() {
             let configContent = await fsExc.readFile(configPath);
             let regTrunkName = /public static trunkName: eTrunkName = .*?;/;
             configContent = configContent.replace(regTrunkName, `public static trunkName: eTrunkName = eTrunkName.${ModelMgr.versionModel.eEnviron.alpha};`);
-
-            let regLanguageName = /public static language: eLanguage = .*?;/;
-            configContent = configContent.replace(regLanguageName, `public static language: eLanguage = eLanguage.zh;`);
 
             await fsExc.writeFile(configPath, configContent);
         }

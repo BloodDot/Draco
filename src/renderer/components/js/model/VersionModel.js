@@ -22,7 +22,7 @@ export class VersionModel {
         },
         {
             name: this.eEnviron.beta, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            trunkPath: "/beta", zipPath: "/zip", scpRootPath: "/web", scpPath: "/test/beta", webPath: "/web", policyPath: "/policy",
+            trunkPath: "/beta", zipPath: "/zip", scpRootPath: "/web", scpPath: "/web/beta", webPath: "/web", policyPath: "/policy",
             updateGitEnable: true, trunkName: "beta",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
             pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: false, zipUploadGameEnable: false,
@@ -30,7 +30,7 @@ export class VersionModel {
         },
         {
             name: this.eEnviron.ready, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            trunkPath: "/ready", zipPath: "/zip", scpRootPath: "/web", scpPath: "/test/ready", webPath: "/web", policyPath: "/policy",
+            trunkPath: "/ready", zipPath: "/zip", scpRootPath: "/web", scpPath: "/web/ready", webPath: "/web", policyPath: "/policy",
             updateGitEnable: true, trunkName: "release",
             publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
             pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: true, zipUploadGameEnable: false,

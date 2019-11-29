@@ -288,7 +288,7 @@ export async function uploadPolicyFile() {
 export function uploadCdnPolicyFile() {
     return new Promise(async (resolve, reject) => {
         let uploadCount = 0;
-        let policyPath = `${Global.svnPublishPolicyPath}/`;
+        let policyPath = `${Global.svnPublishPolicyPath}`;
         let policyFilePathArr = [];
         let files = await fsExc.readDir(policyPath);
         for (const iterator of files) {
@@ -304,7 +304,7 @@ export function uploadCdnPolicyFile() {
 }
 
 async function uploadScpPolicyFile() {
-    let policyPath = `${Global.svnPublishPolicyPath}/`;
+    let policyPath = `${Global.svnPublishPolicyPath}`;
 
     let files = await fsExc.readDir(policyPath);
     for (const iterator of files) {

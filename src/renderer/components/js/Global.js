@@ -66,36 +66,49 @@ export class Global {
         return Global.clientPath + '/platform/android';
     }
 
+    /** csv目录 */
     static get svnCsvPath() {
         return Global.svnPath + ModelMgr.languageModel.curLanguage.csvPath;
     }
 
+    /** UI文字目录 */
     static get svnUITextPath() {
         return Global.svnPath + ModelMgr.languageModel.curLanguage.UITextPath;
     }
 
+    /** 切图源资源目录 */
     static get svnResPath() {
         return Global.svnPath + '/settings/resource';
     }
 
+    /** 美术资源目录 */
     static get svnArtPath() {
         return Global.svnPath + '/art';
     }
 
+    /** 项目比较版本后发布目录 */
     static get svnPublishPath() {
         return Global.svnPath + '/client/publish';
     }
 
+    /** 协议生成目录 */
     static get pbMessagePath() {
         return Global.protoPath + '/pbmessage';
     }
 
+    /** 项目发布目录 */
     static get releasePath() {
         return Global.projPath + '/bin-release/web';
     }
 
+    /** 源资源路径 */
     static get rawResourcePath() {
         return Global.projPath + '/rawResource';
+    }
+
+    /** 翻译文本路径 */
+    static get svnTranslationPath() {
+        return Global.svnPath + '/settings/config/translation';
     }
 
     // static get compressPath() {

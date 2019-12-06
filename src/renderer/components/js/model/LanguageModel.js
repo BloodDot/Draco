@@ -4,6 +4,9 @@ export class LanguageModel {
         en: "en",
     }
 
+    defaultCsvPath = "/settings/config/csv";
+    zhCsvPath = "/settings/config/csv_zh";
+
     curLanguage;
 
     languageTableName = "Language.csv";

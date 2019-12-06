@@ -57,6 +57,13 @@
             <mu-list-item-title>Asset</mu-list-item-title>
           </mu-list-item>
 
+          <mu-list-item button :ripple="false" value="ClientLanguage" v-show="languageEnable">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="language" />
+            </mu-list-item-action>
+            <mu-list-item-title>Language</mu-list-item-title>
+          </mu-list-item>
+
           <!-- <mu-list-item button :ripple="false" value="ClientEgret" v-show="egretEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="apps" />
@@ -235,6 +242,7 @@ export default {
       textureEnable: false,
       mapDataEnable: false,
       assetEnable: false,
+      languageEnable: true,
       egretEnable: false,
       versionEnable: false,
       lessonEnable: false,
@@ -379,6 +387,7 @@ export default {
     ClientMapData: require("./Client/ClientMapData"),
     ClientSetting: require("./Client/ClientSetting"),
     ClientAsset: require("./Client/ClientAsset"),
+    ClientLanguage: require("./Client/ClientLanguage"),
     ClientEgret: require("./Client/ClientEgret"),
     ClientVersion: require("./Client/ClientVersion"),
     ClientLesson: require("./Client/ClientLesson"),

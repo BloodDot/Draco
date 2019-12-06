@@ -123,7 +123,26 @@ export async function readFile(path, encoding = "utf-8") {
  * @param {*} path 
  * @param {*} content 
  */
-export function writeFile(path, content) {
+export function writeFile(path, content, encoding = "utf-8") {
+    // await fs.writeFileSync(path, content);
+    return new Promise((resolve, reject) => {
+        fs.writeFile(path, content, encoding, writeError => {
+            if (writeError) {
+                console.error(writeError);
+                reject();
+            } else {
+                resolve();
+            }
+        });
+    })
+}
+
+/**
+ * 写文件
+ * @param {*} path 
+ * @param {*} content 
+ */
+export function writeFileNoEncoding(path, content) {
     // await fs.writeFileSync(path, content);
     return new Promise((resolve, reject) => {
         fs.writeFile(path, content, writeError => {
@@ -135,6 +154,27 @@ export function writeFile(path, content) {
             }
         });
     })
+}
+
+export function writeStream(path, content, encoding = "utf-8") {
+    return new Promise((resolve, reject) => {
+        var writerStream = fs.createWriteStream(path);
+        // 使用 utf8 编码写入数据
+        writerStream.write(content, encoding);
+        // 标记文件末尾
+        writerStream.end();
+
+        // 处理流事件 --> data, end, and error
+        writerStream.on('finish', () => {
+            console.log("写入完成。");
+            resolve();
+        });
+
+        writerStream.on('error', (err) => {
+            console.log(err.stack);
+            reject();
+        });
+    });
 }
 
 //获取文件所在目录

@@ -7,16 +7,16 @@ export async function readCsvContent(path) {
     return iconv.decode(buffer, 'gbk');
 }
 
-export async function getCsvCells(path) {
+export async function getCsvCells(path, useUndefined = false) {
     // let content = await fsExc.readFile(path, null);
     // let buffer = new Buffer(content, 'gbk');
     // content = iconv.decode(buffer, 'gbk');
 
     let content = await readCsvContent(path);
-    return csvToArray(content);
+    return csvToArray(content, useUndefined);
 }
 
-function csvToArray(strData, strDelimiter = undefined) {
+function csvToArray(strData, useUndefined, strDelimiter = undefined) {
     // Check to see if the delimiter is defined. If not,
     // then default to comma.
     strDelimiter = (strDelimiter || ",");
@@ -97,48 +97,53 @@ function csvToArray(strData, strDelimiter = undefined) {
                 dictIndex++;
                 continue;
             }
-            if (arrVect[2][dictIndex] === "bool") {
-                strMatchedValue = (strMatchedValue === "0" || strMatchedValue === "") ? false : true;
-            } else if (arrVect[2][dictIndex] === "bool[]") {
-                strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(",");
-                for (let i = 0; i < strMatchedValue.length; i++) {
-                    strMatchedValue[i] = (strMatchedValue[i] === "0" || strMatchedValue[i] === "") ? false : true;
-                }
-            } else if (arrVect[2][dictIndex] === "bool[][]") {
-                strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(";");
-                for (let i = 0; i < strMatchedValue.length; i++) {
-                    strMatchedValue[i] = strMatchedValue[i].split(",");
-                    for (let j = 0; j < strMatchedValue[i].length; j++) {
-                        strMatchedValue[i][j] = (strMatchedValue[i][j] === "0" || strMatchedValue[i][j] === "") ? false : true;
-                    }
-                }
-            } else if (arrVect[2][dictIndex] === "string") {
-                //reserve 不用赋值
-            } else if (arrVect[2][dictIndex] === "string[]") {
-                strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(",");
-            } else if (arrVect[2][dictIndex] === "string[][]") {
-                strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(";");
-                for (let i = 0; i < strMatchedValue.length; i++) {
-                    strMatchedValue[i] = strMatchedValue[i].split(",");
-                }
-            } else if (arrVect[2][dictIndex] === "int" || arrVect[2][dictIndex] === "float") {
-                strMatchedValue = strMatchedValue === "" ? 0 : parseFloat(strMatchedValue);
-            } else if (arrVect[2][dictIndex] === "int[]" || arrVect[2][dictIndex] === "float[]") {
-                strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(",");
-                for (let i = 0; i < strMatchedValue.length; i++) {
-                    strMatchedValue[i] = parseFloat(strMatchedValue[i]);
-                }
-            } else if (arrVect[2][dictIndex] === "int[][]" || arrVect[2][dictIndex] === "float[][]") {
-                strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(";");
-                for (let i = 0; i < strMatchedValue.length; i++) {
-                    strMatchedValue[i] = strMatchedValue[i].split(",");
-                    for (let j = 0; j < strMatchedValue[i].length; j++) {
-                        strMatchedValue[i][j] = parseFloat(strMatchedValue[i][j]);
-                    }
-                }
+            if (useUndefined && strMatchedValue === "") {
+                strMatchedValue = undefined;
             } else {
-                //reserve
+                if (arrVect[2][dictIndex] === "bool") {
+                    strMatchedValue = (strMatchedValue === "0" || strMatchedValue === "") ? false : true;
+                } else if (arrVect[2][dictIndex] === "bool[]") {
+                    strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(",");
+                    for (let i = 0; i < strMatchedValue.length; i++) {
+                        strMatchedValue[i] = (strMatchedValue[i] === "0" || strMatchedValue[i] === "") ? false : true;
+                    }
+                } else if (arrVect[2][dictIndex] === "bool[][]") {
+                    strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(";");
+                    for (let i = 0; i < strMatchedValue.length; i++) {
+                        strMatchedValue[i] = strMatchedValue[i].split(",");
+                        for (let j = 0; j < strMatchedValue[i].length; j++) {
+                            strMatchedValue[i][j] = (strMatchedValue[i][j] === "0" || strMatchedValue[i][j] === "") ? false : true;
+                        }
+                    }
+                } else if (arrVect[2][dictIndex] === "string") {
+                    //reserve 不用赋值
+                } else if (arrVect[2][dictIndex] === "string[]") {
+                    strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(",");
+                } else if (arrVect[2][dictIndex] === "string[][]") {
+                    strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(";");
+                    for (let i = 0; i < strMatchedValue.length; i++) {
+                        strMatchedValue[i] = strMatchedValue[i].split(",");
+                    }
+                } else if (arrVect[2][dictIndex] === "int" || arrVect[2][dictIndex] === "float") {
+                    strMatchedValue = strMatchedValue === "" ? 0 : parseFloat(strMatchedValue);
+                } else if (arrVect[2][dictIndex] === "int[]" || arrVect[2][dictIndex] === "float[]") {
+                    strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(",");
+                    for (let i = 0; i < strMatchedValue.length; i++) {
+                        strMatchedValue[i] = parseFloat(strMatchedValue[i]);
+                    }
+                } else if (arrVect[2][dictIndex] === "int[][]" || arrVect[2][dictIndex] === "float[][]") {
+                    strMatchedValue = strMatchedValue === "" ? [] : strMatchedValue.split(";");
+                    for (let i = 0; i < strMatchedValue.length; i++) {
+                        strMatchedValue[i] = strMatchedValue[i].split(",");
+                        for (let j = 0; j < strMatchedValue[i].length; j++) {
+                            strMatchedValue[i][j] = parseFloat(strMatchedValue[i][j]);
+                        }
+                    }
+                } else {
+                    //reserve
+                }
             }
+
             arrDict[arrDict.length - 1][arrVect[1][dictIndex]] = strMatchedValue;
             dictIndex++;
         }

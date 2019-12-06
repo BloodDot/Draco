@@ -1,6 +1,7 @@
 import * as http from 'http';
 import * as crypto from 'crypto';
 
+/** 获取策略信息 */
 export function getPolicyInfo(versionName) {
     return new Promise((resolve, reject) => {
         let time = Math.floor(new Date().getTime() / 1000);
@@ -36,6 +37,7 @@ export function getPolicyInfo(versionName) {
     });
 }
 
+/** 应用策略版本号 */
 export function applyPolicyNum(policyNum, versionName, channel) {
     return new Promise((resolve, reject) => {
         let time = Math.floor(new Date().getTime() / 1000);
@@ -69,4 +71,50 @@ export function applyPolicyNum(policyNum, versionName, channel) {
             });
         })
     });
+}
+
+/** 获取a和b数组的差集 */
+export function getDiffInABArray(a, b, compareFunc) {
+    let diffArr = [];
+    let dd = false;
+    for (let i = 0; i < a.length; i++) {
+        for (let j = 0; j < b.length; j++) {
+            if (compareFunc) {
+                dd = compareFunc(a[i], b[i])
+            } else {
+                dd = a[i] === b[j];
+            }
+
+            if (dd) {
+                break;
+            }
+        }
+
+        if (!dd) {
+            diffArr.push(a[i]);
+        }
+    }
+
+    return diffArr;
+}
+
+/** 获取a和b对象的差集 */
+export function getDiffInABObject(a, b, compareFunc) {
+    let diffArr = [];
+    for (const key in a) {
+        let dd = false;
+        if (compareFunc) {
+            dd = compareFunc(a[key], b[key]);
+        } else {
+            dd = a[key] === b[key];
+        }
+
+        if (!dd) {
+            let result = {};
+            result[key] = a[key];
+            diffArr.push(result);
+        }
+    }
+
+    return diffArr;
 }

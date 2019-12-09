@@ -2,19 +2,19 @@ import { Global } from './Global.js';
 import { ModelMgr } from './model/ModelMgr'
 import * as fsExc from './FsExecute';
 import * as tableExc from './TableExecute';
-import * as path from 'path';
 import * as externalUtil from './ExternalUtil';
-// var iconv = require('iconv-lite');
 import * as iconv from "iconv-lite";
-
+import * as xml2js from "xml2js";
 /** 待处理的csv文件名称数组 */
 var pendingCsvFileNames = [];
 
-var translationContent = "";
+var csvTranslateContent = "";
+var uiTranslateContent = "";
+var lfCode = `<<LF\r\n`;
 
 /** 处理csv文件 */
 export async function executeCsv() {
-    translationContent = "\r\n";
+    csvTranslateContent = "\r\n";
     pendingCsvFileNames = [];
     await loopFilterCsv();
     await loopCompareCsv();
@@ -63,9 +63,12 @@ async function loopCompareCsv() {
         await compareSingleCsv(iterator, `${defaultCsvPath}/${iterator}`, `${zhCsvPath}/${iterator}`, `${curCsvPath}/${iterator}`);
     }
 
-    let translationPath = `${Global.svnTranslationPath}/translation_${ModelMgr.languageModel.curLanguage.name}.txt`;
-    console.log(`--> translationPath:${translationPath} translationContent: ${translationContent}`);
-    await fsExc.writeFile(translationPath, translationContent);
+    await writeCsvTranslateTxt();
+}
+
+async function writeCsvTranslateTxt() {
+    let translatePath = `${Global.svnTranslatePath}/${ModelMgr.languageModel.curLanguage.csvTranslate}`;
+    await fsExc.writeFile(translatePath, csvTranslateContent);
 }
 
 async function compareSingleCsv(csvName, defaultCsvPath, zhCsvPath, curCsvPath) {
@@ -120,7 +123,11 @@ async function compareSingleCsv(csvName, defaultCsvPath, zhCsvPath, curCsvPath) 
         curCellMap[key] = zhCellMap[key] = defaultCellMap[key];
         for (let i = 0; i < attrs.length; i++) {
             let attr = attrs[i];
-            addToTranslateTxt(csvName, key, attr, defaultCellMap[key][attr]);
+            if (!attr) {
+                continue;
+            }
+            console.log(`新增属性 csv:${csvName} id:${key} attr:${attr} value:${defaultCellMap[key][attr]}`);
+            addCsvAttrToTranslateTxt(csvName, key, attr, defaultCellMap[key][attr]);
         }
     }
 
@@ -143,19 +150,20 @@ async function compareSingleCsv(csvName, defaultCsvPath, zhCsvPath, curCsvPath) 
 
         for (let i = 0; i < attrs.length; i++) {
             const attr = attrs[i];
-            console.log(`比较相同cell,key:${key} attr:${attr}`);
+            if (!attr) {
+                continue;
+            }
             //属性被删除了,同步
             if (defaultCell[attr] === undefined) {
-                console.log(`删除属性`, zhCell);
                 curCell[attr] = zhCell[attr] = undefined;
                 continue;
             }
 
             //属性是新增的,同步,检测添加到翻译文件
             if (zhCell[attr] === undefined) {
-                console.log(`新增属性`);
+                console.log(`新增属性 csv:${csvName} id:${key} attr:${attr} value:${defaultCell[attr]}`);
                 curCell[attr] = zhCell[attr] = defaultCell[attr];
-                addToTranslateTxt(csvName, key, attr, defaultCell[attr]);
+                addCsvAttrToTranslateTxt(csvName, key, attr, defaultCell[attr]);
                 continue;
             }
 
@@ -163,28 +171,30 @@ async function compareSingleCsv(csvName, defaultCsvPath, zhCsvPath, curCsvPath) 
             let defaultCellValue = JSON.stringify(defaultCell[attr]);
             let zhCellValue = JSON.stringify(zhCell[attr]);
             if (defaultCellValue !== zhCellValue) {
-                console.log(`比较属性,属性不一致`);
+                console.log(`比较属性,属性不一致 csv:${csvName} id:${key} attr:${attr} defaultValue:${defaultCellValue} zhValue:${zhCellValue}`);
                 curCell[attr] = zhCell[attr] = defaultCell[attr];
-                addToTranslateTxt(csvName, key, attr, defaultCell[attr]);
+                addCsvAttrToTranslateTxt(csvName, key, attr, defaultCell[attr]);
                 continue;
             }
 
-            console.log(`比较属性,属性一致`);
+            //比较一致,检查是否要加入翻译表
+            addCsvAttrToTranslateTxt(csvName, key, attr, curCell[attr]);
         }
     }
 
+    await generateCsv(zhCsvPath, descs, attrs, types, zhCellMap);
     await generateCsv(curCsvPath, descs, attrs, types, curCellMap);
 }
 
-function addToTranslateTxt(csvName, id, attr, attrValue) {
+function addCsvAttrToTranslateTxt(csvName, id, attr, attrValue) {
     let reg = new RegExp("[\\u4E00-\\u9FFF]+", "g");
     if (!reg.test(attrValue)) {
         return;
     }
 
     csvName = csvName.split(".")[0];
-    translationContent += `csv_${csvName}_${id}_${attr}:${attrValue}`;
-    translationContent += `\r\n`;
+    csvTranslateContent += `${csvName}_${id}_${attr}:${attrValue}`;
+    csvTranslateContent += lfCode;
 }
 
 async function generateCsv(csvPath, descs, attrs, types, cellMap) {
@@ -253,17 +263,133 @@ async function generateCsv(csvPath, descs, attrs, types, cellMap) {
 
 
 export async function executeUIText() {
+    uiTranslateContent = "\r\n";
+    let defaultUITextPath = `${Global.svnPath}${ModelMgr.languageModel.defaultUITextPath}/UILanguage.xml`;
+    let defaultUIText = await fsExc.readFile(defaultUITextPath);
+    let defaultParser = new xml2js.Parser();
+    defaultParser.parseString(defaultUIText, async (err, defaultResult) => {
+        if (err) {
+            console.error(`读取defaultUIText错误`, err);
+            return;
+        }
+        let defaultStringMap = createStringMap(defaultResult.resources.string);
 
+        let zhUITextPath = `${Global.svnPath}${ModelMgr.languageModel.zhUITextPath}/UILanguage.xml`;
+        let zhUIText = await fsExc.readFile(zhUITextPath);
+        let zhParser = new xml2js.Parser();
+        zhParser.parseString(zhUIText, async (err, zhResult) => {
+            if (err) {
+                console.error(`读取zhUIText错误`, err);
+                return;
+            }
+            let zhStringMap = createStringMap(zhResult.resources.string);
+
+            let curUITextPath = `${Global.svnPath}${ModelMgr.languageModel.curLanguage.UITextPath}/UILanguage.xml`;
+            let curUIText = await fsExc.readFile(curUITextPath);
+            let curParser = new xml2js.Parser();
+            curParser.parseString(curUIText, async (err, curResult) => {
+                if (err) {
+                    console.error(`读取当前UIText错误`, err);
+                    return;
+                }
+                let curStringMap = createStringMap(curResult.resources.string);
+
+                let sameStringKeyMap = {};
+                let addStringKeyMap = {};
+                for (const key in defaultStringMap) {
+                    if (zhStringMap[key] != undefined) {
+                        sameStringKeyMap[key] = key;
+                    } else {
+                        addStringKeyMap[key] = key;
+                    }
+                }
+
+                let removeStringKeyMap = {};
+                for (const key in zhStringMap) {
+                    if (sameStringKeyMap[key] === undefined) {
+                        removeStringKeyMap[key] = key;
+                    }
+                }
+
+                for (const key in addStringKeyMap) {
+                    console.log(`--> add string key:${key}`);
+                    curStringMap[key] = zhStringMap[key] = defaultStringMap[key];
+
+                    addUiAttrToTranslateTxt(defaultStringMap[key]);
+                }
+
+                for (const key in removeStringKeyMap) {
+                    console.log(`--> remove string key:${key}`);
+                    delete zhStringMap[key];
+                    delete curStringMap[key];
+                }
+
+                for (const key in sameStringKeyMap) {
+                    let defaultString = defaultStringMap[key];
+                    let zhString = zhStringMap[key];
+                    let curString = curStringMap[key];
+
+                    if ((zhString !== undefined && curString === undefined)
+                        || (zhString === undefined && curString !== undefined)) {
+                        console.log(`--> zh美术文字数据和当前美术文字数据不一致 key:${key}`);
+                        continue;
+                    }
+
+                    //翻译比较,不一致的时候同步
+                    if (defaultString._ !== zhString._) {
+                        curStringMap[key] = zhStringMap[key] = defaultStringMap[key];
+                        addUiAttrToTranslateTxt(defaultStringMap[key]);
+                        console.log(`比较美术文字不一致 key:${key} default:${defaultString._} zh:${zhString._}`);
+                        continue;
+                    }
+
+                    //比较一致,检查是否要加入翻译表
+                    addUiAttrToTranslateTxt(curStringMap[key]);
+                }
+
+                await generateUiXml(zhUITextPath, zhStringMap);
+                await generateUiXml(curUITextPath, curStringMap);
+                await writeUiTranslateTxt();
+            });
+        });
+    });
 }
 
-export async function applyTranslation() {
-    loopApplyCsv();
+async function writeUiTranslateTxt() {
+    let translatePath = `${Global.svnTranslatePath}/${ModelMgr.languageModel.curLanguage.uiTranslate}`;
+    await fsExc.writeFile(translatePath, uiTranslateContent);
+}
+
+function addUiAttrToTranslateTxt(attrString) {
+    let attrKey = attrString.$.name;
+    let attrValue = attrString._;
+
+    let reg = new RegExp("[\\u4E00-\\u9FFF]+", "g");
+    if (!reg.test(attrValue)) {
+        return;
+    }
+
+    uiTranslateContent += `${attrKey}:${attrValue}`;
+    uiTranslateContent += lfCode;
+}
+
+function createStringMap(stringArr) {
+    let stringMap = {};
+    for (const iterator of stringArr) {
+        stringMap[iterator.$.name] = iterator;
+    }
+
+    return stringMap;
+}
+
+export async function applyTranslate() {
+    await loopApplyCsvTranslate();
+    await applyUiTranslate();
 }
 
 /** 循环应用csv文件 */
-async function loopApplyCsv() {
+async function loopApplyCsvTranslate() {
     let curDir = await fsExc.readDir(Global.svnCsvPath);
-    console.log(`svnCsvPath:${Global.svnCsvPath}`);
     let csvMap = {};
     for (const iterator of curDir) {
         let cells = await tableExc.getCsvCells(`${Global.svnCsvPath}/${iterator}`, true);
@@ -276,10 +402,10 @@ async function loopApplyCsv() {
         csvMap[csvName] = cellMap;
     }
 
-    let translationPath = `${Global.svnTranslationPath}/translation_${ModelMgr.languageModel.curLanguage.name}.txt`;
-    let translationContent = await fsExc.readFile(translationPath);
-    let translationArr = translationContent.split("\r\n");
-    for (const iterator of translationArr) {
+    let translatePath = `${Global.svnTranslatePath}/${ModelMgr.languageModel.curLanguage.csvTranslate}`;
+    let translateContent = await fsExc.readFile(translatePath);
+    let translateArr = translateContent.split(lfCode);
+    for (const iterator of translateArr) {
         let index = iterator.indexOf(":");
         let key = iterator.slice(0, index);
         let value = iterator.slice(index + 1, iterator.length);
@@ -293,32 +419,22 @@ async function loopApplyCsv() {
         }
 
         let keyInfo = key.split("_");
-        let type = keyInfo[0];
-        if (type === "csv") {
-            let csvName = keyInfo[1];
-            let id = keyInfo[2];
-            let attr = keyInfo[3];
+        let csvName = keyInfo[0];
+        let id = keyInfo[1];
+        let attr = keyInfo[1];
 
-            if (csvMap[csvName] === undefined) {
-                console.error(`翻译字段的配置表不存在: csv:${csvName}`);
-
-
-                continue;
-            }
-
-            if (csvMap[csvName][id] === undefined) {
-                console.error(`翻译字段的id不存在: csv:${csvName} id:${id}`);
-
-
-
-                continue;
-            }
-
-            console.log(`翻译字段信息 csvName:${csvName} id:${id} attr:${attr} value:${value}`);
-            csvMap[csvName][id][attr] = value;
-        } else {
-
+        if (csvMap[csvName] === undefined) {
+            console.error(`翻译字段的配置表不存在: csv:${csvName}`);
+            continue;
         }
+
+        if (csvMap[csvName][id] === undefined) {
+            console.error(`翻译字段的id不存在: csv:${csvName} id:${id}`);
+            continue;
+        }
+
+        console.log(`翻译字段信息 csvName:${csvName} id:${id} attr:${attr} value:${value}`);
+        csvMap[csvName][id][attr] = value;
     }
 
     for (const key in csvMap) {
@@ -337,4 +453,69 @@ async function loopApplyCsv() {
 
         await generateCsv(csvPath, descs, attrs, types, cellMap);
     }
+
+    console.log(`应用csv翻译完毕`);
+}
+
+async function applyUiTranslate() {
+    let curUITextPath = `${Global.svnPath}${ModelMgr.languageModel.curLanguage.UITextPath}/UILanguage.xml`;
+    let curUIText = await fsExc.readFile(curUITextPath);
+    let curParser = new xml2js.Parser();
+    curParser.parseString(curUIText, async (err, curResult) => {
+        if (err) {
+            console.error(`读取当前UIText错误`, err);
+            return;
+        }
+        let uiStringMap = createStringMap(curResult.resources.string);
+
+        let translatePath = `${Global.svnTranslatePath}/${ModelMgr.languageModel.curLanguage.uiTranslate}`;
+        let translateContent = await fsExc.readFile(translatePath);
+        let translateArr = translateContent.split(lfCode);
+        for (const iterator of translateArr) {
+            let index = iterator.indexOf(":");
+            if (index === -1) {
+                continue;
+            }
+
+            let key = iterator.slice(0, index);
+            let value = iterator.slice(index + 1, iterator.length);
+            if (!key && !value) {
+                continue;
+            }
+
+            if (!key || !value) {
+                console.error(`翻译错误: key:${key} value:${value}`);
+                continue;
+            }
+
+            if (uiStringMap[key] === undefined) {
+                console.error(`翻译字段的配置不存在:key:${key}`);
+                continue;
+            }
+
+            uiStringMap[key]._ = value;
+        }
+
+        await generateUiXml(curUITextPath, uiStringMap);
+
+        console.log(`应用ui翻译完毕`);
+    });
+}
+
+async function generateUiXml(uiXmlPath, stringMap) {
+    let stringObj = {
+        resources: {
+            string: []
+        }
+    }
+    for (const key in stringMap) {
+        if (stringMap.hasOwnProperty(key)) {
+            const element = stringMap[key];
+            stringObj.resources.string.push(element);
+        }
+    }
+
+    let builder = new xml2js.Builder({ xmldec: { encoding: "utf-8" } });
+    let content = builder.buildObject(stringObj);
+    await fsExc.writeFile(uiXmlPath, content);
 }

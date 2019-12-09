@@ -29,10 +29,10 @@
         @click="executeUIText"
       >处理UIText文件</mu-button>
       <mu-button
-        v-loading="isApplyTranslationLoading"
+        v-loading="isApplyTranslateLoading"
         data-mu-loading-size="24"
         color="cyan500"
-        @click="applyTranslation"
+        @click="applyTranslate"
       >应用翻译文件</mu-button>
     </div>
   </mu-container>
@@ -48,7 +48,7 @@ export default {
     return {
       isExecuteCsvLoading: false,
       isExecuteUITextLoading: false,
-      isApplyTranslationLoading: false,
+      isApplyTranslateLoading: false,
 
       languageList: ModelMgr.languageModel.languageList,
       curLanguage: ModelMgr.languageModel.curLanguage
@@ -83,15 +83,15 @@ export default {
         Global.hideRegionLoading();
       }
     },
-    async applyTranslation() {
-      this.isApplyTranslationLoading = true;
+    async applyTranslate() {
+      this.isApplyTranslateLoading = true;
       Global.showRegionLoading();
       try {
-        await mdLanguage.applyTranslation();
-        this.isApplyTranslationLoading = false;
+        await mdLanguage.applyTranslate();
+        this.isApplyTranslateLoading = false;
         Global.hideRegionLoading();
       } catch (error) {
-        this.isApplyTranslationLoading = false;
+        this.isApplyTranslateLoading = false;
         Global.hideRegionLoading();
       }
     }

@@ -107,8 +107,8 @@ export class Global {
     }
 
     /** 翻译文本路径 */
-    static get svnTranslationPath() {
-        return Global.svnPath + '/settings/config/translation';
+    static get svnTranslatePath() {
+        return Global.svnPath + '/settings/translate';
     }
 
     // static get compressPath() {

@@ -6,6 +6,9 @@ var excProcess;
 export async function updateGit() {
     return new Promise(async (resolve, reject) => {
         try {
+            let clearCmdStr = `git clear -df`;
+            await spawnExc.runCmd(clearCmdStr, Global.projPath, null, '清除文件错误');
+
             let storeCmdStr = `git checkout -- .`;
             await spawnExc.runCmd(storeCmdStr, Global.projPath, null, '还原文件错误');
 

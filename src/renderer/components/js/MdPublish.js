@@ -29,7 +29,7 @@ const assetSfxValues = [assetsSfx, asyncSfx, indieSfx, externalSfx];
 export async function updateGit() {
     let gitBranch = ModelMgr.versionModel.curEnviron.gitBranch;
     try {
-        let clearCmdStr = `git clear -df`;
+        let clearCmdStr = `git clean -df`;
         await spawnExc.runCmd(clearCmdStr, Global.projPath, null, '清除文件错误');
         await spawnExc.runCmd(clearCmdStr, Global.clientPath, null, '清除Client代码错误');
 
@@ -802,4 +802,39 @@ export async function copyPictures() {
     let projNewVersionPath = Global.projPath + releaseSuffix + ModelMgr.version.newVersion;
     await clearResource(projNewVersionPath);
     await copyResource(projNewVersionPath);
+}
+
+export async function copyVersionToNative() {
+    let pcEgretPath = Global.pcProjectPath + "/egret";
+    let releaseVersion = ModelMgr.versionModel.releaseVersion;
+    let environ = ModelMgr.versionModel.curEnviron;
+    let releasePath = `${Global.svnPublishPath}${environ.localPath}/release_v${releaseVersion}s`;
+    let policyNum = ModelMgr.versionModel.policyNum;
+
+    //删除egret文件夹
+    await fsExc.delFiles(pcEgretPath);
+
+    //拷贝egret游戏资源包
+    await fsExc.copyFile(releasePath, pcEgretPath, true);
+
+    //写index.html文件
+    let indexPath = Global.rawResourcePath + "/nativeIndex.html";
+    let indexContent = await fsExc.readFile(indexPath);
+    indexContent = indexContent.replace(`let curPolicyVersion = "";`, `let curPolicyVersion = "${policyNum}";`);
+    let egretIndexPath = pcEgretPath + "/index.html";
+    await fsExc.writeFile(egretIndexPath, indexContent);
+
+    //写policy文件
+    let policyPath = `${Global.svnPublishPath}${environ.localPolicyPath}/policyFile_v${policyNum}.json`
+    await fsExc.copyFile(policyPath, pcEgretPath);
+}
+
+export async function publishWin() {
+    let cmdStr = "npm run build:win";
+    await spawnExc.runCmd(cmdStr, Global.pcProjectPath, null, "打包window包错误");
+}
+
+export async function publishMac() {
+    let cmdStr = "npm run build:mac";
+    await spawnExc.runCmd(cmdStr, Global.pcProjectPath, null, "打包mac包错误");
 }

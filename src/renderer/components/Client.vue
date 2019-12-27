@@ -94,12 +94,12 @@
             <mu-list-item-title>Lesson</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientApp" v-show="appEnable">
+          <!-- <mu-list-item button :ripple="false" value="ClientApp" v-show="appEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="weekend" />
             </mu-list-item-action>
             <mu-list-item-title>App</mu-list-item-title>
-          </mu-list-item>
+          </mu-list-item>-->
 
           <!-- <mu-list-item button :ripple="false" value="ClientTest">
                   <mu-list-item-action>
@@ -390,8 +390,8 @@ export default {
     ClientLanguage: require("./Client/ClientLanguage"),
     ClientEgret: require("./Client/ClientEgret"),
     ClientVersion: require("./Client/ClientVersion"),
-    ClientLesson: require("./Client/ClientLesson"),
-    ClientApp: require("./Client/ClientApp")
+    ClientLesson: require("./Client/ClientLesson")
+    // ClientApp: require("./Client/ClientApp")
     // ClientFtp: require("./Client/ClientFtp")
     // ClientModule: require("./backup/ClientModule"),
     // ClientTest: require("./backup/ClientTest")

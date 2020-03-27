@@ -2,8 +2,7 @@ import { ipcRenderer } from 'electron';
 import { ModelMgr } from "./model/ModelMgr";
 
 export class Global {
-    static currentVersion = "1.9.5 beta12 国际化测试版";
-    static projPath = localStorage.getItem('client_project_path');
+    static currentVersion = "1.9.7 beta1";
     static projPath = localStorage.getItem('client_project_path');
     static protoPath = localStorage.getItem('client_proto_path');
     static svnPath = localStorage.getItem('client_svn_path');
@@ -41,14 +40,14 @@ export class Global {
         {
             name: "develop", title: "开发模式", icon: "airplanemode_active",
             protoEnable: true, csvEnable: true, textureEnable: true, mapDataEnable: false, assetEnable: true,
-            egretEnable: false, versionEnable: true, lessonEnable: false, appEnable: false,
+            egretEnable: false, versionEnable: true, lessonEnable: false, appEnable: false, nativeEnable: false,
             textureGitEnable: false,
             environNames: [ModelMgr.versionModel.eEnviron.alpha]
         },
         {
             name: "product", title: "产品模式", icon: "drive_eta",
             protoEnable: false, csvEnable: true, textureEnable: true, mapDataEnable: false, assetEnable: false,
-            egretEnable: true, versionEnable: false, lessonEnable: false, appEnable: false,
+            egretEnable: true, versionEnable: false, lessonEnable: false, appEnable: false, nativeEnable: true,
             textureGitEnable: true,
             environNames: [ModelMgr.versionModel.eEnviron.alpha]
 
@@ -56,7 +55,7 @@ export class Global {
         {
             name: "publish", title: "发布模式", icon: "accessible",
             protoEnable: false, csvEnable: false, textureEnable: false, mapDataEnable: false, assetEnable: false,
-            egretEnable: false, versionEnable: true, lessonEnable: true, appEnable: false,
+            egretEnable: false, versionEnable: true, lessonEnable: true, appEnable: true, nativeEnable: true,
             textureGitEnable: false,
             environNames: [ModelMgr.versionModel.eEnviron.beta, ModelMgr.versionModel.eEnviron.ready, ModelMgr.versionModel.eEnviron.release]
         }
@@ -98,6 +97,18 @@ export class Global {
         return Global.projPath + '/rawResource';
     }
 
+    static get pcProjectPath() {
+        return Global.clientPath + '/platform/pc';
+    }
+
+    static get nativeConfigPath() {
+        return `${Global.clientPath}/platform/pc/dist/GlobalConfig.json`;
+    }
+
+    static get nativePackagePath() {
+        return `${Global.clientPath}/platform/pc/package.json`;
+    }
+
     // static get compressPath() {
     //     return Global.projPath + '/rawResource/asset/compress';
     // }
@@ -114,33 +125,8 @@ export class Global {
         return Global.projPath + '/resource';
     }
 
-    static get svnPublishWebPath() {
-        return `${this.svnPublishPath}${ModelMgr.versionModel.curEnviron.trunkPath}${ModelMgr.languageModel.curLanguage.languagePath}${ModelMgr.versionModel.curEnviron.webPath}`;
-    }
-
-    static get svnPublishPolicyPath() {
-        return `${this.svnPublishPath}${ModelMgr.versionModel.curEnviron.trunkPath}${ModelMgr.languageModel.curLanguage.languagePath}${ModelMgr.versionModel.curEnviron.policyPath}`;
-    }
-
-    static get svnPublishZipPath() {
-        return `${this.svnPublishPath}${ModelMgr.versionModel.curEnviron.trunkPath}${ModelMgr.languageModel.curLanguage.languagePath}${ModelMgr.versionModel.curEnviron.zipPath}`;
-    }
-
-    static getScpPath(environ = ModelMgr.versionModel.curEnviron, containRoot = true) {
-        let scpPath = environ.scpPath;
-        if (containRoot) {
-            scpPath = environ.scpRootPath + scpPath;
-        }
-        if (ModelMgr.versionModel.curEnviron.languageEnable) {
-            return `${scpPath}${ModelMgr.languageModel.curLanguage.languagePath}`;
-        }
-
-        return scpPath;
-    }
-
-    static getPolicyVersionName(environName = ModelMgr.versionModel.curEnviron.name) {
-        return `${environName}_${ModelMgr.languageModel.curLanguage.name}`;
-
+    static get cdnUrl() {
+        return "http://bg-stage.wkcoding.com";
     }
 
     static entityCells = [];

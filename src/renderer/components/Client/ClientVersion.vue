@@ -2,7 +2,14 @@
   <div>
     <mu-container>
       <div>
-        <mu-select label="发布环境" @change="environChange" filterable v-model="curEnviron" label-float>
+        <mu-select
+          label="发布环境"
+          @change="environChange"
+          filterable
+          v-model="curEnviron"
+          label-float
+          full-width
+        >
           <mu-option
             v-for="value,index in environList"
             :key="value.name"
@@ -10,25 +17,10 @@
             :value="value"
           ></mu-option>
         </mu-select>
-
-        <mu-select
-          label="语言环境"
-          @change="languageChange"
-          filterable
-          v-model="curLanguage"
-          label-float
-          v-show="curEnviron&&curEnviron.languageEnable"
-        >
-          <mu-option
-            v-for="value,index in languageList"
-            :key="value.displayName"
-            :label="value.displayName"
-            :value="value"
-          ></mu-option>
-        </mu-select>
       </div>
     </mu-container>
     <mu-container>
+      <!-- <mu-checkbox v-model="containNative" label="native包"></mu-checkbox> -->
       <mu-button small v-show="!isAdvanceMode" @click="changeAdvanceMode">
         <mu-icon value="add"></mu-icon>高级模式
       </mu-button>
@@ -91,6 +83,8 @@
             @click="onMergeVersionClick"
             v-show="curEnviron&&curEnviron.mergeVersionEnable"
           >比较新旧版本</mu-button>
+
+          <!-- <mu-button @click="onTestClick" v-loading="isTestLoading">Test</mu-button> -->
         </div>
         <div>
           <mu-flex class="flex-wrapper" align-items="center">
@@ -148,7 +142,7 @@
             @click="onUploadVersionFile"
           >上传游戏版本</mu-button>
         </div>
-        <mu-container v-show="!curEnviron||!curEnviron.cdnEnable">
+        <mu-container v-show="curEnviron&&curEnviron.scpEnable">
           <mu-flex class="flex-wrapper" align-items="center">
             <mu-col span="12" lg="2" sm="2" v-show="curEnviron&&curEnviron.mergeVersionEnable">
               <mu-checkbox v-model="needPatch" @change="needPatchChange" label="patch包"></mu-checkbox>
@@ -229,6 +223,7 @@
               </mu-select>
             </mu-col>
           </mu-flex>
+          <mu-divider />
           <mu-container>
             <div class="button-wrapper">
               <mu-button @click="onCheckPolicyNum">当前策略版本</mu-button>
@@ -236,21 +231,36 @@
             </div>
           </mu-container>
           <mu-divider />
+          <!-- <mu-container v-show="containNative&&curEnviron&&curEnviron.nativeEnable">
+            <mu-button
+              v-loading="isPublishNativeLoading"
+              data-mu-loading-size="24"
+              color="pink500"
+              @click="onPublishNative"
+            >生成native包</mu-button>
+            <mu-button
+              v-loading="isUploadNativeLoading"
+              data-mu-loading-size="24"
+              color="orange500"
+              @click="onUploadNative"
+            >上传native包</mu-button>
+          </mu-container>-->
+          <mu-divider />
           <div class="button-wrapper">
+            <mu-button
+              v-loading="isCommitGitLoading"
+              data-mu-loading-size="24"
+              color="pink500"
+              @click="commitGit"
+              v-show="curEnviron&&(curEnviron.pushGitEnable||curEnviron.gitTagEnable)"
+            >Git提交文件</mu-button>
             <mu-button
               v-loading="isPullGitLoading"
               data-mu-loading-size="24"
-              color="pink500"
-              @click="pushGit"
-              v-show="curEnviron&&curEnviron.pushGitEnable"
-            >Git推送文件</mu-button>
-            <mu-button
-              v-loading="isGitTagLoading"
-              data-mu-loading-size="24"
               color="orange500"
-              @click="gitTag"
-              v-show="curEnviron&&curEnviron.gitTagEnable"
-            >Git打tag</mu-button>
+              @click="pushGit"
+              v-show="curEnviron&&(curEnviron.pushGitEnable||curEnviron.gitTagEnable)"
+            >Git推送文件</mu-button>
             <mu-button
               v-loading="isZipUploadGameLoading"
               data-mu-loading-size="24"
@@ -340,7 +350,9 @@ export default {
   data() {
     return {
       oneClickContent: "只需要点一下就够了.",
+      // containNative: false,
       isAdvanceMode: false,
+      isTestLoading: false,
 
       isUpdateGitLoading: false,
       isPublishProjectLoading: false,
@@ -356,9 +368,13 @@ export default {
       isUploadPolicyLoading: false,
       isApplyPolicyNumLoading: false,
 
+      isCommitGitLoading: false,
       isPullGitLoading: false,
       isGitTagLoading: false,
       isZipUploadGameLoading: false,
+
+      isPublishNativeLoading: false,
+      isUploadNativeLoading: false,
 
       needCover: ModelMgr.versionModel.needCover,
       needCompress: ModelMgr.versionModel.needCompress,
@@ -377,8 +393,6 @@ export default {
       releaseList: [],
       curEnviron: ModelMgr.versionModel.curEnviron,
       environList: [],
-      curLanguage: null,
-      languageList: [],
 
       needPatch: true,
       gameVersionList: [],
@@ -439,6 +453,17 @@ export default {
     }
   },
   methods: {
+    async onTestClick() {
+      // this.isTestLoading = true;
+      // await mdPublish.copyClientPackageToNative();
+      // await mdPublish.publishWin();
+      // await mdPublish.publishMac();
+      // await ModelMgr.ftpModel.initQiniuOption();
+      // await mdFtp.copyPackageToSvn();
+      // await mdFtp.uploadNativeExe();
+      // await mdFtp.uploadNativeDmg();
+      // this.isTestLoading = false;
+    },
     updatePublishText() {
       this.publishErrorText = this.publisher ? null : "请输入发布者";
       ModelMgr.versionModel.publisher = this.publisher;
@@ -472,10 +497,6 @@ export default {
       this.publisher = null;
       this.updatePublishText();
       this.updateVersionDescText();
-    },
-    async languageChange() {
-      ModelMgr.languageModel.curLanguage = this.curLanguage;
-      await this.environChange();
     },
     needPatchChange() {
       if (this.needPatch) {
@@ -522,6 +543,11 @@ export default {
       this.cdnUrl = ModelMgr.versionModel.cdnUrl;
     },
     async onUpdateGitClick() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isUpdateGitLoading = true;
       Global.showRegionLoading();
 
@@ -541,6 +567,11 @@ export default {
       // }
     },
     async onCompressFileClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isCompressPicLoading = true;
       Global.showRegionLoading();
 
@@ -559,6 +590,11 @@ export default {
         });
     },
     async onPublishProjectClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isPublishProjectLoading = true;
       Global.showRegionLoading();
       try {
@@ -575,6 +611,11 @@ export default {
       }
     },
     async onCopyPicturesClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isCopyCompressPicLoading = true;
       Global.showRegionLoading();
 
@@ -593,6 +634,11 @@ export default {
         });
     },
     async onMergeVersionClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isMergeVersionLoading = true;
       Global.showRegionLoading();
 
@@ -612,6 +658,11 @@ export default {
         });
     },
     async onZipVersion() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isZipVersionLoading = true;
       Global.showRegionLoading();
       try {
@@ -624,6 +675,11 @@ export default {
       }
     },
     async onUploadVersionFile(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isUploadVersionLoading = true;
       Global.showRegionLoading();
       try {
@@ -639,6 +695,11 @@ export default {
       }
     },
     async onCreatePolicyFile() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isCreatePolicyFileLoading = true;
       Global.showRegionLoading();
       try {
@@ -651,6 +712,11 @@ export default {
       }
     },
     async onModifyPolicyFile() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isModifyPolicyNumLoading = true;
       Global.showRegionLoading();
       try {
@@ -663,6 +729,11 @@ export default {
       }
     },
     async onUploadPolicyFile() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isUploadPolicyLoading = true;
       Global.showRegionLoading();
       try {
@@ -678,6 +749,11 @@ export default {
       }
     },
     async onApplyPolicyNum() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isApplyPolicyNumLoading = true;
       Global.showRegionLoading();
 
@@ -703,7 +779,29 @@ export default {
       let gameVersion = await ModelMgr.versionModel.getEnvironGameVersion();
       Global.toast(`游戏版本:${gameVersion}`);
     },
+    async commitGit() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
+      this.isCommitGitLoading = true;
+      Global.showRegionLoading();
+      try {
+        await mdFtp.commitGit();
+        this.isCommitGitLoading = false;
+        Global.hideRegionLoading();
+      } catch (error) {
+        this.isCommitGitLoading = false;
+        Global.hideRegionLoading();
+      }
+    },
     async pushGit() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isPullGitLoading = true;
       Global.showRegionLoading();
       try {
@@ -715,19 +813,12 @@ export default {
         Global.hideRegionLoading();
       }
     },
-    async gitTag() {
-      this.isGitTagLoading = true;
-      Global.showRegionLoading();
-      try {
-        await mdFtp.gitTag();
-        this.isGitTagLoading = false;
-        Global.hideRegionLoading();
-      } catch (error) {
-        this.isGitTagLoading = false;
-        Global.hideRegionLoading();
-      }
-    },
     async zipUploadGame() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isZipUploadGameLoading = true;
       Global.showRegionLoading();
       try {
@@ -739,6 +830,54 @@ export default {
         Global.hideRegionLoading();
       }
     },
+    // async onPublishNative() {
+    //   if (!ModelMgr.versionModel.publisher) {
+    //     Global.snack("请输入发布者", null, false);
+    //     return;
+    //   }
+
+    //   this.isPublishNativeLoading = true;
+    //   Global.showRegionLoading();
+    //   try {
+    //     await ModelMgr.ftpModel.initQiniuOption();
+    //     await mdPublish.updateServerPackage();
+    //     await mdPublish.mergeServerPackage();
+    //     // this.isPublishNativeLoading = false;
+    //     // Global.hideRegionLoading();
+    //     // return;
+
+    //     await mdPublish.clearServerPackage();
+    //     // await mdPublish.copyServerPackageToNative();
+    //     await mdPublish.copyClientPackageToNative();
+    //     await mdPublish.publishWin();
+    //     await mdPublish.publishMac();
+    //     this.isPublishNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   } catch (error) {
+    //     this.isPublishNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   }
+    // },
+    // async onUploadNative() {
+    //   if (!ModelMgr.versionModel.publisher) {
+    //     Global.snack("请输入发布者", null, false);
+    //     return;
+    //   }
+
+    //   this.isUploadNativeLoading = true;
+    //   Global.showRegionLoading();
+    //   try {
+    //     await ModelMgr.ftpModel.initQiniuOption();
+    //     await mdFtp.copyPackageToSvn();
+    //     await mdFtp.uploadNativeExe();
+    //     await mdFtp.uploadNativeDmg();
+    //     this.isUploadNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   } catch (error) {
+    //     this.isUploadNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   }
+    // },
     async oneForAll() {
       if (!ModelMgr.versionModel.publisher) {
         Global.snack("请输入发布者", null, false);
@@ -792,12 +931,27 @@ export default {
           promiseList.push(mdFtp.applyPolicyNum);
         }
 
-        if (this.curEnviron.pushGitEnable) {
-          promiseList.push(mdFtp.pushGit);
-        }
+        // if (this.containNative && this.curEnviron.nativeEnable) {
+        //   //打包native包
+        //   promiseList.push(mdPublish.updateServerPackage);
+        //   // promiseList.push(await mdPublish.copyServerPackageToNative());
+        //   promiseList.push(mdPublish.mergeServerPackage);
+        //   promiseList.push(mdPublish.copyClientPackageToNative);
+        //   promiseList.push(mdPublish.publishWin);
+        //   promiseList.push(mdPublish.publishMac);
 
-        if (this.curEnviron.gitTagEnable) {
-          promiseList.push(mdFtp.gitTag);
+        //   //改名native包拷贝到svn,并上传到cdn
+        //   promiseList.push(
+        //     ModelMgr.ftpModel.initQiniuOption.bind(ModelMgr.ftpModel)
+        //   );
+        //   promiseList.push(mdFtp.copyPackageToSvn);
+        //   promiseList.push(mdFtp.uploadNativeExe);
+        //   promiseList.push(mdFtp.uploadNativeDmg);
+        // }
+
+        if (this.curEnviron.pushGitEnable || this.curEnviron.gitTagEnable) {
+          promiseList.push(mdFtp.commitGit);
+          promiseList.push(mdFtp.pushGit);
         }
 
         if (this.curEnviron.zipUploadGameEnable) {
@@ -811,6 +965,7 @@ export default {
         Global.hideLoading();
         Global.dialog("One·for·All Success");
       } catch (error) {
+        this.environChange();
         Global.hideLoading();
         Global.snack("One·for·All Error:", error, false);
       }
@@ -837,9 +992,7 @@ export default {
     this.environList = ModelMgr.versionModel.environList.filter(
       value => Global.mode.environNames.indexOf(value.name) != -1
     );
-    this.languageList = ModelMgr.languageModel.languageList.concat();
     this.curEnviron = ModelMgr.versionModel.curEnviron;
-    this.curLanguage = this.languageList[0];
     this.environChange();
 
     ipcRenderer.on("client_one_click", (event, msg) => {

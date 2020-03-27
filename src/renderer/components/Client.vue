@@ -4,11 +4,7 @@
       <mu-appbar color="primary" :title="appTitle"></mu-appbar>
       <mu-alert color="warning" v-show="egretEnable">
         <mu-icon left value="warning"></mu-icon>
-        <h3 class="warn-text">
-          更新配置和资源前,请先更新GIT文件
-          <br />
-          <br />注意:更新GIT文件时会还原本地的所有修改
-        </h3>
+        <h3 class="warn-text">更新配置和资源前,请先更新GIT文件</h3>
         <component is="ClientEgret"></component>
       </mu-alert>
     </div>
@@ -91,12 +87,19 @@
             <mu-list-item-title>Lesson</mu-list-item-title>
           </mu-list-item>
 
-          <mu-list-item button :ripple="false" value="ClientApp" v-show="appEnable">
+          <mu-list-item button :ripple="false" value="ClientNative" v-show="lessonEnable">
+            <mu-list-item-action>
+              <mu-icon slot="left" value="computer" />
+            </mu-list-item-action>
+            <mu-list-item-title>Native</mu-list-item-title>
+          </mu-list-item>
+
+          <!-- <mu-list-item button :ripple="false" value="ClientApp" v-show="appEnable">
             <mu-list-item-action>
               <mu-icon slot="left" value="weekend" />
             </mu-list-item-action>
             <mu-list-item-title>App</mu-list-item-title>
-          </mu-list-item>
+          </mu-list-item>-->
 
           <!-- <mu-list-item button :ripple="false" value="ClientTest">
                   <mu-list-item-action>
@@ -242,6 +245,7 @@ export default {
       egretEnable: false,
       versionEnable: false,
       lessonEnable: false,
+      nativeEnable: false,
       appEnable: false,
 
       appTitle: ""
@@ -355,6 +359,7 @@ export default {
       this.egretEnable = mode.egretEnable;
       this.versionEnable = mode.versionEnable;
       this.lessonEnable = mode.lessonEnable;
+      this.nativeEnable = mode.nativeEnable;
       this.appEnable = mode.appEnable;
       this.appTitle = mode.title;
 
@@ -386,7 +391,8 @@ export default {
     ClientEgret: require("./Client/ClientEgret"),
     ClientVersion: require("./Client/ClientVersion"),
     ClientLesson: require("./Client/ClientLesson"),
-    ClientApp: require("./Client/ClientApp")
+    ClientNative: require("./Client/ClientNative")
+    // ClientApp: require("./Client/ClientApp")
     // ClientFtp: require("./Client/ClientFtp")
     // ClientModule: require("./backup/ClientModule"),
     // ClientTest: require("./backup/ClientTest")

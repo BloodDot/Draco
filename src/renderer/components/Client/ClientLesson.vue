@@ -8,22 +8,6 @@
         <mu-col span="12" lg="2" sm="2">
           <mu-text-field class="text-game" v-model="policyNum" label="策略版本号" label-float />
         </mu-col>
-        <mu-col span="12" lg="2" sm="2">
-          <mu-select
-            label="语言环境"
-            @change="languageChange"
-            filterable
-            v-model="curLanguage"
-            label-float
-          >
-            <mu-option
-              v-for="value,index in languageList"
-              :key="value.displayName"
-              :label="value.displayName"
-              :value="value"
-            ></mu-option>
-          </mu-select>
-        </mu-col>
       </mu-flex>
       <mu-button
         v-loading="isApplyPolicyNumLoading"
@@ -47,9 +31,7 @@ export default {
     return {
       isApplyPolicyNumLoading: false,
       policyNum: null,
-      isTest: true,
-      curLanguage: null,
-      languageList: []
+      isTest: true
     };
   },
   watch: {
@@ -58,10 +40,6 @@ export default {
     }
   },
   methods: {
-    languageChange() {
-      ModelMgr.languageModel.curLanguage = this.curLanguage;
-      this.refreshPolicyNum();
-    },
     async onApplyPolicyNum() {
       this.isApplyPolicyNumLoading = true;
       Global.showRegionLoading();
@@ -83,11 +61,9 @@ export default {
       }
     },
     async refreshPolicyNum() {
-      let environName = this.isTest
-        ? ModelMgr.versionModel.eEnviron.beta
+      let versionName = this.isTest
+        ? ModelMgr.versionModel.eEnviron.ready
         : ModelMgr.versionModel.eEnviron.release;
-
-      let versionName = Global.getPolicyVersionName(environName);
       let value = await ExternalUtil.getPolicyInfo(versionName);
       let data = JSON.parse(value);
       if (data.Code == 0) {
@@ -96,8 +72,6 @@ export default {
     }
   },
   async mounted() {
-    this.languageList = ModelMgr.languageModel.languageList.concat();
-    this.curLanguage = this.languageList[0];
     this.refreshPolicyNum();
   }
 };

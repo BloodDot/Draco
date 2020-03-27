@@ -2,6 +2,7 @@ import { Global } from "../Global";
 import * as fsExc from "../FsExecute";
 import * as ExternalUtil from "../ExternalUtil";
 import * as http from 'http';
+import os from 'os';
 
 export class VersionModel {
     eEnviron = {
@@ -14,35 +15,34 @@ export class VersionModel {
     environList = [
         {
             name: this.eEnviron.alpha, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            trunkPath: "/alpha", zipPath: "/zip", scpRootPath: "/web", scpPath: "/web/alpha", webPath: "/web", policyPath: "/policy",
-            updateGitEnable: false, trunkName: "alpha",
-            publishEnable: true, mergeVersionEnable: false, compressPicEnable: false, zipFileEnable: true, policyEnable: false, cdnEnable: false,
-            pushGitEnable: false, publishDescEnable: true, codeVersionEnable: true, gitTagEnable: false, zipUploadGameEnable: false,
-            languageEnable: false
+            zipPath: "/alpha/zip", scpRootPath: "/web", scpPath: "/web/alpha", localPath: "/alpha/web", localPolicyPath: "/alpha/policy", serverPackagePath: "/alpha/server_packages",
+            updateGitEnable: false, gitBranch: "", trunkName: "alpha", cdnRoot: "",
+            publishEnable: true, mergeVersionEnable: false, compressPicEnable: false, zipFileEnable: true, policyEnable: false, scpEnable: true, cdnEnable: false,
+            pushGitEnable: false, publishDescEnable: true, codeVersionEnable: true, gitTagEnable: false, zipUploadGameEnable: false, nativeEnable: false
         },
         {
             name: this.eEnviron.beta, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            trunkPath: "/beta", zipPath: "/zip", scpRootPath: "/web", scpPath: "/web/beta", webPath: "/web", policyPath: "/policy",
-            updateGitEnable: true, trunkName: "beta",
-            publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
-            pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: false, zipUploadGameEnable: false,
-            languageEnable: true
+            zipPath: "/beta/zip", scpRootPath: "/web", scpPath: "/web/beta", localPath: "/beta/web", localPolicyPath: "/beta/policy", serverPackagePath: "/beta/server_packages",
+            updateGitEnable: true, gitBranch: "trunk/beta", trunkName: "beta", cdnRoot: "",
+            scpWinPatchPath: "/native/win/beta/patch", scpMacPatchPath: "/native/mac/beta/patch",
+            publishEnable: true, mergeVersionEnable: true, compressPicEnable: false, zipFileEnable: true, policyEnable: true, scpEnable: true, cdnEnable: false,
+            pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: false, zipUploadGameEnable: false, nativeEnable: true
         },
         {
             name: this.eEnviron.ready, host: "47.107.73.43", user: "ftpadmin", password: "unclemiao",
-            trunkPath: "/ready", zipPath: "/zip", scpRootPath: "/web", scpPath: "/web/ready", webPath: "/web", policyPath: "/policy",
-            updateGitEnable: true, trunkName: "release",
-            publishEnable: true, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: true, policyEnable: true, cdnEnable: false,
-            pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: true, zipUploadGameEnable: false,
-            languageEnable: true
+            zipPath: "/ready/zip", scpRootPath: "/web", scpPath: "/web/ready", localPath: "/ready/web", localPolicyPath: "/ready/policy", serverPackagePath: "/ready/server_packages",
+            updateGitEnable: true, gitBranch: "trunk/release", trunkName: "release", cdnRoot: "readyTest",
+            scpWinPatchPath: "/native/win/release/patch", scpMacPatchPath: "/native/mac/release/patch",
+            publishEnable: true, mergeVersionEnable: true, compressPicEnable: false, zipFileEnable: true, policyEnable: true, scpEnable: true, cdnEnable: true,
+            pushGitEnable: true, publishDescEnable: false, codeVersionEnable: true, gitTagEnable: true, zipUploadGameEnable: false, nativeEnable: true
         },
         {
             name: this.eEnviron.release, host: "bg-stage.wkcoding.com", user: "ftpadmin", password: "unclemiao",
-            trunkPath: "/ready", zipPath: "/zip", scpRootPath: "", scpPath: "", webPath: "/web", policyPath: "/policy",
-            updateGitEnable: false, trunkName: "",
-            publishEnable: false, mergeVersionEnable: true, compressPicEnable: true, zipFileEnable: false, policyEnable: true, cdnEnable: true,
-            pushGitEnable: false, publishDescEnable: false, codeVersionEnable: false, gitTagEnable: false, zipUploadGameEnable: false,
-            languageEnable: true
+            zipPath: "/ready/zip", scpRootPath: "", scpPath: "", localPath: "/ready/web", localPolicyPath: "/release/policy", serverPackagePath: "/release/server_packages",
+            updateGitEnable: false, gitBranch: "", trunkName: "", cdnRoot: "",
+            cdnWinPatchPath: "/win", cdnMacPatchPath: "/mac",
+            publishEnable: false, mergeVersionEnable: true, compressPicEnable: false, zipFileEnable: false, policyEnable: true, scpEnable: false, cdnEnable: true,
+            pushGitEnable: false, publishDescEnable: false, codeVersionEnable: false, gitTagEnable: false, zipUploadGameEnable: false, nativeEnable: false
         },
     ];
 
@@ -132,6 +132,21 @@ export class VersionModel {
         this.policyNum = value;
     }
 
+    _nativePolicyNum;
+    setNativePolicyNum(value) {
+        this._nativePolicyNum = value;
+    }
+    /** native策略号 */
+    get nativePolicyNum() {
+        return this._nativePolicyNum;
+    }
+
+    /** native版本号 */
+    nativeVersion;
+
+    /** 线上的native版本 */
+    originNativeVersion;
+
     //白名单版本号
     whiteVersion;
     setWhiteVersion(value) {
@@ -164,6 +179,7 @@ export class VersionModel {
         await this.initPolicyObj();
         await this.initReleaseVersion();
         await this.initPolicyNum();
+        await this.initNativePolicyNum();
     }
 
     initEnviron() {
@@ -173,16 +189,16 @@ export class VersionModel {
     }
 
     async initVersionList() {
-        let webPath = Global.svnPublishWebPath;
-        await fsExc.makeDir(webPath);
+        let localPath = Global.svnPublishPath + this.curEnviron.localPath;
+        await fsExc.makeDir(localPath);
 
-        let webDir = await fsExc.readDir(webPath);
+        let cdnDir = await fsExc.readDir(localPath);
 
         this.oldVersionList = [];
         this.releaseList = [];
         this.patchList = [];
         let reg = /[A-Za-z]_*/g;
-        for (const iterator of webDir) {
+        for (const iterator of cdnDir) {
             if (iterator.indexOf("release") != -1) {
                 this.oldVersionList.push(iterator.replace(reg, ""));
             }
@@ -233,65 +249,90 @@ export class VersionModel {
                 resolve();
                 return;
             }
-            let value = await ExternalUtil.getPolicyInfo(Global.getPolicyVersionName());
+            let value = await ExternalUtil.getPolicyInfo(this.curEnviron.name);
             let data = JSON.parse(value);
             if (data.Code != 0) {
-                this.releaseVersion = 1;
-                this.oldVersion = 0;
                 resolve();
                 return;
             }
             let policyNum = +data.Data.Version;
-            this.getGameVersion(this.curEnviron, policyNum,
-                async (gameVersion) => {
-                    this.releaseVersion = parseInt(gameVersion) + 1;
+            let gameVersion = await this.getGameVersion(this.curEnviron, policyNum);
 
-                    let oldVersionPath = `${Global.svnPublishWebPath}/release_v${gameVersion}s`;
-                    let exist = await fsExc.exists(oldVersionPath);
-                    if (exist) {
-                        this.oldVersion = gameVersion;
-                    } else {
-                        this.oldVersion = 0;
-                    }
-                    resolve();
-                },
-                () => {
-                    this.releaseVersion = 1;
-                    this.oldVersion = 0;
-                    resolve();
-                })
+            this.releaseVersion = parseInt(gameVersion) + 1;
+            let oldVersionPath = `${Global.svnPublishPath}${this.curEnviron.localPath}/release_v${gameVersion}s`;
+            let exist = await fsExc.exists(oldVersionPath);
+            if (exist) {
+                this.oldVersion = gameVersion;
+            } else {
+                this.oldVersion = 0;
+            }
+            resolve();
         });
+
+        // let options = {
+        //     host: '47.107.73.43', // 请求地址 域名，google.com等..
+        //     // port: 10001,
+        //     path: `${this.curEnviron.scpPath}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
+        //     method: 'GET', // 请求方式, 这里以post为例
+        //     headers: { // 必选信息,  可以抓包工看一下
+        //         'Content-Type': 'application/json'
+        //     }
+        // };
+        // http.get(options, (response) => {
+        //     if (response.statusCode != 200) {
+        //         resolve();
+        //         return;
+        //     }
+
+        //     let resData = "";
+        //     response.on("data", (data) => {
+        //         resData += data;
+        //     });
+        //     response.on("end", async () => {
+        //         // console.log(resData);
+
+        //         let obj = JSON.parse(resData);
+        //         this.releaseVersion = parseInt(obj.normalVersion) + 1;
+
+        //         let oldVersionPath = `${Global.svnPublishPath}${this.curEnviron.localPath}/release_v${obj.normalVersion}s`;
+        //         let exist = await fsExc.exists(oldVersionPath);
+        //         if (exist) {
+        //             this.oldVersion = obj.normalVersion;
+        //         }
+        //         resolve();
+        //     });
+        // })
     }
 
-    getGameVersion(environ, policyNum, successFunc, errorFunc) {
-        let options = {
-            host: environ.host, // 请求地址 域名，google.com等.. 
-            // port: 10001,
-            path: `${Global.getScpPath(environ, false)}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
-            method: 'GET', // 请求方式, 这里以post为例
-            headers: { // 必选信息,  可以抓包工看一下
-                'Content-Type': 'application/json'
-            }
-        };
-        http.get(options, (response) => {
-            if (response.statusCode != 200) {
-                if (errorFunc) {
-                    errorFunc();
+    getGameVersion(environ, policyNum) {
+        return new Promise((resolve, reject) => {
+            let options = {
+                host: environ.host, // 请求地址 域名，google.com等.. 
+                // port: 10001,
+                path: `${environ.scpPath}/policyFile_v${policyNum}.json`, // 具体路径eg:/upload
+                method: 'GET', // 请求方式, 这里以post为例
+                headers: { // 必选信息,  可以抓包工看一下
+                    'Content-Type': 'application/json'
                 }
-                return;
-            }
+            };
+            http.get(options, (response) => {
+                if (response.statusCode != 200) {
+                    reject();
+                    return;
+                }
 
-            let resData = "";
-            response.on("data", (data) => {
-                resData += data;
-            });
-            response.on("end", async () => {
-                // console.log(resData);
-                let obj = JSON.parse(resData);
+                let resData = "";
+                response.on("data", (data) => {
+                    resData += data;
+                });
+                response.on("end", async () => {
+                    // console.log(resData);
+                    let obj = JSON.parse(resData);
 
-                successFunc(obj.normalVersion);
-            });
-        })
+                    resolve(obj.normalVersion);
+                });
+            })
+        });
     }
 
     async initPolicyNum() {
@@ -302,6 +343,26 @@ export class VersionModel {
         } else {
             this.policyNum = 1;
         }
+    }
+
+    async initNativePolicyNum() {
+        let environName = this.curEnviron.name;
+        let value = await ExternalUtil.getNativePolicyNum(environName);
+        // let data = JSON.parse(value);
+        console.log(`nativePolicyNum:${value}`);
+        if (value === 0) {
+            // this._nativePolicyNum = +data.Data.Version;
+            this._nativePolicyNum = 0;
+            this.originNativeVersion = this.nativeVersion = 0;
+            console.log(`originNativeVersion:${this.originNativeVersion} nativeVersion:${this.nativeVersion}`);
+            return;
+        }
+
+        this._nativePolicyNum = value;
+
+        let platform = os.platform() === 'win32' ? "win" : "mac";
+        this.originNativeVersion = this.nativeVersion = await ExternalUtil.getNativeVersion(environName, this._nativePolicyNum, platform);
+        console.log(`nativeVersion:${this.nativeVersion}`);
     }
 
     initChannel() {
@@ -330,19 +391,18 @@ export class VersionModel {
     }
 
     async getCurPolicyInfo() {
-        return await ExternalUtil.getPolicyInfo(Global.getPolicyVersionName());
+        return await ExternalUtil.getPolicyInfo(this.curEnviron.name);
     }
 
     async getEnvironGameVersion(environName = this.curEnviron.name) {
         return new Promise(async (resolve, reject) => {
-            let value = await ExternalUtil.getPolicyInfo(Global.getPolicyVersionName(environName));
+            let value = await ExternalUtil.getPolicyInfo(environName);
             let environ = this.environList.find(value => value.name === environName);
             let data = JSON.parse(value);
             if (data.Code == 0) {
                 let policyNum = data.Data.Version;
-                this.getGameVersion(environ, policyNum, gameVersion => {
-                    resolve(gameVersion);
-                });
+                let gameVersion = await this.getGameVersion(environ, policyNum);
+                resolve(gameVersion);
             } else {
                 reject();
                 Global.snack(`获取游戏版本失败`, null, false);

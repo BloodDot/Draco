@@ -12,8 +12,8 @@
       >
         <mu-option
           v-for="value,index in languageList"
-          :key="value.displayName"
-          :label="value.displayName"
+          :key="value.name"
+          :label="value.name"
           :value="value"
         ></mu-option>
       </mu-select>
@@ -40,7 +40,6 @@
         data-mu-loading-size="24"
         color="blue500"
         @click="copyUIText"
-        v-show="curLanguage&&curLanguage.UITextEnable"
       >拷贝UIText文件</mu-button>
     </div>
     <div class="button-wrapper">
@@ -129,9 +128,7 @@ export default {
         await this.updateSvn();
         await this.zipCsv();
         await this.createTs();
-        if (curLanguage && curLanguage.UITextEnable) {
-          await this.copyUIText();
-        }
+        await this.copyUIText();
         Global.hideLoading();
         Global.toast("One·for·All Success");
       } catch (error) {

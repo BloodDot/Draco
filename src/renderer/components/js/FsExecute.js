@@ -3,6 +3,7 @@ import * as del from 'delete';
 import * as fs from 'fs';
 import * as cpy from 'cpy';
 import * as crypto from 'crypto';
+import * as admzip from 'adm-zip';
 
 export async function delAndCopyFile(fromPath, toPath, needLoop) {
     if (await exists(toPath)) {
@@ -40,6 +41,10 @@ export async function copyFile(fromPath, toPath, needLoop) {
             await copyFile(pathName, toPath);
         }
     }
+}
+
+export async function rename(originPath, newPath) {
+    await fs.renameSync(originPath, newPath);
 }
 
 /**
@@ -191,4 +196,9 @@ export function formatFilePath(path) {
     }
 
     return filePath;
+}
+
+export function unzipFile(filePath, targetPath) {
+    let zip = new admzip(filePath);
+    zip.extractAllTo(targetPath, true);
 }

@@ -1,6 +1,6 @@
 export class LanguageModel {
     eLanguage = {
-        default: "zh",
+        default: "default",
         en: "en",
     }
 
@@ -10,14 +10,10 @@ export class LanguageModel {
 
     languageList = [
         {
-            name: this.eLanguage.default, displayName: "default", csvPath: "/settings/config/csv", UITextPath: "/settings/UItext/UIText_zh",
-            languagePath: "/ch", trunkSuffix: "", trunkFold: "trunk",
-            UITextEnable: false,
+            name: this.eLanguage.default, csvPath: "/settings/config/csv", UITextPath: "/settings/UItext/UIText_zh"
         },
         {
-            name: this.eLanguage.en, displayName: "en", csvPath: "/settings/config/csv_en", UITextPath: "/settings/UItext/UItext_en",
-            languagePath: "/en", trunkSuffix: "_en", trunkFold: "language",
-            UITextEnable: true,
+            name: this.eLanguage.en, csvPath: "/settings/config/csv_en", UITextPath: "/settings/UItext/UItext_en"
         }
     ];
 

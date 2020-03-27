@@ -4,9 +4,13 @@ import * as fsExc from './FsExecute';
 import { Global } from './Global.js';
 import { ModelMgr } from './model/ModelMgr';
 import * as spawnExc from './SpawnExecute.js';
+import * as ExternalUtil from './ExternalUtil.js';
+import * as CdnUtil from './CdnUtil.js';
+import * as admzip from 'adm-zip';
+import * as archiver from "archiver";
 
 const releaseSuffix = '/bin-release/web/';
-// const thmFileSuffix = 'resource/default.thm.json';
+const thmFileSuffix = 'resource/default.thm.json';
 const defaultResSuffix = 'resource/default.res.json';
 const mapDataResSuffix = 'resource/mapData.res.json';
 const asyncResSuffix = 'resource/async.res.json';
@@ -27,16 +31,22 @@ const indie_suffix_path = '/resource/indie';
 const assetSfxValues = [assetsSfx, asyncSfx, indieSfx, externalSfx];
 
 export async function updateGit() {
-    let gitBranch = `${ModelMgr.languageModel.curLanguage.trunkFold}/${ModelMgr.versionModel.curEnviron.trunkName}${ModelMgr.languageModel.curLanguage.trunkSuffix}`;
+    let gitBranch = ModelMgr.versionModel.curEnviron.gitBranch;
     try {
+        let clearCmdStr = `git clean -df`;
+        await spawnExc.runCmd(clearCmdStr, Global.projPath, null, '清除文件错误');
+        await spawnExc.runCmd(clearCmdStr, Global.clientPath, null, '清除Client代码错误');
+
         let storeCmdStr = `git checkout -- .`;
         await spawnExc.runCmd(storeCmdStr, Global.projPath, null, '还原分支错误');
+        await spawnExc.runCmd(storeCmdStr, Global.clientPath, null, '还原Client代码错误');
 
         let switchCmdStr = `git checkout ${gitBranch}`;
         await spawnExc.runCmd(switchCmdStr, Global.projPath, null, '切换分支错误');
 
         let pullCmdStr = `git pull`;
-        await spawnExc.runCmd(pullCmdStr, Global.projPath, null, '推送分支错误');
+        await spawnExc.runCmd(pullCmdStr, Global.projPath, null, '拉取分支错误');
+        await spawnExc.runCmd(pullCmdStr, Global.clientPath, null, '拉取Client代码错误');
 
         Global.toast('更新git成功');
     } catch (error) {
@@ -44,9 +54,7 @@ export async function updateGit() {
     }
 }
 
-/**
- * 发布项目
- */
+/** 发布项目 */
 export async function publishProject() {
     let releaseVersion = ModelMgr.versionModel.releaseVersion;
     if (!releaseVersion) {
@@ -54,9 +62,9 @@ export async function publishProject() {
         return;
     }
 
-    if (ModelMgr.versionModel.needCover) {
-        await checkClearRelease(releaseVersion);
-    }
+    // if (ModelMgr.versionModel.needCover) {
+    //     await checkClearRelease(releaseVersion);
+    // }
 
     try {
         if (ModelMgr.versionModel.curEnviron.codeVersionEnable) {
@@ -64,10 +72,10 @@ export async function publishProject() {
             let configContent = await fsExc.readFile(configPath);
             let codeVersionName;
             let regCodeVersion;
-            if (ModelMgr.versionModel.curEnviron.trunkName === ModelMgr.versionModel.eEnviron.beta) {
+            if (ModelMgr.versionModel.curEnviron.name === ModelMgr.versionModel.eEnviron.beta) {
                 regCodeVersion = /public static betaCodeVersion = ".*?";/;
                 codeVersionName = "betaCodeVersion";
-            } else if (ModelMgr.versionModel.curEnviron.trunkName === ModelMgr.versionModel.eEnviron.ready) {
+            } else if (ModelMgr.versionModel.curEnviron.name === ModelMgr.versionModel.eEnviron.ready) {
                 regCodeVersion = /public static releaseCodeVersion = ".*?";/;
                 codeVersionName = "releaseCodeVersion";
             } else {
@@ -105,7 +113,6 @@ export async function publishProject() {
             let configContent = await fsExc.readFile(configPath);
             let regTrunkName = /public static trunkName: eTrunkName = .*?;/;
             configContent = configContent.replace(regTrunkName, `public static trunkName: eTrunkName = eTrunkName.${ModelMgr.versionModel.eEnviron.alpha};`);
-
             await fsExc.writeFile(configPath, configContent);
         }
         Global.toast('发布当前项目成功');
@@ -114,9 +121,7 @@ export async function publishProject() {
     }
 }
 
-/**
- * 比较版本
- */
+/** 比较版本 */
 export async function mergeVersion() {
     let newVersion = ModelMgr.versionModel.newVersion;
     if (!newVersion) {
@@ -185,21 +190,21 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
     }
     let svnRlsPath;
     if (isRelease) {
-        svnRlsPath = `${Global.svnPublishWebPath}/release_v${newVersion}s`;
+        svnRlsPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/release_v${newVersion}s`;
     }
 
     let svnPatchPath;
     let oldSvnRlsPath;
     if (oldVersion) {
-        svnPatchPath = `${Global.svnPublishWebPath}/patch_v${oldVersion}s-v${newVersion}s`;
-        oldSvnRlsPath = `${Global.svnPublishWebPath}/release_v${oldVersion}s`;
+        svnPatchPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/patch_v${oldVersion}s-v${newVersion}s`;
+        oldSvnRlsPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/release_v${oldVersion}s`;
         let rlsExists = await fsExc.exists(oldSvnRlsPath);
         if (!rlsExists) {
             console.error(`--> version ${oldSvnRlsPath} dose not exist`);
             return;
         }
     } else {
-        svnPatchPath = `${Global.svnPublishWebPath}/patch_v${newVersion}s`;
+        svnPatchPath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/patch_v${newVersion}s`;
     }
 
     // newVersion = newVersion.replace(new RegExp('[.]', 'g'), '-');
@@ -215,8 +220,10 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
         //不用比较,直接拷贝的
         if (svnRlsPath) {
             await copyFileCheckDir('index.html', svnRlsPath, newVersion);
+            await writeNativeIndexToPath(svnRlsPath);
         }
         await copyFileCheckDir('index.html', svnPatchPath, newVersion);
+        await writeNativeIndexToPath(svnPatchPath);
 
         if (svnRlsPath) {
             await copyFileCheckDir('manifest.json', svnRlsPath, newVersion);
@@ -282,6 +289,7 @@ async function mergeSingleVersion(newVersion, oldVersion, isRelease) {
     }
 }
 
+/** 处理外部资源配置 */
 async function externalHandle(resFilePath, newVersion, releasePath, patchPath, oldVersion, oldVersionPath) {
     let projNewVersionPath = Global.projPath + releaseSuffix + newVersion;
     let externalCfgPath = projNewVersionPath + '/' + resFilePath;
@@ -298,7 +306,9 @@ async function externalHandle(resFilePath, newVersion, releasePath, patchPath, o
             let useNew = true;
             let fileName = externalCfgObj[key];
             let fileInfo = fileName.split(".");
-            let oldFilePath = `${oldVersionPath}${external_suffix_path}/${fileInfo[0]}_v${oldVersion}.${fileInfo[1]}`;
+            let fileSuffix = fileInfo.pop();
+            let filePreName = fileInfo.join(".");
+            let oldFilePath = `${oldVersionPath}${external_suffix_path}/${filePreName}_v${oldVersion}.${fileSuffix}`;
             let newFilePath = `${projNewVersionPath}${external_suffix_path}/${fileName}`;
             if (oldVersion) {
                 let oldFileExist = await fsExc.exists(oldFilePath);
@@ -315,12 +325,12 @@ async function externalHandle(resFilePath, newVersion, releasePath, patchPath, o
                     await copyFile(`${newFilePath}`, `${releasePath}${external_suffix_path}/${fileName}`, newVersion);
                 }
                 await copyFile(`${newFilePath}`, `${patchPath}${external_suffix_path}/${fileName}`, newVersion);
-                externalCfgObj[key] = `${fileInfo[0]}_v${newVersion}.${fileInfo[1]}`;
+                externalCfgObj[key] = `${filePreName}_v${newVersion}.${fileSuffix}`;
             } else {
                 if (releasePath) {
                     await copyFile(`${newFilePath}`, `${releasePath}${external_suffix_path}/${fileName}`, oldVersion);
                 }
-                externalCfgObj[key] = `${fileInfo[0]}_v${oldVersion}.${fileInfo[1]}`;
+                externalCfgObj[key] = `${filePreName}_v${oldVersion}.${fileSuffix}`;
             }
         }
     }
@@ -401,7 +411,7 @@ async function copyFileCheckDir(fileName, targetPath, newVersion) {
  * @param {*} version 
  */
 export async function checkExistVersion(version) {
-    let releasePath = `${Global.svnPublishWebPath}/release_v${version}s`;
+    let releasePath = `${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/release_v${version}s`;
     let exist = await fsExc.exists(releasePath);
     return exist;
 }
@@ -427,11 +437,11 @@ export async function checkClearVersion(version) {
 
     console.log(`--> old version ${version} exist, start clear.`);
     try {
-        let svnPa = await fsExc.readDir(`${Global.svnPublishWebPath}`);
+        let svnPa = await fsExc.readDir(`${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}`);
         for (let i = 0; i < svnPa.length; i++) {
             const element = svnPa[i];
             if (element.indexOf(`v${version}s`) != -1) {
-                await fsExc.delFolder(`${Global.svnPublishWebPath}/${element}`);
+                await fsExc.delFolder(`${Global.svnPublishPath}${ModelMgr.versionModel.curEnviron.localPath}/${element}`);
             }
         }
 
@@ -724,9 +734,14 @@ async function sheetConfigHandle(configEqual, resFileEqual, releasePath, patchPa
     }
 }
 
-/**
- * 清空resource
- */
+/** 拷贝压缩图片 */
+export async function copyPictures() {
+    let projNewVersionPath = Global.projPath + releaseSuffix + ModelMgr.version.newVersion;
+    await clearResource(projNewVersionPath);
+    await copyResource(projNewVersionPath);
+}
+
+/** 清空resource */
 export async function clearResource(releasePath) {
     let assetsPath = releasePath + assets_suffix_path;
     let asyncPath = releasePath + async_suffix_path;
@@ -754,7 +769,7 @@ export async function clearResource(releasePath) {
     }
 }
 
-
+/** 拷贝resource */
 export async function copyResource(releasePath) {
     let compressAssetsPath = Global.compressResourcePath + '/' + assetsSfx;
     let compressAsyncPath = Global.compressResourcePath + '/' + asyncSfx;
@@ -793,8 +808,286 @@ export async function copyResource(releasePath) {
     }
 }
 
-export async function copyPictures() {
-    let projNewVersionPath = Global.projPath + releaseSuffix + ModelMgr.version.newVersion;
-    await clearResource(projNewVersionPath);
-    await copyResource(projNewVersionPath);
+/** 拷贝nativeIndex文件 */
+export async function writeNativeIndexToPath(egretIndexPath) {
+    let releaseVersion = ModelMgr.versionModel.releaseVersion;
+    let indexPath = Global.rawResourcePath + "/nativeIndex.html";
+    let environ = ModelMgr.versionModel.curEnviron;
+    let indexContent = await fsExc.readFile(indexPath);
+    let policyNum = ModelMgr.versionModel.policyNum;
+    indexContent = indexContent.replace(`let curPolicyVersion = "";`, `let curPolicyVersion = "${policyNum}";`);
+    indexContent = indexContent.replace(`let patchVersion = "";`, `let patchVersion = "${releaseVersion}";`);
+    indexContent = indexContent.replace(`let evnName = "";`, `let evnName = "${ModelMgr.versionModel.curEnviron.name}";`);
+    if (ModelMgr.versionModel.curEnviron.name == ModelMgr.versionModel.eEnviron.release) {
+        indexContent = indexContent.replace(`let patchUrl = "";`, `let patchUrl = "${environ.host}${environ.cdnWinPatchPath}";`);
+        indexContent = indexContent.replace(`let policyUrl = "";`, `let policyUrl = "${environ.host}/";`);
+    } else {
+        indexContent = indexContent.replace(`let patchUrl = "";`, `let patchUrl = "${environ.host}${environ.scpWinPatchPath}";`);
+        indexContent = indexContent.replace(`let policyUrl = "";`, `let policyUrl = "${environ.host}${environ.scpPath}";`);
+    }
+    await fsExc.writeFile(egretIndexPath + "/index.html", indexContent);
+}
+
+/** 更新服务器包 */
+export async function updateServerPackage() {
+    let environ = ModelMgr.versionModel.curEnviron;
+    let serverPackage = `${Global.svnPath}/server/native_${environ.name}`;
+    await spawnExc.svnUpdate(serverPackage, "", "更新服务器包错误");
+}
+
+/** 清理游戏包目录 */
+export async function clearPackageDir() {
+    console.log(`清空游戏包目录`)
+    let clientPackagePath = `${Global.pcProjectPath}/package/client`;
+    if (await fsExc.exists(clientPackagePath)) {
+        await fsExc.delFiles(clientPackagePath);
+    }
+
+    let serverPackagePath = `${Global.pcProjectPath}/package/server`;
+    if (await fsExc.exists(serverPackagePath)) {
+        await fsExc.delFiles(serverPackagePath);
+    }
+}
+
+/** 比较服务端包版本 */
+export function mergeServerPackage() {
+    return new Promise(async (resolve, reject) => {
+        let environ = ModelMgr.versionModel.curEnviron;
+        let serverPackage = `${Global.svnPath}/server/native_${environ.name}`;
+
+        let packageDir = await fsExc.readDir(serverPackage);
+        await checkUploadServerPackages(packageDir, () => {
+            console.log(`比较服务器包并上传完毕`);
+            resolve();
+        })
+    });
+}
+
+/** 上传客户端包 */
+export async function uploadClientPackage() {
+    return new Promise(async (resolve, reject) => {
+        let policyInfo = await ModelMgr.versionModel.getCurPolicyInfo();
+        let data = JSON.parse(policyInfo);
+        console.log(`start zip`);
+        if (data.Code != 0) {
+            console.log(`policy num is null`);
+            console.log(data.Message);
+            reject();
+            return;
+        }
+
+        let policyNum = data.Data.Version;
+        let environ = ModelMgr.versionModel.curEnviron;
+        let gameVersion = await ModelMgr.versionModel.getGameVersion(environ, policyNum);
+        let releaseName = `release_v${gameVersion}s`;
+        let zipPath = `${Global.svnPublishPath}${environ.zipPath}/${releaseName}.zip`;
+
+        await zipClientPackage(environ, policyNum, releaseName, zipPath);
+
+        let fileKey = `${releaseName}.zip`
+        CdnUtil.checkUploaderFile(zipPath, fileKey, `clientPackages/${environ.name}`, () => {
+            console.log(`${environ.name}上传${fileKey}完毕,版本号:${gameVersion}`);
+            resolve();
+        });
+    })
+}
+
+function zipClientPackage(environ, policyNum, releaseName, zipPath) {
+    return new Promise(async (resolve, reject) => {
+        let releasePath = `${Global.svnPublishPath}${environ.localPath}/${releaseName}/`;
+
+        //判断policy文件
+        let policyPath = `${Global.svnPublishPath}${environ.localPolicyPath}/policyFile_v${policyNum}.json`
+        if (!(await fsExc.exists(policyPath))) {
+            console.log(`本地不存在最新策略文件:${policyPath}`);
+            return;
+        }
+
+        let indexPath = Global.rawResourcePath + "/nativeIndex.html";
+        let policyData = fs.readFileSync(policyPath);
+        let indexData = fs.readFileSync(indexPath);
+        let output = fs.createWriteStream(zipPath);
+        let archive = archiver("zip");
+        archive.pipe(output);
+        archive.directory(releasePath, ``);
+        archive.append(policyData, {
+            name: "policyFile.json"
+        });
+        archive.append(indexData, {
+            name: "index.html"
+        });
+
+        archive.on("error", (err) => {
+            console.error(`压缩${zipPath}失败`, err);
+            reject();
+        });
+        output.on("close", () => {
+            console.log(`压缩${zipPath}成功`);
+            resolve();
+        });
+
+        archive.finalize();
+    });
+}
+
+async function checkUploadServerPackages(packageDir, successFunc) {
+    if (packageDir.length === 0) {
+        successFunc();
+        return;
+    }
+
+    let iterator = packageDir.pop();
+    if (iterator.indexOf(".zip") === -1) {
+        await checkUploadServerPackages(packageDir, successFunc);
+        return;
+    }
+
+    let environ = ModelMgr.versionModel.curEnviron;
+    let fileName = iterator.slice(0, iterator.indexOf("."));
+
+    let policyNum = await ExternalUtil.getServerPackagePolicyNum(environ.name, fileName);
+
+    // await ExternalUtil.applyServerPackagePolicyNum(0, environ.name, fileName);
+    // await checkUploadServerPackages(packageDir, successFunc);
+    // return;
+
+    let newServerPackagePath = `${Global.svnPath}/server/native_${environ.name}/${iterator}`;
+    let curServerPackagePath = `${Global.svnPublishPath}${environ.serverPackagePath}/${iterator}`;
+    let newPolicyNum;
+
+    //直接拷贝
+    if (policyNum === 0) {
+        newPolicyNum = 1;
+        console.log(`服务器版本不存在,用最新的包`);
+    } else {
+        //比较版本,不相等
+        console.log(`开始检比服务器包${fileName}`);
+        let fileExist = await fsExc.exists(curServerPackagePath);
+        if (fileExist) {
+            let fileEqual = await fsExc.mergeFileByMd5(newServerPackagePath, curServerPackagePath);
+            if (fileEqual) {
+                console.log(`服务器包${fileName}版本相等,跳过`);
+                await checkUploadServerPackages(packageDir, successFunc);
+                return;
+            }
+        }
+
+        console.log(`服务器包版本不相等,用最新的包`);
+        newPolicyNum = policyNum + 1;
+    }
+
+    await fsExc.copyFile(newServerPackagePath, `${Global.svnPublishPath}${environ.serverPackagePath}`);
+
+    let fileKey = `${fileName}_v${newPolicyNum}.zip`;
+    console.log(`${environ.name} 开始上传 ${fileKey}`);
+    CdnUtil.checkUploaderFile(curServerPackagePath, fileKey, `serverPackages/${environ.name}`, async () => {
+        await ExternalUtil.applyServerPackagePolicyNum(newPolicyNum, environ.name, fileName);
+        console.log(`${environ.name}上传${fileKey}完毕,版本号:${newPolicyNum}`);
+        await checkUploadServerPackages(packageDir, successFunc);
+    });
+}
+
+// /** 拷贝服务器包到native文件夹 */
+// export async function copyServerPackageToNative() {
+//     console.log(`拷贝服务器包到native文件夹`);
+//     let pcPackagePath = `${Global.pcProjectPath}/package`;
+//     let pcServerPackageFilePath = `${pcPackagePath}/server.zip`;
+//     let svnServerPackagePath = `${Global.svnPath}/server/native/server.zip`;
+
+//     //拷贝egret游戏资源包
+//     await fsExc.copyFile(svnServerPackagePath, pcPackagePath, true);
+//     fsExc.unzipFile(`${pcServerPackageFilePath}`, pcPackagePath);
+//     fsExc.delFile(pcServerPackageFilePath);
+
+//     console.log(`拷贝服务器包完毕`);
+// }
+
+// /** 拷贝客户端包到native文件夹 */
+// export async function copyClientPackageToNative() {
+//     return new Promise(async (resolve, reject) => {
+//         console.log(`拷贝客户端包到native文件夹`);
+//         let pcClientPath = `${Global.pcProjectPath}/package/client`;
+
+//         let policyInfo = await ModelMgr.versionModel.getCurPolicyInfo();
+//         let data = JSON.parse(policyInfo);
+//         if (data.Code != 0) {
+//             console.log(data.Message);
+//             return;
+//         }
+
+//         let policyNum = data.Data.Version;
+//         let environ = ModelMgr.versionModel.curEnviron;
+//         let gameVersion = await ModelMgr.versionModel.getGameVersion(environ, policyNum);
+
+//         // let releaseVersion = ModelMgr.versionModel.releaseVersion;
+//         let releasePath = `${Global.svnPublishPath}${environ.localPath}/release_v${gameVersion}s`;
+//         // let policyNum = ModelMgr.versionModel.policyNum;
+
+//         //删除egret文件夹
+//         await fsExc.delFiles(pcClientPath);
+
+//         if (!(await fsExc.exists(releasePath))) {
+//             console.log(`本地不存在最新版本:${releasePath}`);
+//             reject();
+//             return;
+//         }
+
+//         //拷贝egret游戏资源包
+//         await fsExc.copyFile(releasePath, pcClientPath, true);
+
+//         //写index.html文件
+//         await writeNativeIndexToPath(pcClientPath);
+//         let policyPath = `${Global.svnPublishPath}${environ.localPolicyPath}/policyFile_v${policyNum}.json`
+//         if (!(await fsExc.exists(policyPath))) {
+//             console.log(`本地不存在最新策略文件:${policyPath}`);
+//             reject();
+//             return;
+//         }
+//         await fsExc.copyFile(policyPath, pcClientPath);
+//         await fsExc.rename(pcClientPath + `/policyFile_v${policyNum}.json`, pcClientPath + `/policyFile.json`)
+//         console.log(`拷贝客户端包完毕`);
+//         resolve();
+//     });
+// }
+
+/** 写入版本信息 */
+export async function writeVersionInfo() {
+    //设置globalConfig信息
+    let nativeConfigContent = await fsExc.readFile(Global.nativeConfigPath);
+    let curEnviron = ModelMgr.versionModel.curEnviron;
+    let nativeConfig = JSON.parse(nativeConfigContent);
+    nativeConfig.environName = curEnviron.name;
+    if (curEnviron.name == ModelMgr.versionModel.eEnviron.release) {
+        nativeConfig.patchUrl = `${curEnviron.host}${curEnviron.cdnWinPatchPath}`;
+        nativeConfig.policyUrl = `${curEnviron.host}/`;
+    } else {
+        nativeConfig.patchUrl = `${curEnviron.host}${curEnviron.scpWinPatchPath}`;
+        nativeConfig.policyUrl = `${curEnviron.host}${curEnviron.scpPath}`;
+    }
+
+    nativeConfigContent = JSON.stringify(nativeConfig, null, 4);
+    await fsExc.writeFile(Global.nativeConfigPath, nativeConfigContent);
+
+    //写入native版本号
+    let nativePackageContent = await fsExc.readFile(Global.nativePackagePath);
+    let nativePackageObj = JSON.parse(nativePackageContent);
+    nativePackageObj.version = ModelMgr.versionModel.nativeVersion;
+    nativePackageContent = JSON.stringify(nativePackageObj, null, 4);
+    await fsExc.writeFile(Global.nativePackagePath, nativePackageContent);
+}
+
+/** 发布window版本 */
+export async function publishWin() {
+    let cmdStr = "yarn build:win";
+    console.log(`开始打包windows包`);
+    await spawnExc.runCmd(cmdStr, Global.pcProjectPath, null, "打包window包错误");
+    console.log(`打包windows成功`);
+}
+
+/** 发布mac版本 */
+export async function publishMac() {
+    let cmdStr = "yarn build:mac";
+    console.log(`开始打包mac包`);
+    await spawnExc.runCmd(cmdStr, Global.pcProjectPath, null, "打包mac包错误");
+    console.log(`打包mac成功`);
 }

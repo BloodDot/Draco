@@ -11,6 +11,7 @@ import { ModelMgr } from "./model/ModelMgr";
 import * as qiniu from "qiniu";
 import * as ExternalUtil from "./ExternalUtil";
 import * as spawnExc from "./SpawnExecute.js";
+import * as CdnUtil from "./CdnUtil.js";
 
 export const serverList = [
     { name: "long", host: "47.107.73.43", user: "ftpadmin", password: "unclemiao", path: "/web/feature/long" },
@@ -56,6 +57,10 @@ export const serverList = [
 // export function getNormalVersion() { return normalVersion; }
 // export function setNormalVersion(value) { normalVersion = value; }
 
+function getPatchName() {
+    return `patch_v${ModelMgr.versionModel.oldVersion}s_v${ModelMgr.versionModel.newVersion}s.zip`;
+}
+
 export async function zipVersion() {
     let environ = ModelMgr.versionModel.curEnviron;
     let zipPath = `${Global.svnPublishPath}${environ.zipPath}/`;
@@ -67,7 +72,7 @@ export async function zipVersion() {
         zipName = "release.zip";
     } else {
         filePath = `${Global.svnPublishPath}${environ.localPath}/${ModelMgr.versionModel.uploadVersion}/`;
-        zipName = ModelMgr.versionModel.needPatch ? "patch.zip" : "release.zip";
+        zipName = ModelMgr.versionModel.needPatch ? getPatchName() : "release.zip";
     }
 
     try {
@@ -78,16 +83,28 @@ export async function zipVersion() {
 }
 
 export async function uploadVersionFile() {
-    if (ModelMgr.versionModel.curEnviron.scpEnable) {
+    let curEnviron = ModelMgr.versionModel.curEnviron;
+    if (curEnviron.scpEnable) {
         await uploadScpVersionFile();
+        if (curEnviron.scpMacPatchPath) {
+            await uploadScpPatchZip(curEnviron.scpMacPatchPath);
+        }
+        if (curEnviron.scpWinPatchPath) {
+            await uploadScpPatchZip(curEnviron.scpWinPatchPath);
+        }
     }
 
-    if (ModelMgr.versionModel.curEnviron.cdnEnable) {
+    if (curEnviron.cdnEnable) {
         await uploadCdnVersionFile();
+        if (curEnviron.cdnWinPatchPath) {
+            await uploadCdnPatchZip(curEnviron.cdnWinPatchPath);
+        }
+        if (curEnviron.cdnMacPatchPath) {
+            await uploadCdnPatchZip(curEnviron.cdnMacPatchPath);
+        }
     }
 }
 
-let maxUploadCount = 10;
 export function uploadCdnVersionFile() {
     return new Promise(async (resolve, reject) => {
         await ModelMgr.ftpModel.initQiniuOption();
@@ -109,6 +126,7 @@ export function uploadCdnVersionFile() {
         let readyEnviron = ModelMgr.versionModel.environList.find(value => value.name === ModelMgr.versionModel.eEnviron.ready);
         let readyPath = `${Global.svnPublishPath}${readyEnviron.localPath}`;
         let curGameVersion = releaseGameVersion;
+        let hasPatch = false;
         for (let i = +releaseGameVersion + 1; i <= readyGameVersion; i++) {
             let patchVersion = `patch_v${curGameVersion}s-v${i}s`;
             let patchPath = `${readyPath}/${patchVersion}/`;
@@ -117,10 +135,16 @@ export function uploadCdnVersionFile() {
                 continue;
             }
 
+            hasPatch = true;
             await uploadCdnSingleVersionFile(patchPath, releaseEnviron.cdnRoot);
             curGameVersion = i;
         }
 
+        //没有patch包,传整包
+        if (!hasPatch) {
+            let releasePath = `${readyPath}/release_v${readyGameVersion}s`;
+            await uploadCdnSingleVersionFile(releasePath, releaseEnviron.cdnRoot);
+        }
         resolve();
     });
 }
@@ -129,84 +153,8 @@ async function uploadCdnSingleVersionFile(patchPath, cdnRoot) {
     return new Promise(async (resolve, reject) => {
         let releaseUploadCount = 0;
         let filePathArr = [];
-        await batchUploaderFiles(patchPath, filePathArr);
-        await checkUploaderFiles(patchPath, filePathArr, cdnRoot, releaseUploadCount, resolve, reject);
-    });
-}
-
-async function batchUploaderFiles(rootPath, filePathArr) {
-    let files = await fsExc.readDir(rootPath);
-    for (const iterator of files) {
-        let fullPath = `${rootPath}/${iterator}`;
-        let isFolder = await fsExc.isDirectory(fullPath);
-        if (isFolder) {
-            await batchUploaderFiles(fullPath, filePathArr);
-        } else {
-            filePathArr.push(fullPath);
-        }
-    }
-}
-
-function checkUploaderFiles(rootPath, filePathArr, cdnRoot, uploadCount, resolve, reject) {
-    if (uploadCount > maxUploadCount) return;
-    if (filePathArr.length == 0) return;
-
-    let filePath = filePathArr.shift();
-    checkUploaderFile(rootPath, filePath, cdnRoot, uploadCount,
-        () => {
-            if (filePathArr.length != 0) {
-                checkUploaderFiles(rootPath, filePathArr, cdnRoot, uploadCount, resolve, reject);
-            } else {
-                if (resolve) {
-                    resolve();
-                    console.log(`上传cdn完成`);
-                }
-            }
-        });
-}
-
-function checkUploaderFile(rootPath, filePath, cdnRoot, uploadCount, successFunc) {
-    uploadCount++;
-    uploaderFile(rootPath, filePath, cdnRoot,
-        () => {
-            uploadCount--;
-            successFunc();
-        },
-        () => {
-            uploadCount--;
-            checkUploaderFile(rootPath, filePath, cdnRoot, uploadCount, successFunc);
-        });
-}
-
-function uploaderFile(rootPath, filePath, cdnRoot, successFunc, failFunc) {
-    let formUploader = new qiniu.form_up.FormUploader(ModelMgr.ftpModel.qiniuConfig);
-    let uploadToken = ModelMgr.ftpModel.uploadToken;
-    let fileKey = filePath.split(`${rootPath}/`)[1];
-    if (cdnRoot) {
-        fileKey = `${cdnRoot}/${fileKey}`;
-    }
-    let readerStream = fs.createReadStream(filePath);
-    let putExtra = new qiniu.form_up.PutExtra();
-
-    formUploader.putStream(uploadToken, fileKey, readerStream, putExtra, (rspErr, rspBody, rspInfo) => {
-        if (rspErr) {
-            //单个文件失败
-            console.error(rspErr);
-            console.error(`cdn --> upload ${fileKey} error`);
-            failFunc();
-            return;
-        }
-
-        //200:成功 614:文件重复
-        if (rspInfo.statusCode != 200 && rspInfo.statusCode != 614) {
-            console.log(rspInfo.statusCode);
-            console.log(rspBody);
-            failFunc();
-            return;
-        }
-
-        console.log(`cdn --> upload ${fileKey} success`);
-        successFunc();
+        await CdnUtil.createUploaderFilePathArr(patchPath, filePathArr);
+        await CdnUtil.checkUploaderFiles(patchPath, filePathArr, cdnRoot, releaseUploadCount, resolve, reject);
     });
 }
 
@@ -217,7 +165,7 @@ async function uploadScpVersionFile() {
     if (environ.name === ModelMgr.versionModel.eEnviron.alpha) {
         zipName = "release.zip";
     } else {
-        zipName = ModelMgr.versionModel.needPatch ? "patch.zip" : "release.zip";
+        zipName = ModelMgr.versionModel.needPatch ? getPatchName() : "release.zip";
     }
 
     let webZipPath = zipPath + zipName;
@@ -316,7 +264,7 @@ export function uploadCdnPolicyFile() {
             }
         }
 
-        await checkUploaderFiles(policyPath, policyFilePathArr, ModelMgr.versionModel.curEnviron.cdnRoot, uploadCount, resolve, reject);
+        await CdnUtil.checkUploaderFiles(policyPath, policyFilePathArr, ModelMgr.versionModel.curEnviron.cdnRoot, uploadCount, resolve, reject);
     });
 }
 
@@ -361,6 +309,103 @@ async function scpFile(path) {
                 }
             }
         );
+    });
+}
+
+async function uploadScpPatchZip(scpPatchPath) {
+    return new Promise((resolve, reject) => {
+        let client = new Client();
+        let environ = ModelMgr.versionModel.curEnviron;
+        if (!scpPatchPath) {
+            reject();
+            console.log("没有配置补丁zip scp上传路径");
+        }
+        client
+            .on("ready", () => {
+                console.log("Client :: ready");
+                let cmdCopyPatch =
+                    "cp -rvf " +
+                    environ.scpRootPath + environ.scpPath + "/" + getPatchName() + " " +
+                    environ.scpRootPath + scpPatchPath + "/" + getPatchName();
+
+                console.log("cmd --> " + cmdCopyPatch);
+
+                client.exec(
+                    cmdCopyPatch,
+                    {},
+                    (err, stream) => {
+                        if (err) throw err;
+                        stream
+                            .on("close", (code, signal) => {
+                                client.end();
+                                if (code != 0) {
+                                    reject();
+                                    console.log("复制补丁失败", code);
+                                    return;
+                                }
+
+                                console.log("复制补丁成功");
+                                resolve();
+                            })
+                            .on("data", (data) => {
+                                // console.log("STDOUT: " + data);
+                            })
+                            .stderr.on("data", (data) => {
+                                console.log("STDERR: " + data);
+                            });
+                    }
+                );
+            })
+            .connect({
+                host: environ.host,
+                user: environ.user,
+                password: environ.password
+            });
+    })
+}
+
+async function uploadCdnPatchZip(cdnPatchPath) {
+    return new Promise(async (resolve, reject) => {
+        if (!cdnPatchPath) {
+            reject();
+            console.log("没有配置补丁zip cdn上传路径");
+        }
+        await ModelMgr.ftpModel.initQiniuOption();
+        let releaseEnviron = ModelMgr.versionModel.environList.find(value => value.name === ModelMgr.versionModel.eEnviron.release);
+        let readyEnviron = ModelMgr.versionModel.environList.find(value => value.name === ModelMgr.versionModel.eEnviron.ready);
+        let readyPath = `${Global.svnPublishPath}${readyEnviron.zipPath}`;
+        let patchPath = `${readyPath}/${getPatchName()}`;
+        let patchExist = await fsExc.exists(patchPath);
+        if (patchExist) {
+            let fileKey = `${cdnPatchPath}/${getPatchName()}`;
+            CdnUtil.checkUploaderFile(patchPath, fileKey, releaseEnviron.cdnRoot, resolve);
+            // let formUploader = new qiniu.form_up.FormUploader(ModelMgr.ftpModel.qiniuConfig);
+            // let uploadToken = ModelMgr.ftpModel.uploadToken;
+            // let readerStream = fs.createReadStream(patchPath);
+            // let putExtra = new qiniu.form_up.PutExtra();
+            // formUploader.putStream(uploadToken, fileKey, readerStream, putExtra, (rspErr, rspBody, rspInfo) => {
+            //     if (rspErr) {
+            //         //单个文件失败
+            //         console.error(rspErr);
+            //         console.error(`cdn --> upload ${fileKey} error`);
+            //         reject();
+            //         return;
+            //     }
+
+            //     //200:成功 614:文件重复
+            //     if (rspInfo.statusCode != 200 && rspInfo.statusCode != 614) {
+            //         console.log(rspInfo.statusCode);
+            //         console.log(rspBody);
+            //         reject();
+            //         return;
+            //     }
+
+            //     console.log(`cdn --> upload ${fileKey} success`);
+            //     resolve();
+            // });
+        }
+
+        resolve();
     });
 }
 
@@ -532,65 +577,113 @@ export async function zipUploadGame() {
     // }
 }
 
-export async function copyPackageToSvn() {
-    console.log(`拷贝native包到svn文件夹`);
-    let environ = ModelMgr.versionModel.curEnviron;
-    let releaseVersion = ModelMgr.versionModel.releaseVersion;
-    let exeOriginName = "bellplanet Setup 1.0.0.exe"
-    let exePath = `${Global.pcProjectPath}/dist/${exeOriginName}`;
-    let exeTargetPath = `${Global.svnPublishPath}/native`;
-    let exeNewName = `bellplanet_${environ.name}_${releaseVersion}.exe`;
-    await fsExc.copyFile(exePath, exeTargetPath);
-    await fsExc.rename(`${exeTargetPath}/${exeOriginName}`, `${exeTargetPath}/${exeNewName}`);
+// export async function copyPackageToSvn() {
+//     console.log(`拷贝native包到svn文件夹`);
+//     let environ = ModelMgr.versionModel.curEnviron;
+//     let releaseVersion = ModelMgr.versionModel.releaseVersion;
+//     let exeOriginName = "bellplanet Setup 1.0.0.exe"
+//     let exePath = `${Global.pcProjectPath}/dist/${exeOriginName}`;
+//     let exeTargetPath = `${Global.svnPublishPath}/native`;
+//     let exeNewName = `bellplanet_${environ.name}_${releaseVersion}.exe`;
+//     await fsExc.copyFile(exePath, exeTargetPath);
+//     await fsExc.rename(`${exeTargetPath}/${exeOriginName}`, `${exeTargetPath}/${exeNewName}`);
 
-    let dmgOriginName = "bellplanet-1.0.0.dmg";
-    let dmgPath = `${Global.pcProjectPath}/dist/${dmgOriginName}`;
-    let dmgTargetPath = `${Global.svnPublishPath}/native/`;
-    let dmgNewName = `bellplanet_${environ.name}_${releaseVersion}.dmg`;
-    await fsExc.copyFile(dmgPath, dmgTargetPath)
-    await fsExc.rename(`${dmgTargetPath}/${dmgOriginName}`, `${dmgTargetPath}/${dmgNewName}`);
-    console.log(`拷贝完毕`);
-}
+//     let dmgOriginName = "bellplanet-1.0.0.dmg";
+//     let dmgPath = `${Global.pcProjectPath}/dist/${dmgOriginName}`;
+//     let dmgTargetPath = `${Global.svnPublishPath}/native/`;
+//     let dmgNewName = `bellplanet_${environ.name}_${releaseVersion}.dmg`;
+//     await fsExc.copyFile(dmgPath, dmgTargetPath)
+//     await fsExc.rename(`${dmgTargetPath}/${dmgOriginName}`, `${dmgTargetPath}/${dmgNewName}`);
+//     console.log(`拷贝完毕`);
+// }
 
 export async function uploadNativeExe() {
-    return new Promise((resolve, reject) => {
-        tryUploadNativeExe(resolve, reject);
-    });
-}
+    let environName = ModelMgr.versionModel.curEnviron.name;
+    let newNativePolicyNum = getNewNativePolicyNum();
+    let nativeVersion = ModelMgr.versionModel.nativeVersion;
+    let pkgName = `bellplanet Setup ${nativeVersion}.exe`
+    let pkgPath = `${Global.pcProjectPath}/app/${pkgName}`;
 
-async function tryUploadNativeExe(resolve, reject) {
-    console.log(`开始上传exe文件`);
-    let environ = ModelMgr.versionModel.curEnviron;
-    let releaseVersion = ModelMgr.versionModel.releaseVersion;
-    let nativePath = `${Global.svnPublishPath}/native/`;
-    let exeName = `bellplanet_${environ.name}_${releaseVersion}.exe`;
-    console.log(`nativePath: ${nativePath} exeName:${exeName}`);
-    uploaderFile(`${nativePath}`, `${nativePath}/${exeName}`, "native", () => {
-        console.log(`上传exe成功`)
-        resolve();
-    }, (reason) => {
-        console.log(`上传exe失败: ${reason}`)
-        setTimeout(tryUploadNativeExe, 5000, resolve, reject);
-    });
+    console.log("开始exe包上传");
+    let platform = "win";
+    let cdnRoot = `native/${environName}/${newNativePolicyNum}/${platform}`;
+    await tryUploadNativePkg(pkgPath, pkgName, cdnRoot);
+
+    let ymlName = `latest.yml`;
+    let ymlPath = `${Global.pcProjectPath}/app/${ymlName}`;
+    await tryUploadNativePkg(ymlPath, ymlName, cdnRoot);
+
+    let policyObj = {
+        nativeVersion: nativeVersion,
+        nativePolicyNum: newNativePolicyNum,
+        trunkName: environName,
+        platform: platform
+    }
+    let policyName = "policyFile.json"
+    let policyPath = `${Global.pcProjectPath}/app/${policyName}`;
+    await fsExc.writeFile(policyPath, JSON.stringify(policyObj));
+    await tryUploadNativePkg(policyPath, policyName, cdnRoot);
+    console.log("上传exe包完毕");
 }
 
 export async function uploadNativeDmg() {
-    return new Promise((resolve, reject) => {
-        tryUploadNativeDmg(resolve, reject);
-    });
+    let environName = ModelMgr.versionModel.curEnviron.name;
+    let newNativePolicyNum = getNewNativePolicyNum();
+    let nativeVersion = ModelMgr.versionModel.nativeVersion;
+    let pkgName = `bellplanet-${nativeVersion}.dmg`;
+    let pkgPath = `${Global.pcProjectPath}/app/${pkgName}`;
+
+    console.log("开始mac包上传");
+    let platform = "mac";
+    let cdnRoot = `native/${environName}/${newNativePolicyNum}/${platform}`
+    await tryUploadNativePkg(pkgPath, pkgName, cdnRoot);
+
+    let ymlName = `latest.yml`;
+    let ymlPath = `${Global.pcProjectPath}/app/${ymlName}`;
+    await tryUploadNativePkg(ymlPath, ymlName, cdnRoot);
+
+    let policyObj = {
+        nativeVersion: nativeVersion,
+        nativePolicyNum: newNativePolicyNum,
+        trunkName: environName,
+        platform: platform
+    }
+    let policyName = "policyFile.json"
+    let policyPath = `${Global.pcProjectPath}/app/${policyName}`;
+    await fsExc.writeFile(policyPath, JSON.stringify(policyObj));
+    await tryUploadNativePkg(policyPath, policyName, cdnRoot);
+
+    console.log("上传mac包完毕");
 }
 
-async function tryUploadNativeDmg(resolve, reject) {
-    console.log(`开始上传dmg文件`);
-    let environ = ModelMgr.versionModel.curEnviron;
-    let releaseVersion = ModelMgr.versionModel.releaseVersion;
-    let nativePath = `${Global.svnPublishPath}/native/`;
-    let dmgName = `bellplanet_${environ.name}_${releaseVersion}.dmg`;
-    uploaderFile(`${nativePath}`, `${nativePath}/${dmgName}`, "native", () => {
-        console.log(`上传dmg成功`)
-        resolve();
-    }, (reason) => {
-        console.log(`上传dmg失败: ${reason}`)
-        setTimeout(tryUploadNativeDmg, 5000, resolve, reject)
-    });
+function tryUploadNativePkg(pkgPath, pkgName, cdnRoot) {
+    return new Promise((resolve, reject) => {
+        console.log(`尝试上传${pkgName}文件`);
+        CdnUtil.uploaderFile(pkgPath, pkgName, cdnRoot, () => {
+            console.log(`上传${pkgName}成功`)
+            resolve();
+        }, (reason) => {
+            console.log(`上传${pkgName}失败: ${reason}, 5秒后重试`)
+            setTimeout(tryUploadNativePkg, 5000, pkgPath, pkgName, cdnRoot);
+        });
+    })
+}
+
+export async function applyNativePolicyNum() {
+    let newNativePolicyNum = getNewNativePolicyNum();
+    let environName = ModelMgr.versionModel.curEnviron.name;
+    await ExternalUtil.applyNativePolicyNum(newNativePolicyNum, environName);
+
+    let commitCmdStr = `git commit -a -m "${ModelMgr.versionModel.publisher} 发布${ModelMgr.versionModel.curEnviron.name} native包 策略版本号:${newNativePolicyNum}"`;
+    await spawnExc.runCmd(commitCmdStr, Global.clientPath, null, '提交文件错误');
+    console.log(`提交文件成功`);
+
+    let pushCmdStr = `git push`;
+    await spawnExc.runCmd(pushCmdStr, Global.clientPath, null, '推送分支错误');
+
+    ModelMgr.versionModel.originNativeVersion = ModelMgr.versionModel.nativeVersion;
+}
+
+function getNewNativePolicyNum() {
+    return ModelMgr.versionModel.nativePolicyNum + 1;
 }

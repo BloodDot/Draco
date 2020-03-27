@@ -20,7 +20,7 @@
       </div>
     </mu-container>
     <mu-container>
-      <mu-checkbox v-model="containNative" label="native包"></mu-checkbox>
+      <!-- <mu-checkbox v-model="containNative" label="native包"></mu-checkbox> -->
       <mu-button small v-show="!isAdvanceMode" @click="changeAdvanceMode">
         <mu-icon value="add"></mu-icon>高级模式
       </mu-button>
@@ -231,7 +231,7 @@
             </div>
           </mu-container>
           <mu-divider />
-          <mu-container v-show="containNative&&curEnviron&&curEnviron.nativeEnable">
+          <!-- <mu-container v-show="containNative&&curEnviron&&curEnviron.nativeEnable">
             <mu-button
               v-loading="isPublishNativeLoading"
               data-mu-loading-size="24"
@@ -244,7 +244,7 @@
               color="orange500"
               @click="onUploadNative"
             >上传native包</mu-button>
-          </mu-container>
+          </mu-container>-->
           <mu-divider />
           <div class="button-wrapper">
             <mu-button
@@ -350,7 +350,7 @@ export default {
   data() {
     return {
       oneClickContent: "只需要点一下就够了.",
-      containNative: false,
+      // containNative: false,
       isAdvanceMode: false,
       isTestLoading: false,
 
@@ -455,7 +455,7 @@ export default {
   methods: {
     async onTestClick() {
       // this.isTestLoading = true;
-      // await mdPublish.copyVersionToNative();
+      // await mdPublish.copyClientPackageToNative();
       // await mdPublish.publishWin();
       // await mdPublish.publishMac();
       // await ModelMgr.ftpModel.initQiniuOption();
@@ -543,6 +543,11 @@ export default {
       this.cdnUrl = ModelMgr.versionModel.cdnUrl;
     },
     async onUpdateGitClick() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isUpdateGitLoading = true;
       Global.showRegionLoading();
 
@@ -562,6 +567,11 @@ export default {
       // }
     },
     async onCompressFileClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isCompressPicLoading = true;
       Global.showRegionLoading();
 
@@ -580,6 +590,11 @@ export default {
         });
     },
     async onPublishProjectClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isPublishProjectLoading = true;
       Global.showRegionLoading();
       try {
@@ -596,6 +611,11 @@ export default {
       }
     },
     async onCopyPicturesClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isCopyCompressPicLoading = true;
       Global.showRegionLoading();
 
@@ -614,6 +634,11 @@ export default {
         });
     },
     async onMergeVersionClick(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isMergeVersionLoading = true;
       Global.showRegionLoading();
 
@@ -633,6 +658,11 @@ export default {
         });
     },
     async onZipVersion() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isZipVersionLoading = true;
       Global.showRegionLoading();
       try {
@@ -645,6 +675,11 @@ export default {
       }
     },
     async onUploadVersionFile(showDialog = true) {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isUploadVersionLoading = true;
       Global.showRegionLoading();
       try {
@@ -660,6 +695,11 @@ export default {
       }
     },
     async onCreatePolicyFile() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isCreatePolicyFileLoading = true;
       Global.showRegionLoading();
       try {
@@ -672,6 +712,11 @@ export default {
       }
     },
     async onModifyPolicyFile() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isModifyPolicyNumLoading = true;
       Global.showRegionLoading();
       try {
@@ -684,6 +729,11 @@ export default {
       }
     },
     async onUploadPolicyFile() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isUploadPolicyLoading = true;
       Global.showRegionLoading();
       try {
@@ -699,6 +749,11 @@ export default {
       }
     },
     async onApplyPolicyNum() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isApplyPolicyNumLoading = true;
       Global.showRegionLoading();
 
@@ -725,6 +780,11 @@ export default {
       Global.toast(`游戏版本:${gameVersion}`);
     },
     async commitGit() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isCommitGitLoading = true;
       Global.showRegionLoading();
       try {
@@ -737,6 +797,11 @@ export default {
       }
     },
     async pushGit() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isPullGitLoading = true;
       Global.showRegionLoading();
       try {
@@ -749,6 +814,11 @@ export default {
       }
     },
     async zipUploadGame() {
+      if (!ModelMgr.versionModel.publisher) {
+        Global.snack("请输入发布者", null, false);
+        return;
+      }
+
       this.isZipUploadGameLoading = true;
       Global.showRegionLoading();
       try {
@@ -760,35 +830,54 @@ export default {
         Global.hideRegionLoading();
       }
     },
-    async onPublishNative() {
-      this.isPublishNativeLoading = true;
-      Global.showRegionLoading();
-      try {
-        await mdPublish.copyVersionToNative();
-        await mdPublish.publishWin();
-        await mdPublish.publishMac();
-        this.isPublishNativeLoading = false;
-        Global.hideRegionLoading();
-      } catch (error) {
-        this.isPublishNativeLoading = false;
-        Global.hideRegionLoading();
-      }
-    },
-    async onUploadNative() {
-      this.isUploadNativeLoading = true;
-      Global.showRegionLoading();
-      try {
-        await ModelMgr.ftpModel.initQiniuOption();
-        await mdFtp.copyPackageToSvn();
-        await mdFtp.uploadNativeExe();
-        await mdFtp.uploadNativeDmg();
-        this.isUploadNativeLoading = false;
-        Global.hideRegionLoading();
-      } catch (error) {
-        this.isUploadNativeLoading = false;
-        Global.hideRegionLoading();
-      }
-    },
+    // async onPublishNative() {
+    //   if (!ModelMgr.versionModel.publisher) {
+    //     Global.snack("请输入发布者", null, false);
+    //     return;
+    //   }
+
+    //   this.isPublishNativeLoading = true;
+    //   Global.showRegionLoading();
+    //   try {
+    //     await ModelMgr.ftpModel.initQiniuOption();
+    //     await mdPublish.updateServerPackage();
+    //     await mdPublish.mergeServerPackage();
+    //     // this.isPublishNativeLoading = false;
+    //     // Global.hideRegionLoading();
+    //     // return;
+
+    //     await mdPublish.clearServerPackage();
+    //     // await mdPublish.copyServerPackageToNative();
+    //     await mdPublish.copyClientPackageToNative();
+    //     await mdPublish.publishWin();
+    //     await mdPublish.publishMac();
+    //     this.isPublishNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   } catch (error) {
+    //     this.isPublishNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   }
+    // },
+    // async onUploadNative() {
+    //   if (!ModelMgr.versionModel.publisher) {
+    //     Global.snack("请输入发布者", null, false);
+    //     return;
+    //   }
+
+    //   this.isUploadNativeLoading = true;
+    //   Global.showRegionLoading();
+    //   try {
+    //     await ModelMgr.ftpModel.initQiniuOption();
+    //     await mdFtp.copyPackageToSvn();
+    //     await mdFtp.uploadNativeExe();
+    //     await mdFtp.uploadNativeDmg();
+    //     this.isUploadNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   } catch (error) {
+    //     this.isUploadNativeLoading = false;
+    //     Global.hideRegionLoading();
+    //   }
+    // },
     async oneForAll() {
       if (!ModelMgr.versionModel.publisher) {
         Global.snack("请输入发布者", null, false);
@@ -842,20 +931,23 @@ export default {
           promiseList.push(mdFtp.applyPolicyNum);
         }
 
-        if (this.containNative && this.curEnviron.nativeEnable) {
-          //打包native包
-          promiseList.push(mdPublish.copyVersionToNative);
-          promiseList.push(mdPublish.publishWin);
-          promiseList.push(mdPublish.publishMac);
+        // if (this.containNative && this.curEnviron.nativeEnable) {
+        //   //打包native包
+        //   promiseList.push(mdPublish.updateServerPackage);
+        //   // promiseList.push(await mdPublish.copyServerPackageToNative());
+        //   promiseList.push(mdPublish.mergeServerPackage);
+        //   promiseList.push(mdPublish.copyClientPackageToNative);
+        //   promiseList.push(mdPublish.publishWin);
+        //   promiseList.push(mdPublish.publishMac);
 
-          //改名native包拷贝到svn,并上传到cdn
-          promiseList.push(
-            ModelMgr.ftpModel.initQiniuOption.bind(ModelMgr.ftpModel)
-          );
-          promiseList.push(mdFtp.copyPackageToSvn);
-          promiseList.push(mdFtp.uploadNativeExe);
-          promiseList.push(mdFtp.uploadNativeDmg);
-        }
+        //   //改名native包拷贝到svn,并上传到cdn
+        //   promiseList.push(
+        //     ModelMgr.ftpModel.initQiniuOption.bind(ModelMgr.ftpModel)
+        //   );
+        //   promiseList.push(mdFtp.copyPackageToSvn);
+        //   promiseList.push(mdFtp.uploadNativeExe);
+        //   promiseList.push(mdFtp.uploadNativeDmg);
+        // }
 
         if (this.curEnviron.pushGitEnable || this.curEnviron.gitTagEnable) {
           promiseList.push(mdFtp.commitGit);

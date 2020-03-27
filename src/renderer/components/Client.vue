@@ -249,7 +249,7 @@ export default {
       textureEnable: false,
       mapDataEnable: false,
       assetEnable: false,
-      languageEnable: true,
+      languageEnable: false,
       egretEnable: false,
       versionEnable: false,
       lessonEnable: false,
